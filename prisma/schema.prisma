@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String
+  role       String   @default("user") // 'admin', 'user', 'viewer'
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  created_projects    Project[]        @relation("ProjectCreator")
+  project_memberships ProjectMember[]
+  screening_results   ScreeningResult[]
+  audit_logs          AuditLog[]
+
+  @@map("users")
+}
+
+model Project {
+  id                String   @id @default(cuid())
+  sayari_project_id String   @unique
+  name              String
+  description       String?
+  created_by        String
+  is_archived       Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  creator         User              @relation("ProjectCreator", fields: [created_by], references: [id])
+  members         ProjectMember[]
+  screening_results ScreeningResult[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  project_id String
+  user_id    String
+  role       String // 'viewer', 'editor', 'admin'
+
+  // Relations
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([project_id, user_id])
+  @@map("project_members")
+}
+
+model ScreeningResult {
+  id                String   @id @default(cuid())
+  project_id        String
+  sayari_entity_id  String?
+  entity_name       String
+  entity_type       String
+  match_strength    String?
+  risk_factors      Json // Store risk factor details as JSON
+  full_response     Json // Store complete Sayari API response
+  created_by        String
+  created_at        DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [project_id], references: [id])
+  user    User    @relation(fields: [created_by], references: [id])
+
+  @@map("screening_results")
+}
+
+model RiskFactor {
+  id          String   @id // Risk factor ID from CSV
+  name        String
+  description String?
+  category    String?
+  level       String? // 'Critical', 'High', 'Elevated', 'Standard'
+  type        String?
+  url         String?
+  updated_at  DateTime @updatedAt
+
+  @@map("risk_factors")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  user_id     String?
+  action      String
+  entity_type String
+  entity_id   String?
+  details     Json
+  ip_address  String?
+  created_at  DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [user_id], references: [id])
+
+  @@map("audit_logs")
+}
+
+// For storing temporary session data
+model UserSession {
+  id         String   @id @default(cuid())
+  user_id    String?
+  session_id String   @unique
+  data       Json
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@map("user_sessions")
+}
+
+// For batch processing jobs
+model BatchJob {
+  id          String   @id @default(cuid())
+  user_id     String
+  project_id  String
+  job_type    String // 'screening', 'export', etc.
+  status      String // 'pending', 'processing', 'completed', 'failed'
+  progress    Int      @default(0)
+  total_items Int
+  result      Json?
+  error       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  completed_at DateTime?
+
+  @@map("batch_jobs")
+}

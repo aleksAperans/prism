@@ -1,0 +1,26 @@
+{
+  "codeStyle": {
+    "badges": {
+      "textCase": "lowercase",
+      "enforceConsistency": true,
+      "description": "All badge text must be displayed in lowercase for UI consistency"
+    }
+  },
+  "linting": {
+    "rules": {
+      "badge-text-lowercase": {
+        "enabled": true,
+        "severity": "error",
+        "description": "Enforce lowercase text in all badge components"
+      }
+    }
+  },
+  "project": {
+    "name": "Prism",
+    "type": "nextjs",
+    "uiLibrary": "shadcn/ui",
+    "guidelines": {
+      "badgeFormatting": "All badge text should be lowercase to maintain visual consistency across the application"
+    }
+  }
+}

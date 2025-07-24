@@ -1,0 +1,607 @@
+'use client';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExternalLink, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, XCircle, CircleDashed, Trash2, ShieldAlert, Building, User } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import React, { useState, useCallback, useEffect } from 'react';
+import { RiskFactorsDisplay } from './RiskFactorsDisplay';
+import { MatchedAttributesDisplay } from './MatchedAttributesDisplay';
+import { RiskLevelBadges } from '@/components/common/RiskLevelBadge';
+import { CountryBadgeList } from '@/components/common/CountryBadge';
+import riskFactorsData from '@/lib/risk-factors-data.json';
+
+interface RiskFactor {
+  factor: string;
+  description?: string;
+  severity?: string;
+}
+
+interface ScreeningResult {
+  id: string;
+  entity_id?: string;
+  entity_name: string;
+  entity_type: string;
+  match_strength?: string;
+  risk_factors: RiskFactor[] | Record<string, unknown>;
+  matches?: Array<{
+    match_id: string;
+    sayari_entity_id: string;
+    label: string;
+    type: string;
+    risk_factors: Array<{ id: string }>;
+    matched_attributes: {
+      name: string[];
+      country: string[];
+    };
+    countries: string[];
+  }>;
+  created_at: string;
+  sayari_url?: string;
+  full_result?: {
+    project_id: string;
+    project_entity_id: string;
+    label: string;
+    strength: string;
+    countries: string[];
+    parent_risk_factors: Array<{ id: string }>;
+    match_count: number;
+  };
+}
+
+interface ScreeningResultsProps {
+  results: ScreeningResult[];
+  isLoading?: boolean;
+  error?: string;
+  onRetry?: () => void;
+  onMatchRemoved?: (refreshedData?: { matches: unknown[]; risk_factors: unknown[]; match_count: number }) => void;
+  alreadyExists?: boolean;
+}
+
+export function ScreeningResults({ 
+  results, 
+  isLoading = false, 
+  error, 
+  onRetry,
+  onMatchRemoved,
+  alreadyExists = false
+}: ScreeningResultsProps) {
+  const [localResults, setLocalResults] = useState<ScreeningResult[]>(results);
+  const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
+  const [expandedRiskFactors, setExpandedRiskFactors] = useState<Record<string, boolean>>({});
+  const [removingMatches, setRemovingMatches] = useState<Record<string, boolean>>({});
+
+  // Sync with parent results when they change
+  useEffect(() => {
+    setLocalResults(results);
+  }, [results]);
+
+  const toggleMatches = useCallback((resultId: string) => {
+    setExpandedMatches(prev => ({
+      ...prev,
+      [resultId]: !(prev[resultId] ?? false)
+    }));
+  }, []);
+
+  const toggleRiskFactors = useCallback((resultId: string) => {
+    setExpandedRiskFactors(prev => ({
+      ...prev,
+      [resultId]: !(prev[resultId] ?? false)
+    }));
+  }, []);
+
+  const removeMatch = async (matchId: string, projectId: string, projectEntityId: string) => {
+    // Prevent multiple simultaneous requests for the same match
+    if (removingMatches[matchId]) {
+      return;
+    }
+    
+    console.log('🗑️ Starting optimistic match removal:', matchId);
+    
+    // Find which result contains this match
+    const resultWithMatch = localResults.find(result => 
+      result.matches?.some(match => match.match_id === matchId)
+    );
+    
+    if (!resultWithMatch) {
+      console.error('❌ Could not find result containing match:', matchId);
+      return;
+    }
+    
+    try {
+      setRemovingMatches(prev => ({ ...prev, [matchId]: true }));
+      
+      // Optimistic update: remove match immediately from local state
+      setLocalResults(prev => prev.map(result => {
+        if (result.id === resultWithMatch.id) {
+          const updatedMatches = result.matches?.filter(match => match.match_id !== matchId) || [];
+          return {
+            ...result,
+            matches: updatedMatches,
+            full_result: result.full_result ? {
+              ...result.full_result,
+              match_count: updatedMatches.length
+            } : undefined
+          };
+        }
+        return result;
+      }));
+      
+      const response = await fetch(
+        `/api/matches/${matchId}?project_id=${projectId}&project_entity_id=${projectEntityId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Match removal confirmed by server');
+        // Update parent with server data
+        onMatchRemoved?.(result.refreshedEntity);
+      } else {
+        const error = await response.json();
+        console.error('❌ Server failed to remove match:', error);
+        
+        // Rollback optimistic update on error
+        setLocalResults(results);
+        
+        // Handle 404 gracefully - match might already be removed
+        if (response.status === 404) {
+          console.log('⚠️ Match was already removed on server');
+          onMatchRemoved?.();
+        } else {
+          console.log('🔄 Refreshing to get current state after error');
+          onMatchRemoved?.();
+        }
+      }
+    } catch (error) {
+      console.error('💥 Network error during match removal:', error);
+      // Rollback optimistic update on network error
+      setLocalResults(results);
+      onMatchRemoved?.();
+    } finally {
+      // Clear the removing state after a slight delay to prevent flickering
+      setTimeout(() => {
+        setRemovingMatches(prev => {
+          const newState = { ...prev };
+          delete newState[matchId];
+          return newState;
+        });
+      }, 100);
+    }
+  };
+
+  // Helper function to calculate level counts for a result
+  const calculateLevelCounts = (riskFactors: unknown) => {
+    const riskFactorIds = Array.isArray(riskFactors) 
+      ? riskFactors.map(rf => {
+          if (typeof rf === 'object' && rf !== null && 'id' in rf) {
+            return (rf as { id: string }).id;
+          }
+          if (typeof rf === 'object' && rf !== null && 'factor' in rf) {
+            return (rf as { factor: string }).factor;
+          }
+          return rf as string;
+        })
+      : Object.keys(riskFactors || {});
+    
+    // Use the imported risk factors data
+    
+    const counts: Record<string, number> = {};
+    riskFactorIds.forEach(id => {
+      const csvData = riskFactorsData[id as keyof typeof riskFactorsData];
+      let level = 'other';
+      
+      if (csvData) {
+        level = csvData.level === 'Critical' ? 'critical' :
+               csvData.level === 'High' ? 'high' :
+               csvData.level === 'Elevated' ? 'elevated' :
+               csvData.level === 'Standard' ? 'other' : 'other';
+      }
+      
+      counts[level] = (counts[level] || 0) + 1;
+    });
+    
+    return counts;
+  };
+  
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <span className="text-muted-foreground">Analyzing entities...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+              {onRetry && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={onRetry}
+                  className="ml-4"
+                >
+                  Retry
+                </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (results.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="text-center text-muted-foreground">
+            <CheckCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
+            <p>No analysis results yet.</p>
+            <p className="text-sm">Submit the form above to analyze entities.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getMatchStrengthColor = (strength?: string) => {
+    switch (strength?.toLowerCase()) {
+      case 'strong': return 'bg-green-500/10 text-green-600 border-green-500/20 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20';
+      case 'partial': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20';
+      case 'medium': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20';
+      case 'weak': return 'bg-muted text-muted-foreground border-muted';
+      case 'no_match': return 'bg-muted text-muted-foreground border-muted';
+      default: return 'bg-muted text-muted-foreground border-muted';
+    }
+  };
+
+  const getMatchStrengthIcon = (strength?: string) => {
+    switch (strength?.toLowerCase()) {
+      case 'strong': return <ShieldAlert className="h-4 w-4" />;
+      case 'partial': return <ShieldAlert className="h-4 w-4" />;
+      case 'medium': return <ShieldAlert className="h-4 w-4" />;
+      case 'weak': return <Clock className="h-4 w-4" />;
+      case 'no_match': return <XCircle className="h-4 w-4" />;
+      default: return <Clock className="h-4 w-4" />;
+    }
+  };
+
+
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Screening Results</h3>
+      </div>
+
+      {/* Already Exists Notification */}
+      {alreadyExists && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription className="flex flex-wrap items-center gap-1">
+            <span>This entity already exists in the project</span>
+            {localResults[0]?.full_result?.project_entity_id && (
+              <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{localResults[0].full_result.project_entity_id}</code>
+            )}
+            <span>-- showing existing result.</span>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {localResults.map((result) => {
+        // Determine if there are risks for card border styling
+        const hasRisks = Array.isArray(result.risk_factors) 
+          ? result.risk_factors.length > 0 
+          : Object.keys(result.risk_factors || {}).length > 0;
+
+        return (
+          <Card key={result.id}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center">
+                    <h3 className="text-lg font-semibold mr-3">{result.entity_name}</h3>
+                    <div className="inline-flex items-center rounded border border-border bg-muted px-2 py-1 text-xs">
+                      {result.entity_type === 'company' ? (
+                        <>
+                          <Building className="mr-1 h-3 w-3" />
+                          <span>company</span>
+                        </>
+                      ) : result.entity_type === 'person' ? (
+                        <>
+                          <User className="mr-1 h-3 w-3" />
+                          <span>person</span>
+                        </>
+                      ) : (
+                        <span>{result.entity_type || 'unknown'}</span>
+                      )}
+                    </div>
+                  </div>
+                  <CardDescription className="space-y-1">
+                    <div>Analyzed {formatDistanceToNow(new Date(result.created_at))} ago</div>
+                    {result.full_result?.countries && result.full_result.countries.length > 0 && (
+                      <div className="flex items-center flex-wrap gap-1 mt-1">
+                        <CountryBadgeList 
+                          countryCodes={result.full_result.countries}
+                          size="sm"
+                          maxVisible={5}
+                        />
+                      </div>
+                    )}
+                  </CardDescription>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  {result.matches && result.matches.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {result.matches.length} match{result.matches.length !== 1 ? 'es' : ''}
+                    </Badge>
+                  )}
+                  {result.match_strength && (
+                    <Badge 
+                      variant="outline" 
+                      className={getMatchStrengthColor(result.match_strength)}
+                    >
+                      {getMatchStrengthIcon(result.match_strength)}
+                      <span className="ml-1 capitalize">
+                        {result.match_strength === 'strong' ? 'High Confidence' : 
+                         result.match_strength === 'partial' ? 'Medium Confidence' :
+                         result.match_strength === 'medium' ? 'Medium Confidence' : 
+                         result.match_strength === 'no_match' ? 'No Match' :
+                         result.match_strength === 'No_match' ? 'No Match' :
+                         result.match_strength}
+                      </span>
+                    </Badge>
+                  )}
+                  
+                  {result.sayari_url && (
+                    <Button variant="ghost" size="sm" asChild>
+                      <a 
+                        href={result.sayari_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        <span className="text-xs">View Details</span>
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {/* No Match Content */}
+              {(result.match_strength?.toLowerCase() === 'no_match' || result.match_strength === 'No_match') && 
+               !hasRisks && (
+                <div className="flex items-center justify-center p-8">
+                  <div className="text-center">
+                    <CircleDashed className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No Match Found</h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      This entity was not found in our knowledge graph.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Risk Factors Section - Collapsible */}
+              {((Array.isArray(result.risk_factors) && result.risk_factors.length > 0) || 
+                (!Array.isArray(result.risk_factors) && Object.keys(result.risk_factors || {}).length > 0)) && (
+                <Collapsible 
+                  key={`risk-factors-${result.id}`}
+                  open={expandedRiskFactors[result.id] ?? true} 
+                  onOpenChange={() => toggleRiskFactors(result.id)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <button className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
+                      <div className="flex items-center justify-between w-full">
+                        <h4 className="text-sm font-medium flex items-center">
+                          <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
+                          Risk Factors Found ({Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length})
+                        </h4>
+                        <div className="flex items-center space-x-2">
+                          <RiskLevelBadges 
+                            counts={calculateLevelCounts(result.risk_factors)}
+                            size="sm"
+                          />
+                          {(expandedRiskFactors[result.id] ?? true) ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="mt-3">
+                      <RiskFactorsDisplay 
+                        riskFactors={result.risk_factors}
+                        showTitle={false}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+              {/* Matches Section - Collapsible */}
+              {result.matches && result.matches.length > 0 && (
+                <Collapsible 
+                  key={`matches-${result.id}`}
+                  open={expandedMatches[result.id] === true} 
+                  onOpenChange={() => toggleMatches(result.id)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <button className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
+                      <h4 className="text-sm font-medium flex items-center">
+                        <ExternalLink className="h-4 w-4 mr-2 text-primary" />
+                        Matches Found ({result.matches.length})
+                      </h4>
+                      {expandedMatches[result.id] ? (
+                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-gray-500" />
+                      )}
+                    </button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="space-y-4 mt-3">
+                      {result.matches
+                        .filter(match => {
+                          // Validate match data integrity
+                          const isValid = match && 
+                                         match.match_id && 
+                                         match.label && 
+                                         match.sayari_entity_id &&
+                                         typeof match.label === 'string' &&
+                                         match.label.trim().length > 0;
+                          
+                          if (!isValid) {
+                            console.log('🚫 Filtering out invalid match:', {
+                              match,
+                              hasMatchId: !!match?.match_id,
+                              hasLabel: !!match?.label,
+                              hasSayariId: !!match?.sayari_entity_id,
+                              labelType: typeof match?.label,
+                              labelLength: match?.label?.length
+                            });
+                          }
+                          return isValid;
+                        })
+                        .map((match) => (
+                          <div 
+                            key={match.match_id} 
+                            className={`p-4 bg-card border rounded-lg shadow-sm transition-all duration-200 ${
+                              removingMatches[match.match_id] ? 'opacity-75 scale-[0.98]' : 'opacity-100 scale-100'
+                            }`}
+                          >
+                            <div className="space-y-3">
+                            {/* Match header */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-base">{match.label}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  <div className="flex items-center">
+                                    {match.type === 'company' ? (
+                                      <Building className="mr-1 h-3 w-3" />
+                                    ) : match.type === 'person' ? (
+                                      <User className="mr-1 h-3 w-3" />
+                                    ) : null}
+                                    {match.type}
+                                  </div>
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Button variant="ghost" size="sm" asChild>
+                                  <a 
+                                    href={`https://graph.sayari.com/resource/entity/${match.sayari_entity_id}`}
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center space-x-1"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    <span className="text-xs">View in Graph</span>
+                                  </a>
+                                </Button>
+                                {result.full_result?.project_entity_id && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      // Based on the Sayari API docs, we need:
+                                      // - project_id: The project identifier
+                                      // - project_entity_id: The project entity identifier  
+                                      // - match_id: The match identifier
+                                      
+                                      // From the screening response, we should have access to both
+                                      // Get the project_id and project_entity_id from the full_result
+                                      const projectId = result.full_result?.project_id || '';
+                                      const projectEntityId = result.full_result?.project_entity_id || '';
+                                      
+                                      if (!projectId || !projectEntityId) {
+                                        console.error('Missing required IDs for match removal:', { projectId, projectEntityId });
+                                        return;
+                                      }
+                                      
+                                      removeMatch(match.match_id, projectId, projectEntityId);
+                                    }}
+                                    disabled={removingMatches[match.match_id]}
+                                    className={`transition-colors ${
+                                      removingMatches[match.match_id] 
+                                        ? 'text-gray-400 cursor-not-allowed'
+                                        : ''
+                                    }`}
+                                  >
+                                    {removingMatches[match.match_id] ? (
+                                      <>
+                                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                                        <span className="ml-1 text-xs">Removing...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Trash2 className="h-3 w-3" />
+                                        <span className="ml-1 text-xs">Remove</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Basic match info */}
+                            <div className="space-y-2">
+                              {match.countries && match.countries.length > 0 && (
+                                <div className="flex items-center flex-wrap gap-1">
+                                  <CountryBadgeList 
+                                    countryCodes={match.countries}
+                                    size="sm"
+                                    maxVisible={3}
+                                  />
+                                </div>
+                              )}
+                              <div className="text-xs text-muted-foreground">
+                                Risk Factors: {match.risk_factors?.length || 0}
+                              </div>
+                            </div>
+                            
+                            {/* Enhanced matched attributes display */}
+                            {match.matched_attributes && (
+                              <MatchedAttributesDisplay 
+                                matchedAttributes={match.matched_attributes}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}

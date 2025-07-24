@@ -1,0 +1,1 @@
+export { PrismIcon } from './PrismIcon';

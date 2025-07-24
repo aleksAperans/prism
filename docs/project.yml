@@ -1,0 +1,1011 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+imports:
+  types: shared_types.yml
+  base: base_types.yml
+  errors: shared_errors.yml
+  generated: generated_types.yml
+
+service:
+  auth: true
+  base-path: /v1/projects
+  endpoints:
+    createProject:
+      availability: generally-available
+      docs: Create a new project.
+      path: ""
+      method: POST
+      request: CreateProjectRequest
+      response: CreateProjectResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not Found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - request: $CreateProjectRequest.Example1
+          response:
+            body: $CreateProjectResponse.Example1
+
+    getProjects:
+      availability: generally-available
+      docs: Retrieve a list of projects including upload progress info.
+      path: ""
+      method: GET
+      request:
+        name: GetProjects
+        query-parameters:
+          next:
+            type: optional<string>
+            docs: The pagination token for the next page of projects.
+          prev:
+            type: optional<string>
+            docs: The pagination token for the previous page of projects.
+          limit:
+            type: optional<integer>
+            docs: Limit total values returned for projects. Defaults to 100. Max 100.
+          archived:
+            type: optional<boolean>
+            docs: Toggle between projects that have been archived (true) or not (false). Defaults to false.
+      response: GetProjectsResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not Found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - query-parameters:
+            archived: false
+            limit: 8
+          response:
+            body: $GetProjectsResponse.NotArchived
+        - query-parameters:
+            archived: true
+            limit: 5
+          response:
+            body: $GetProjectsResponse.Archived
+
+    getProjectEntities:
+      availability: generally-available
+      docs: "<Warning>This endpoint is deprecated.</Warning>
+        Retrieve a list of entities in a project."
+      path: /{id}/contents/entity
+      method: GET
+      path-parameters:
+        id:
+          type: string
+          docs: The project identifier.
+      request:
+        name: GetProjectEntities
+        headers:
+          Accept:
+            type: GetProjectEntitiesAcceptHeader
+            docs: The response format. Defaults to application/json.
+        query-parameters:
+          next:
+            type: optional<string>
+            docs: The pagination token for the next page of entities.
+          prev:
+            type: optional<string>
+            docs: The pagination token for the previous page of entities.
+          limit:
+            type: optional<integer>
+            docs: Limit total entities returned. Defaults to 1,000. Max 10,000.
+          entity_types:
+            type: optional<generated.Entities>
+            allow-multiple: true
+            docs: Only return entities of the specified [entity type(s)](/sayari-library/ontology/entities). Defaults to all types.
+          geo_facets:
+            type: optional<boolean>
+            docs: Whether to include geo facets in the response. Defaults to false.
+          hs_codes:
+            type: optional<string>
+            allow-multiple: true
+            docs: Only return entities with the specified HS code(s) in their supply chain.
+          received_hs_codes:
+            type: optional<string>
+            allow-multiple: true
+            docs: Only return entities that received the specified HS code(s).
+          shipped_hs_codes:
+            type: optional<string>
+            allow-multiple: true
+            docs: Only return entities that shipped the specified HS code(s).
+          combined_hs_codes:
+            type: optional<string>
+            allow-multiple: true
+            docs: Only return entities that have shipped or received the specified HS code(s).
+          translation:
+            type: optional<string>
+            docs: The language code to translate the entity labels to. Defaults to the user's preferred language.
+          sort:
+            type: optional<SortField>
+          filters:
+            type: optional<ProjectEntitiesFilter>
+            allow-multiple: true
+            docs:
+              Filter for entities in a project. The format is `field=value`, where the equal
+              sign is encoded as `%3D`. Supported fields are as follows
+          aggregations:
+            type: optional<ProjectEntitiesAggsDefinition>
+            allow-multiple: true
+            docs: Aggregations that should be returned for entities in the project.
+      response: GetProjectEntitiesResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad Request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.NotAcceptable
+          docs: Not acceptable
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - path-parameters:
+            id: gPq6EY
+          headers:
+            Accept: application/json
+          response:
+            body: $GetProjectEntitiesResponse.Example1
+
+    deleteProject:
+      availability: generally-available
+      docs: Deletes an existing project.
+      path: /{projectId}
+      method: DELETE
+      path-parameters:
+        projectId: string
+      response: DeleteProjectResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not Found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - path-parameters:
+            projectId: Gam5qG
+          response:
+            body: $DeleteProjectResponse.Example1
+
+types:
+  GetProjectsResponse:
+    properties:
+      next: optional<string>
+      prev: optional<string>
+      first: optional<boolean>
+      last: optional<boolean>
+      limit: integer
+      data: list<ProjectWithMembers>
+    examples:
+      - name: NotArchived
+        value:
+          prev: MjAyMy0xMC0yNSAxNDo0NDowNi4zMjIxMTcrMDB8VjAzTU5Z
+          next: MjAyMy0wOS0xNSAxODoyNDozOC45ODEwMjMrMDB8OFlWQjZZ
+          limit: 8
+          data:
+            - id: V03MNY
+              label: Project 1
+              archived: false
+              created: "2023-10-25 14:44:06.322117+00"
+              updated: "2023-10-25 14:44:06.322117+00"
+              counts: {}
+              members:
+                - type: user
+                  id: auth0|7a8f3e2b91d476c5b2e04a87
+                  role: admin
+                  created: "2023-10-25T14:44:06.322117+00:00"
+                  updated: "2023-10-25T14:44:06.322117+00:00"
+            - id: eYDDmY
+              label: Project 2
+              archived: false
+              created: "2023-10-24 20:41:21.235451+00"
+              updated: "2023-10-24 20:41:21.235451+00"
+              counts:
+                graph: 1
+                entity: 2530
+              members:
+                - type: user
+                  id: auth0|f0bc63a9e72d18ef4c5702d6
+                  role: admin
+                  created: "2023-10-24T20:41:21.235451+00:00"
+                  updated: "2023-10-24T20:41:21.235451+00:00"
+                - type: group
+                  id: org_VdFgkL2qNpweRZAs
+                  role: viewer
+                  created: "2023-11-04T18:40:30.942863+00:00"
+                  updated: "2023-11-04T18:40:30.942863+00:00"
+      - name: Archived
+        value:
+          limit: 5
+          data:
+            - id: e0Kj4G
+              label: Old Project 3
+              archived: true
+              created: "2023-06-18 04:28:05.136302+00"
+              updated: "2023-06-20 18:44:03.624841+00"
+              counts:
+                entity: 10
+              members:
+                - type: user
+                  id: auth0|6f57ab9facce276d4923e625
+                  role: viewer
+                  created: "2023-06-20T18:43:43.925805+00:00"
+                  updated: "2023-06-20T18:43:43.925805+00:00"
+                - type: user
+                  id: google-oauth2|428967532187509612834
+                  role: admin
+                  created: "2023-06-18T04:28:05.136302+00:00"
+                  updated: "2023-06-18T04:28:05.136302+00:00"
+
+  CreateProjectRequest:
+    properties:
+      label: string
+      share:
+        type: optional<ProjectShareOnCreate>
+        docs: Specifies access levels available to users in a project within an organization. For comprehensive access, the admin role is recommended.
+    examples:
+      - name: Example1
+        value:
+          label: Project Alpha
+      - name: Example2
+        value:
+          label: Project Alpha
+          share:
+            org: viewer
+
+  ProjectShareOnCreate:
+    properties:
+      org: Role
+
+  CreateProjectResponse:
+    properties:
+      data: Project
+    examples:
+      - name: Example1
+        value:
+          data:
+            id: YVMBRg
+            label: Project Alpha
+            archived: false
+            created: "2024-03-15 20:31:06.08855+00"
+            updated: "2024-03-15 20:31:06.08855+00"
+            counts:
+              entity: 0
+              graph: 0
+              record: 0
+              search: 0
+
+  GetProjectEntitiesAcceptHeader:
+    enum:
+      - name: JSON
+        value: application/json
+      - name: CSV
+        value: text/csv
+      - name: XSLX
+        value: application/vnd.ms-excel
+
+  GetProjectEntitiesResponse:
+    extends: base.PaginatedResponse
+    properties:
+      next: optional<string>
+      prev: optional<string>
+      data: list<ProjectEntity>
+      aggregations: ProjectEntitiesAggs
+    examples:
+      - name: Example1
+        value:
+          limit: 10000
+          size:
+            count: 1
+            qualifier: eq
+          data:
+            - type: entity
+              id: GOeOE8
+              project: gPq6EY
+              label: RAMESH FLOWERS PRIVATE LIMITED
+              created: "2024-03-08 18:52:59.41176+00"
+              updated: "2024-03-08 18:52:59.41176+00"
+              updated_by: auth0|5e45bd8caccd890e68147513
+              version: 0
+              entity_id: FyI9lrlmA-7z_3enlTOhlw
+              tag_ids: []
+              case_status: not_assigned
+              custom_fields:
+                custom_company_size: "200+"
+                custom_company_type: "flower services"
+              received_hs_codes:
+                - "271290"
+                - "271220"
+              shipped_hs_codes: []
+              combined_hs_codes:
+                - "271290"
+                - "271220"
+              trade_count_incl_mg:
+                receiver_of: 5
+                shipper_of: 0
+              match_strength:
+                rules:
+                  is_strong_v1: false
+                  any_v1: ""
+                  is_any_v1: false
+                  strong_v1: ""
+                  is_weak_v1: false
+                  weak_v1: ""
+                  strength_v1: none
+              upstream:
+                risk: []
+                countries: []
+                entities: 0
+                match_has_upstream:
+                  "FyI9lrlmA-7z_3enlTOhlw": false
+                match_products:
+                  "FyI9lrlmA-7z_3enlTOhlw": []
+              psa:
+                risk:
+                  - eu_high_risk_third
+                  - basel_aml
+                  - cpi_score
+                  - owner_of_regulatory_action_entity
+                countries:
+                  - USA
+                  - CAN
+                  - MAR
+                  - BEL
+                  - GEO
+                count: 2
+              summary:
+                id: FyI9lrlmA-7z_3enlTOhlw
+                type: company
+                label: RAMESH FLOWERS PRIVATE LIMITED
+                identifiers: []
+                addresses:
+                  - A62(A) SIPCOT INDUSTRIAL COMPLEX THERKU VEERAPANDIAPURAM P.O. TUTICORIN628002
+                    TAMIL NADU INDIA GSTIN 33AAACR9251P1ZY IEC 3595005775 PANNO AAACR92
+                  - A62(A) SIPCOT INDUSTRIAL COMPLEX TUTICORIN628002 TAMIL NADU INDIA GSTIN 33AAACR9251P1ZY
+                    IEC 3595005775 PH914612340505 TO 2340509
+                countries:
+                  - IND
+                names:
+                  - RAMESH FLOWERS PRIVATE LIMITED
+                related_entities_count: 8
+                user_related_entities_count: 0
+                relationship_counts:
+                  notify_party_of: 5
+                  receives_from: 3
+                  receiver_of: 5
+                user_relationship_counts: {}
+                attribute_counts:
+                  name: 1
+                  country: 1
+                  address: 2
+                trade_count:
+                  sent: 0
+                  received: 5
+                user_attribute_counts: {}
+                record_count: 5
+                user_record_count: 0
+                source_counts:
+                  faa9caafcfabcee04ef2f0b21dd9197a:
+                    count: 10
+                    label: South Korea Imports & Exports (2021 - Present)
+                risk:
+                  forced_labor_xinjiang_origin_subtier:
+                    value: 3
+                    metadata: {}
+                    level: high
+                  basel_aml:
+                    value: 4.95
+                    metadata:
+                      country:
+                        - IND
+                    level: relevant
+                  forced_labor_sheffield_hallam_university_reports_origin_subtier:
+                    value: 3
+                    metadata: {}
+                    level: high
+                  cpi_score:
+                    value: 40
+                    metadata:
+                      country:
+                        - IND
+                    level: relevant
+                  forced_labor_uflpa_origin_subtier:
+                    value: 3
+                    metadata: {}
+                    level: high
+                attributes:
+                  address:
+                    - value:
+                        value:
+                          A62(A) SIPCOT INDUSTRIAL COMPLEX THERKU VEERAPANDIAPURAM P.O. TUTICORIN628002
+                          TAMIL NADU INDIA GSTIN 33AAACR9251P1ZY IEC 3595005775 PANNO AAACR92
+                        house: Gstin 33aaacr9251p1zy
+                        house_number: "3595005775"
+                        road: Panno
+                        city: NADU
+                        state: Tamil Nadu
+                        postcode: Aaacr92
+                        country: India
+                        x: 74.99698
+                        "y": 12.85316
+                        precision_code: G3
+                        normalized:
+                          33AAACR9251P1ZY 3595005775 A62A AAACR92 COMPLEX GSTIN IEC INDIA
+                          INDUSTRIAL NADU O P PANNO SIPCOT TAMIL THERKU TUTICORIN628002 VEERAPANDIAPURAM
+                      properties:
+                        - record: faa9caafcfabcee04ef2f0b21dd9197a/MAEU226738031/1693109172077
+                          record_count: 4
+                          editable: false
+                    - value:
+                        value:
+                          A62(A) SIPCOT INDUSTRIAL COMPLEX TUTICORIN628002 TAMIL NADU INDIA
+                          GSTIN 33AAACR9251P1ZY IEC 3595005775 PH914612340505 TO 2340509
+                        house: Gstin 33aaacr9251p1zy
+                        house_number: "3595005775"
+                        road: Ph914612340505 To 2340509
+                        city: TO
+                        state: Tamil Nadu
+                        postcode: Tuticorin628002
+                        country: India
+                        x: 77.06
+                        "y": 20.00896
+                        precision_code: G3
+                        normalized:
+                          2340509 33AAACR9251P1ZY 3595005775 A62A COMPLEX GSTIN IEC INDIA
+                          INDUSTRIAL NADU PH914612340505 SIPCOT TAMIL TO TUTICORIN628002
+                      properties:
+                        - record: faa9caafcfabcee04ef2f0b21dd9197a/MAEU1KT860018/1693109343516
+                          record_count: 2
+                          editable: false
+                  country:
+                    - value:
+                        value: IND
+                        context: address
+                        Original Text: India
+                      properties:
+                        - record: faa9caafcfabcee04ef2f0b21dd9197a/MAEU226738031/1693109172077
+                          record_count: 6
+                          editable: false
+                  name:
+                    - value:
+                        value: RAMESH FLOWERS PRIVATE LIMITED
+                        context: primary
+                      properties:
+                        - record: faa9caafcfabcee04ef2f0b21dd9197a/MAEU226738031/1693109172077
+                          record_count: 10
+                          editable: false
+          aggregations:
+            risk:
+              - key: basel_aml
+                doc_count: 1
+              - key: cpi_score
+                doc_count: 1
+              - key: forced_labor_xinjiang_origin_subtier
+                doc_count: 1
+              - key: forced_labor_uflpa_origin_subtier
+                doc_count: 1
+              - key: forced_labor_sheffield_hallam_university_reports_origin_subtier
+                doc_count: 1
+            tag_ids: []
+            upstream_risk:
+              - key: eu_high_risk_third
+                doc_count: 1
+              - key: export_to_soe
+                doc_count: 4
+            hit_count:
+              - key: hit_count
+                doc_count: 1
+            country:
+              - key: IND
+                doc_count: 1
+                label: India
+            shipment_counts:
+              - key: receiver_of
+                doc_count: 5
+                comment: Sum of all shipments of this type across matching documents
+              - key: shipper_of
+                doc_count: 0
+                comment: Sum of all shipments of this type across matching documents
+            source:
+              - key: faa9caafcfabcee04ef2f0b21dd9197a
+                label: South Korea Imports & Exports (2021 - Present)
+                doc_count: 1
+            source_type:
+              - key: trade_data
+                doc_count: 1
+            region:
+              - key: asia_pacific
+                doc_count: 1
+            match_results:
+              - key: sayari
+                doc_count: 1
+            business_purpose: []
+            upstream_country:
+              - key: USA
+                doc_count: 1
+              - key: CAN
+                doc_count: 3
+            received_hs_codes:
+              doc_count: 2
+              hs_code_terms:
+                doc_count_error_upper_bound: 0
+                sum_other_doc_count: 0
+                buckets:
+                  - key: "271290"
+                    doc_count: 1
+                    hs_code_sums:
+                      value: 4
+                  - key: "271220"
+                    doc_count: 1
+                    hs_code_sums:
+                      value: 1
+            custom_fields:
+              - key: custom_id1
+                doc_count: 7
+              - key: custom_size
+                doc_count: 15
+            custom_fields_count:
+              value: 2
+            case_statuses:
+              - key: not_assigned
+                doc_count: 1
+            upstream_country_tiers:
+              USA:
+                tier2: 1
+                totalCount: 1
+              CAN:
+                tier1: 1
+                tier2: 2
+                totalCount: 3
+            upstream_risk_tiers:
+              eu_high_risk_third:
+                tier4: 1
+                totalCount: 1
+              export_to_soe:
+                tier1: 1
+                tier3: 1
+                tier4: 2
+                totalCount: 4
+            shipped_hs_codes:
+              doc_count: 0
+              hs_code_terms:
+                doc_count_error_upper_bound: 0
+                sum_other_doc_count: 0
+                buckets: []
+            combined_hs_codes:
+              doc_count: 2
+              hs_code_terms:
+                doc_count_error_upper_bound: 0
+                sum_other_doc_count: 0
+                buckets:
+                  - key: "271290"
+                    doc_count: 1
+                    hs_code_sums:
+                      value: 4
+                  - key: "271220"
+                    doc_count: 1
+                    hs_code_sums:
+                      value: 1
+
+  DeleteProjectResponse:
+    properties:
+      data: Project
+    examples:
+      - name: Example1
+        value:
+          data:
+            id: Gam5qG
+            label: Project Delta
+            archived: false
+            created: "2024-04-24 13:43:56.546705+00"
+            updated: "2024-04-24 13:43:56.546705+00"
+            counts:
+              entity: 2
+              graph: 0
+              record: 0
+              search: 0
+
+  ProjectEntity:
+    properties:
+      id: string
+      project: string
+      label:
+        type: string
+        docs: Entity label (display name).
+      created: string
+      updated: string
+      updated_by: string
+      version:
+        type: integer
+        docs: Will be 0.
+      type: literal<"entity">
+      entity_id:
+        type: string
+        docs: Entity ID.
+      tag_ids: list<string>
+      case_status: string
+      custom_fields:
+        type: optional<unknown>
+        docs: '<Warning>This property is in beta and is subject to change. It is provided for early access and testing purposes only.</Warning> custom user key/value pairs (key must be prefixed with "custom_" and value must be "string" type)'
+      match_strength: unknown
+      shipped_hs_codes:
+        type: list<string>
+        docs: HS codes shipped by the entity.
+      received_hs_codes:
+        type: list<string>
+        docs: HS codes received by the entity.
+      combined_hs_codes:
+        type: list<string>
+        docs: HS codes shipped or received by the entity.
+      trade_count_incl_mg:
+        type: TradeCount
+        docs: Counts of sent and received shipments for this entity and its match group.
+      upstream: ProjectEntityUpstream
+      summary: types.CoreEntity
+      psa: optional<PSASummary>
+
+  TradeCount:
+    properties:
+      receiver_of: integer
+      shipper_of: integer
+
+  PSASummary:
+    properties:
+      risk: list<generated.Risk>
+      countries: list<generated.Country>
+      count: integer
+
+  ProjectEntityUpstream:
+    properties:
+      risk: list<generated.Risk>
+      countries: list<generated.Country>
+      entities: integer
+      match_has_upstream: map<string, boolean>
+      match_products: map<string, list<string>>
+
+  ProjectEntitiesAggs:
+    docs: Aggregation buckets for entities in a project.
+    properties:
+      hit_count: optional<list<BucketAgg>>
+      country: optional<list<BucketAgg>>
+      upstream_country: optional<list<BucketAgg>>
+      upstream_country_tiers: optional<TierCountAgg>
+      risk: optional<list<BucketAgg>>
+      upstream_risk: optional<list<BucketAgg>>
+      upstream_risk_tiers: optional<TierCountAgg>
+      source: optional<list<BucketAgg>>
+      business_purpose: optional<list<BucketAgg>>
+      tag_ids: optional<list<BucketAgg>>
+      case_statuses: optional<list<BucketAgg>>
+      shipment_counts: optional<list<BucketAgg>>
+      shipped_hs_codes: optional<HsCodeAgg>
+      received_hs_codes: optional<HsCodeAgg>
+      combined_hs_codes: optional<HsCodeAgg>
+      match_results: optional<list<BucketAgg>>
+      custom_fields: optional<list<BucketAgg>>
+      custom_fields_count: optional<IntKeyValue>
+      location: optional<list<BucketAgg>>
+      source_type: optional<list<BucketAgg>>
+      region: optional<list<BucketAgg>>
+
+  HsCodeAgg:
+    properties:
+      doc_count: integer
+      hs_code_terms: HsCodeAggTerms
+
+  HsCodeAggBucket:
+    properties:
+      key: string
+      doc_count: integer
+      hs_code_sums: optional<IntKeyValue>
+
+  HsCodeAggTerms:
+    properties:
+      doc_count_error_upper_bound: integer
+      sum_other_doc_count: integer
+      buckets: list<HsCodeAggBucket>
+
+  DocCount:
+    properties:
+      doc_count: integer
+
+  BucketAgg:
+    docs: Aggregation buckets for entities in a project.
+    properties:
+      key: string
+      doc_count: integer
+      label: optional<string>
+      comment: optional<string>
+      hs_code_sums: optional<IntKeyValue>
+
+  TierCountAgg: map<string, TierCount>
+
+  TierCount:
+    docs: Aggregation of counts by upstream supply chain tiers
+    type: map<TierCountKeys, integer>
+
+  TierCountKeys:
+    discriminated: false
+    union:
+      - UpstreamTiers
+      - literal<"totalCount">
+
+  IntKeyValue:
+    properties:
+      value: integer
+
+  Project:
+    properties:
+      id:
+        type: string
+        docs: Unique project identifier.
+      label:
+        type: string
+        docs: Most recently set name for the project.
+      archived:
+        type: boolean
+        docs: Whether the project is archived. Archival is a soft delete.
+      created: string
+      updated: string
+      counts: ProjectCounts
+
+  ProjectEntitiesAggsDefinition:
+    type: string
+    docs: Aggregations for entities in a project. Possible values are
+      - hit_count
+      Cardinality of unique entities.
+      - country
+      Count of entities per country.
+      - upstream_country
+      Count of entities per upstream country.
+      - upstream_country_tiers
+      Count of entities per upstream country, by tier.
+      - upstream_risk
+      Count of entities per upstream risk factor.
+      - upstream_risk_tiers
+      Count of entities per upstream risk factor, by tier.
+      - source
+      Count of entities per source.
+      - business_purpose
+      Count of entities per business purpose.
+      - receiver_of
+      Total number of shipments received by entities.
+      - shipper_of
+      Total number of shipments shipped by entities.
+      - received_hs_codes
+      Count of entities and shipments received per HS code.
+      - shipped_hs_codes
+      Count of entities and shipments shipped per HS code.
+      - combined_hs_codes
+      Count of entities and shipments shipped or received per HS code.
+      - location
+      Count of entities per grid cell within the specified `bounds` filter. Each cell corresponds to a
+      [map tile](https://en.wikipedia.org/wiki/Tiled_web_map) as used by many online map sites.
+      Each cell is labeled using a "{zoom}/{x}/{y}" format, where zoom is an automatically-selected precision.
+      To use this aggregation, both `filters=bounds` and `geo_facets=true` query parameters must be provided.
+      - <risk> where <risk> is a [risk factor](/sayari-library/ontology/risk-factors) ID.
+      Count of entities per risk factor.
+
+  UpstreamTiers:
+    enum:
+      - tier1
+      - tier2
+      - tier3
+      - tier4
+
+  ProjectEntitiesFilter:
+    properties:
+      risk:
+        type: optional<list<generated.Risk>>
+        docs: Filter by [risk factor](/sayari-library/ontology/risk-factors) ID.
+      upstream_risk:
+        type: optional<list<generated.Risk>>
+        docs: Filter by upstream (supply chain) [risk factor](/sayari-library/ontology/risk-factors) ID.
+      upstream_risk_tiers:
+        type: optional<list<UpstreamTiers>>
+        docs: Filter by upstream (supply chain) tiers that has one or more risks
+      country:
+        type: optional<list<generated.Country>>
+        docs: Filter by [country](/sayari-library/ontology/enumerated-types#country).
+      upstream_country:
+        type: optional<list<generated.Country>>
+        docs: <Warning>This filter is deprecated.</Warning> Filter by upstream (supply chain) [country](/sayari-library/ontology/enumerated-types#country).
+      upstream_country_tiers:
+        type: optional<list<UpstreamTiers>>
+        docs: <Warning>This filter is deprecated.</Warning> Filter by upstream (supply chain) tiers that has one or more countries
+      shipment_country:
+        type: optional<list<generated.Country>>
+        docs: Filter by upstream (supply chain) [country](/sayari-library/ontology/enumerated-types#country) at any tier.
+      tier0_shipment_country:
+        type: optional<list<generated.Country>>
+        docs: Filter by [country](/sayari-library/ontology/enumerated-types#country) at tier 0.
+      tier1_shipment_country:
+        type: optional<list<generated.Country>>
+        docs: Filter by upstream (supply chain) [country](/sayari-library/ontology/enumerated-types#country) at tier 1.
+      tier2_shipment_country:
+        type: optional<list<generated.Country>>
+        docs: Filter by upstream (supply chain) [country](/sayari-library/ontology/enumerated-types#country) at tier 2.
+      tier3_shipment_country:
+        type: optional<list<generated.Country>>
+        docs: Filter by upstream (supply chain) [country](/sayari-library/ontology/enumerated-types#country) at tier 3.
+      tier4_shipment_country:
+        type: optional<list<generated.Country>>
+        docs: Filter by upstream (supply chain) [country](/sayari-library/ontology/enumerated-types#country) at tier 4.
+      business_purpose:
+        type: optional<list<string>>
+        docs: Filter by HS code, HS code description, or business description.
+      label.fuzzy:
+        type: optional<list<string>>
+        docs: Filter by entity label with fuzzy matching.
+      city.fuzzy:
+        type: optional<list<string>>
+        docs: Filter by entity city with fuzzy matching.
+      state.fuzzy:
+        type: optional<list<string>>
+        docs: Filter by entity address state with fuzzy matching.
+      identifier.fuzzy:
+        type: optional<list<string>>
+        docs: Filter by entity identifier attributes with fuzzy matching.
+      source.exact:
+        type: optional<list<string>>
+        docs: Filter by entity source ID.
+      status.exact:
+        type: optional<list<generated.CompanyStatus>>
+        docs: Filter by entity [company status](/sayari-library/ontology/enumerated-types#company-status).
+      risk_category:
+        type: optional<list<string>>
+        docs: Filter by risk factor `category`, e.g. `sanctions`. At least one risk factor from each provided category must be present.
+      bounds:
+        type: optional<string>
+        docs:
+          Filter by a geographical bounding box. The value is a pipe-delimited set of four values
+          representing the top, left, bottom, and right sides of the bounding box, in that order.
+          The pipes should be URL-encoded as `%7C`. The top coordinate must greater than the bottom
+          coordinate, and the left coordinate must be less than the right coordinate. A sample is
+          `55.680357237879136|-71.53607290158526|41.10876347746233|-40.963927098414736`
+      custom_{field name}: optional<base.CustomFieldValue>
+
+  ProjectCounts:
+    properties:
+      entity:
+        type: optional<integer>
+        docs: The number of entities in the project.
+      graph: optional<integer>
+      search: optional<integer>
+      record: optional<integer>
+
+  ProjectWithMembers:
+    extends: Project
+    properties:
+      members: list<RoleMember>
+
+  Role:
+    docs: Role enum describes the access levels a user has to a project and its contents.
+    enum:
+      - docs: The user can view the project and its contents.
+        value: viewer
+      - docs: The user can view and edit the project and its contents.
+        value: editor
+      - docs: The user can view, edit, and delete the project and its contents.
+        value: admin
+
+  RoleMember:
+    properties:
+      id: string
+      type: RoleMemberType
+      role: Role
+      created: string
+      updated: string
+
+  RoleMemberType:
+    docs: Role member type enum describes how access is granted to a project and its contents
+    enum:
+      - docs: The access is granted to a user.
+        value: user
+      - docs: The access is granted to a group.
+        value: group
+
+  SortField:
+    docs:
+      Defines a sort order on a field, either ascending or descending. The value should begin
+      with a '-' to indicate a descending sort, followed by a field name to sort on.
+    enum:
+      - name: CreatedAsc
+        docs: The date the entity was saved to the project, ascending.
+        value: created
+      - name: CreatedDesc
+        docs: The date the entity was saved to the project, descending.
+        value: -created
+
+      - name: IdAsc
+        docs: The unique identifier of the saved entity within the project, e.g. `12200`, ascending.
+        value: saved_resource_id
+      - name: IdDesc
+        docs: The unique identifier of the saved entity within the project, e.g. `12200`, descending.
+        value: -saved_resource_id
+
+      - name: EntityIdAsc
+        docs: The unique identifier of the entity, e.g. `pLH5fpfZoWTiS1z8ieSTDQ`, ascending.
+        value: entity_id
+      - name: EntityIdDesc
+        docs: The unique identifier of the entity, e.g. `pLH5fpfZoWTiS1z8ieSTDQ`, descending.
+        value: -entity_id
+
+      - name: CountryAsc
+        docs: The [country](/sayari-library/ontology/enumerated-types#country) of the entity, ascending.
+        value: country
+      - name: CountryDesc
+        docs: The [country](/sayari-library/ontology/enumerated-types#country) of the entity, descending.
+        value: -country
+
+      - name: StatusAsc
+        docs:
+          The most recent [company status](/sayari-library/ontology/enumerated-types#company-status)
+          of the entity, ascending.
+        value: latest_status
+      - name: StatusDesc
+        docs:
+          The most recent [company status](/sayari-library/ontology/enumerated-types#company-status)
+          of the entity, descending.
+        value: -latest_status
+
+      - name: LabelAsc
+        docs: The label (display name) of the entity, ascending.
+        value: label
+      - name: LabelDesc
+        docs: The label (display name) of the entity, descending.
+        value: -label
+
+      - name: CustomFieldsAsc
+        docs: "<Warning>This sorting option is in beta and is subject to change. It is provided for early access and testing purposes only.</Warning> One of the custom fields provided by the user, ascending."
+        value: custom_{field name}
+      - name: customFieldsDesc
+        docs: "<Warning>This sorting option is in beta and is subject to change. It is provided for early access and testing purposes only.</Warning> One of the custom fields provided by the user, descending."
+        value: -custom_{field name}
+
+      - name: ReceiverOfAcc
+        docs: The number of shipments the entity has received, ascending.
+        value: receiver_of
+      - name: ReceiverOfDesc
+        docs: The number of shipments the entity has received, descending.
+        value: -receiver_of
+
+      - name: ShipperOfAsc
+        docs: The number of shipments the entity has shipped, ascending.
+        value: shipper_of
+      - name: ShipperOfDesc
+        docs: The number of shipments the entity has shipped, descending.
+        value: -shipper_of
+
+      - name: UpstreamEntitiesAsc
+        docs: The number of upstream entities in the supply chain of the entity, ascending.
+        value: upstream_entities
+      - name: UpstreamEntitiesDesc
+        docs: The number of upstream entities in the supply chain of the entity, descending.
+        value: -upstream_entities

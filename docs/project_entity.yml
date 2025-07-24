@@ -1,0 +1,1395 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+imports:
+  base: base_types.yml
+  errors: shared_errors.yml
+  generated: generated_types.yml
+  supply_chain: supply_chain.yml
+
+service:
+  auth: true
+  base-path: /v1/projects
+  endpoints:
+    createProjectEntity:
+      availability: in-development
+      docs: "The resolution endpoints allow users to search for matching entities against a provided list of attributes. The endpoint is similar to the search endpoint, except it's tuned to only return the best match so the client doesn't need to do as much or any post-processing work to filter down results."
+      path: /{project_id}/entities/create
+      method: POST
+      path-parameters:
+        project_id: string
+      request: CreateResolvedProjectEntityRequest
+      response: SingleProjectEntityResponse
+      examples:
+        - request: $CreateResolvedProjectEntityRequest.Example1
+          response:
+            body: $SingleProjectEntityResponse.Example1
+          path-parameters:
+            project_id: YVB88Y
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+    
+    getProjectEntities:
+      availability: in-development
+      docs: "Retrieves a list of entities for a specific project with pagination support."
+      path: /{project_id}/entities
+      method: GET
+      path-parameters:
+        project_id: string
+      request:
+        name: GetProjectEntitiesRequest
+        query-parameters:
+          entity_id:
+            type: optional<list<string>>
+            docs: "Filter by entity IDs"
+          uploads: 
+            type: optional<list<string>>
+            docs: "Filter by upload IDs"
+          case_status:
+            type: optional<list<CaseStatus>>
+            docs: "Filter by case status"
+          tags:
+            type: optional<list<string>>
+            docs: "Filter by tag IDs"
+          match_result:
+            type: optional<list<MatchResult>>
+            docs: "Filter by match result"
+          match_strength_v1:
+            type: optional<list<MatchStrengthEnum>>
+            docs: "Filter by match strength"
+          entity_types:
+            type: optional<list<string>>
+            docs: "Filter by entity types"
+          geo_facets:
+            type: optional<boolean>
+            docs: "Include geo facets"
+            default: false
+          exact_match:
+            type: optional<boolean>
+            docs: "Use exact matching"
+          hs_codes:
+            type: optional<list<string>>
+            docs: "Filter by HS codes"
+          received_hs_codes:
+            type: optional<list<string>>
+            docs: "Filter by received HS codes"
+          shipped_hs_codes:
+            type: optional<list<string>>
+            docs: "Filter by shipped HS codes"
+          upstream_product:
+            type: optional<list<string>>
+            docs: "Filter by upstream product"
+          limit:
+            type: optional<integer>
+            docs: "Maximum number of results to return"
+          token:
+            type: optional<string>
+            docs: "Pagination token"
+          sort:
+            type: optional<list<string>>
+            docs: "Sort fields"
+          aggregations:
+            type: optional<list<string>>
+            docs: "Fields to aggregate"
+          num_aggregation_buckets:
+            type: optional<integer>
+            docs: "Number of aggregation buckets"
+          risk:
+            type: optional<list<generated.Risk>>
+            docs: "List of risk factors to filter by"
+          risk_category:
+            type: optional<list<generated.RiskCategory>>
+            docs: "List of risk categories to filter by. An entity matches if it has any risk factor belonging to one of the specified categories"
+      response: ProjectEntitiesResponse
+      examples:
+        - response:
+            body: $ProjectEntitiesResponse.Example1
+          path-parameters:
+            project_id: YVB88Y
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+    
+    # TEMP: Commenting out as not essential for external dev yet
+    # getProjectEntityCounts:
+    #   docs: "Retrieves aggregated counts for entities in a project."
+    #   path: /{project}/entities/counts
+    #   method: GET
+    #   path-parameters:
+    #     project: string
+    #   request:
+    #     name: GetProjectEntityCountsRequest
+    #     query-parameters:
+    #       entity_id:
+    #         type: optional<list<string>>
+    #         docs: "Filter by entity IDs"
+    #       uploads: 
+    #         type: optional<list<string>>
+    #         docs: "Filter by upload IDs"
+    #       case_status:
+    #         type: optional<list<CaseStatus>>
+    #         docs: "Filter by case status"
+    #       tags:
+    #         type: optional<list<string>>
+    #         docs: "Filter by tag IDs"
+    #       match_result:
+    #         type: optional<list<MatchResult>>
+    #         docs: "Filter by match result"
+    #       match_strength_v1:
+    #         type: optional<list<MatchStrengthEnum>>
+    #         docs: "Filter by match strength"
+    #       entity_types:
+    #         type: optional<list<string>>
+    #         docs: "Filter by entity types"
+    #       geo_facets:
+    #         type: optional<boolean>
+    #         docs: "Include geo facets"
+    #         default: false
+    #       exact_match:
+    #         type: optional<boolean>
+    #         docs: "Use exact matching"
+    #       aggregations:
+    #         type: optional<list<string>>
+    #         docs: "Fields to aggregate"
+    #       num_aggregation_buckets:
+    #         type: optional<integer>
+    #         docs: "Number of aggregation buckets"
+    #   response: FacetsResponse
+    #   errors:
+    #     - error: errors.BadRequest
+    #       docs: Bad request
+    #     - error: errors.Unauthorized
+    #       docs: Unauthorized
+    #     - error: errors.NotFound
+    #       docs: Not found
+    #     - error: errors.MethodNotAllowed
+    #       docs: Method not allowed
+    #     - error: errors.RateLimitExceeded
+    #       docs: Rate limit exceeded
+    #     - error: errors.InternalServerError
+    #       docs: Internal server error
+          
+    # TEMP: Commenting out as not essential for external dev yet
+    # getProjectEntityAttributeTypes:
+    #   availability: in-development
+    #   docs: "Retrieves the attribute types for entities in a project."
+    #   path: /{project_id}/entities/attributes
+    #   method: GET
+    #   path-parameters:
+    #     project_id: string
+    #   response: AttributeTypesResponse
+    #   errors:
+    #     - error: errors.BadRequest
+    #       docs: Bad request
+    #     - error: errors.Unauthorized
+    #       docs: Unauthorized
+    #     - error: errors.NotFound
+    #       docs: Not found
+    #     - error: errors.MethodNotAllowed
+    #       docs: Method not allowed
+    #     - error: errors.RateLimitExceeded
+    #       docs: Rate limit exceeded
+    #     - error: errors.InternalServerError
+    #       docs: Internal server error
+          
+    getProjectEntity:
+      availability: in-development
+      docs: "Retrieves a specific entity in a project."
+      path: /{project_id}/entities/{project_entity_id}
+      method: GET
+      path-parameters:
+        project_id: string
+        project_entity_id: string
+      request:
+        name: GetProjectEntityRequest
+        query-parameters:
+          entity_id:
+            type: optional<list<string>>
+            docs: "Filter by entity IDs"
+          uploads: 
+            type: optional<list<string>>
+            docs: "Filter by upload IDs"
+          case_status:
+            type: optional<list<CaseStatus>>
+            docs: "Filter by case status"
+          tags:
+            type: optional<list<string>>
+            docs: "Filter by tag IDs"
+          match_result:
+            type: optional<list<MatchResult>>
+            docs: "Filter by match result"
+          match_strength_v1:
+            type: optional<list<MatchStrengthEnum>>
+            docs: "Filter by match strength"
+          entity_types:
+            type: optional<list<string>>
+            docs: "Filter by entity types"
+          risk:
+            type: optional<list<generated.Risk>>
+            docs: "List of risk factors to filter by"
+          risk_category:
+            type: optional<list<generated.RiskCategory>>
+            docs: "List of risk categories to filter by. An entity matches if it has any risk factor belonging to one of the specified categories"
+      response: SingleProjectEntityResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+          
+    # TEMP: Commenting out as not essential for external dev yet
+    # getProjectEntitySpecialCounts:
+    #   availability: in-development
+    #   docs: "Retrieves specialized aggregated counts for entities in a project."
+    #   path: /{project_id}/entities/counts/{type}
+    #   method: GET
+    #   path-parameters:
+    #     project_id: string
+    #     type: CountType
+    #   request:
+    #     name: GetProjectEntitySpecialCountsRequest
+    #     query-parameters:
+    #       entity_id:
+    #         type: optional<list<string>>
+    #         docs: "Filter by entity IDs"
+    #       uploads: 
+    #         type: optional<list<string>>
+    #         docs: "Filter by upload IDs"
+    #       case_status:
+    #         type: optional<list<CaseStatus>>
+    #         docs: "Filter by case status"
+    #       tags:
+    #         type: optional<list<string>>
+    #         docs: "Filter by tag IDs"
+    #       match_result:
+    #         type: optional<list<MatchResult>>
+    #         docs: "Filter by match result"
+    #       match_strength_v1:
+    #         type: optional<list<MatchStrengthEnum>>
+    #         docs: "Filter by match strength"
+    #       entity_types:
+    #         type: optional<list<string>>
+    #         docs: "Filter by entity types"
+    #       aggregations:
+    #         type: optional<list<string>>
+    #         docs: "Fields to aggregate"
+    #       num_aggregation_buckets:
+    #         type: optional<integer>
+    #         docs: "Number of aggregation buckets"
+    #   response: SpecialFacetsResponse
+    #   errors:
+    #     - error: errors.BadRequest
+    #       docs: Bad request
+    #     - error: errors.Unauthorized
+    #       docs: Unauthorized
+    #     - error: errors.NotFound
+    #       docs: Not found
+    #     - error: errors.MethodNotAllowed
+    #       docs: Method not allowed
+    #     - error: errors.RateLimitExceeded
+    #       docs: Rate limit exceeded
+    #     - error: errors.InternalServerError
+    #       docs: Internal server error
+          
+    # TEMP: Commenting out as not essential for external dev yet
+    # updateProjectEntityTags:
+    #   availability: in-development
+    #   docs: "Updates the tags associated with a project entity."
+    #   path: /{project_id}/entities/{project_entity_id}/tags
+    #   method: POST
+    #   path-parameters:
+    #     project_id: string
+    #     project_entity_id: string
+    #   request: UpdateProjectEntityTagsBody
+    #   response: UpdateEntityTagsResponse
+    #   errors:
+    #     - error: errors.BadRequest
+    #       docs: Bad request
+    #     - error: errors.Unauthorized
+    #       docs: Unauthorized
+    #     - error: errors.NotFound
+    #       docs: Not found
+    #     - error: errors.MethodNotAllowed
+    #       docs: Method not allowed
+    #     - error: errors.RateLimitExceeded
+    #       docs: Rate limit exceeded
+    #     - error: errors.InternalServerError
+    #       docs: Internal server error
+          
+    deleteProjectEntity:
+      availability: in-development
+      docs: "Deletes a project entity."
+      path: /{project_id}/entities/{project_entity_id}
+      method: DELETE
+      path-parameters:
+        project_id: string
+        project_entity_id: string
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+    
+    deleteProjectEntityMatch:
+      availability: in-development
+      docs: "Deletes a specific project entity match."
+      path: /{project_id}/entities/{project_entity_id}/matches/{match_id}
+      method: DELETE
+      path-parameters:
+        project_id: string
+        project_entity_id: string
+        match_id: string
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+
+    projectEntityExists:
+      availability: in-development
+      docs: "Checks if a project entity with the given attributes already exists."
+      path: /{project_id}/entities/exists
+      method: POST
+      path-parameters:
+        project_id: string
+      request: ResolutionAttributes
+      response: ProjectEntityIdResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - request:
+            name:
+              - "Example Company"
+            country:
+              - "USA"
+          response:
+            body:
+              data:
+                project_entity_id: "Gam5qG"
+          path-parameters:
+            project_id: "YVB88Y"
+
+    saveProjectEntity:
+      availability: in-development
+      docs: "Stores a project entity given entity IDs and a list of attributes."
+      path: /{project_id}/entities/save
+      method: POST
+      path-parameters:
+        project_id: string
+      request: SaveProjectEntityBody
+      response: ProjectEntityIdResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - request:
+            entity_ids:
+              - "entity_id_1"
+              - "entity_id_2"
+            attributes:
+              name:
+                - "Example Company"
+              country:
+                - "USA"
+            profile: "corporate"
+          response:
+            body:
+              data:
+                project_entity_id: "Gam5qG"
+          path-parameters:
+            project_id: "YVB88Y"
+
+    projectEntitySupplyChain:
+      docs: Execute a traversal of the upstream trade network (supply chain) for all matched entities of a project entity, returning a set of entities and edges between them.
+      availability: in-development
+      path: "/{projectId}/entities/{projectEntityId}/supply_chain/upstream"
+      method: GET
+      path-parameters:
+        projectId:
+          type: string
+          docs: The project Identifier
+        projectEntityId:
+          type: string
+          docs: The project entity Identifier
+      request:
+        name: ProjectEntitySupplyChainRequest
+        query-parameters:
+          risk:
+            type: optional<list<generated.Risk>>
+            docs: Risk leaf node filter. Only return supply chains that end with a supplier that has 1+ of the specified risk factors.
+          "-risk":
+            name: not-risk
+            type: optional<list<generated.Risk>>
+            docs: Risk leaf node filter. Only return supply chains that end with a supplier that has none of the specified risk factors.
+          countries:
+            type: optional<list<generated.Country>>
+            docs: Country leaf node filter. Only return supply chains that end with a supplier in 1+ of the specified countries.
+          "-countries":
+            name: not-countries
+            type: optional<list<generated.Country>>
+            docs: Country leaf node filter. Only return supply chains that end with a supplier in none of the specified countries.
+          shipment_country:
+            type: optional<list<generated.Country>>
+            docs: Filters supply chain paths where 1+ shipment country from any tier matches the provided values.
+          "-shipment_country":
+            name: not-shipment_country
+            type: optional<list<generated.Country>>
+            docs: Filters supply chain paths where none of the shipment countries from any tier matches the provided values.
+          tier1_shipment_country:
+            type: optional<list<generated.Country>>
+            docs: Filters supply chain paths where 1+ shipment country from tier 1 matches the provided values.
+          tier2_shipment_country:
+            type: optional<list<generated.Country>>
+            docs: Filters supply chain paths where 1+ shipment country from tier 2 matches the provided values.
+          tier3_shipment_country:
+            type: optional<list<generated.Country>>
+            docs: Filters supply chain paths where 1+ shipment country from tier 3 matches the provided values.
+          tier4_shipment_country:
+            type: optional<list<generated.Country>>
+            docs: Filters supply chain paths where 1+ shipment country from tier 4 matches the provided values.
+          tier5_shipment_country:
+            type: optional<list<generated.Country>>
+            docs: Filters supply chain paths where 1+ shipment country from tier 5 matches the provided values.
+          product:
+            type: optional<list<string>>
+            docs: Product root edge filter. Only return supply chains that start with an edge that has 1+ of the specified HS codes.
+          "-product":
+            name: not-product
+            type: optional<list<string>>
+            docs: Product root edge filter. Only return supply chains that start with an edge that has none of the specified HS codes.
+          component:
+            type: optional<list<string>>
+            docs: Component edge filter. Only return supply chains that contain at least one edge with 1+ of the specified HS codes.
+          "-component":
+            name: not-component
+            type: optional<list<string>>
+            docs: Component edge filter. Only return supply chains that contain no edges with any of the specified HS codes.
+          min_date:
+            type: optional<string>
+            docs: Minimum date edge filter in <YYYY-MM-DD> format. Only return supply chains with edge dates that are greater than or equal to this date.
+          max_date:
+            type: optional<string>
+            docs: Maximum date edge filter in <YYYY-MM-DD> format. Only return supply chains with edge dates that are less than or equal to this date.
+          max_depth:
+            type: optional<integer>
+            docs: The maximum depth of the traversal, from 1 to 4 inclusive. Default is 4. Reduce if query is timing out.
+          limit:
+            type: optional<integer>
+            docs: The maximum number of results to return. Default is no limit.
+      response: supply_chain.UpstreamTradeTraversalResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not Found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - path-parameters:
+            projectId: "Gam5qG"
+            projectEntityId: "GOeOE8"
+          query-parameters:
+            min_date: "2023-03-15"
+            product:
+              - "3204"
+            risk:
+              - forced_labor_xinjiang_origin_subtier
+          response:
+            body: $supply_chain.UpstreamTradeTraversalResponse.Example1
+    projectEntitySupplyChainSummary:
+      docs: Execute a traversal of the upstream trade network (supply chain) for all matched entities of a project entity, returning a summary of countries, risks, and components.
+      availability: in-development
+      path: "/{projectId}/entities/{projectEntityId}/supply_chain/upstream_summary"
+      method: GET
+      path-parameters:
+        projectId:
+          type: string
+          docs: The project Identifier
+        projectEntityId:
+          type: string
+          docs: The project entity Identifier
+      request:
+        name: ProjectEntitySupplyChainSummaryRequest
+        query-parameters:
+          risk_factors:
+            type: optional<list<generated.Risk>>
+            docs: Risk leaf node filter. Only return supply chains that end with a supplier that has 1+ of the specified risk factors.
+          "-risk_factors":
+            name: not-risk
+            type: optional<list<generated.Risk>>
+            docs: Risk leaf node filter. Only return supply chains that end with a supplier that has none of the specified risk factors.
+          countries:
+            type: optional<list<generated.Country>>
+            docs: Country leaf node filter. Only return supply chains that end with a supplier in 1+ of the specified countries.
+          "-countries":
+            name: not-countries
+            type: optional<list<generated.Country>>
+            docs: Country leaf node filter. Only return supply chains that end with a supplier in none of the specified countries.
+          product:
+            type: optional<list<string>>
+            docs: Product root edge filter. Only return supply chains that start with an edge that has 1+ of the specified HS codes.
+          "-product":
+            name: not-product
+            type: optional<list<string>>
+            docs: Product root edge filter. Only return supply chains that start with an edge that has none of the specified HS codes.
+          component:
+            type: optional<list<string>>
+            docs: Component edge filter. Only return supply chains that contain at least one edge with 1+ of the specified HS codes.
+          "-component":
+            name: not-component
+            type: optional<list<string>>
+            docs: Component edge filter. Only return supply chains that contain no edges with any of the specified HS codes.
+          min_date:
+            type: optional<string>
+            docs: Minimum date edge filter in <YYYY-MM-DD> format. Only return supply chains with edge dates that are greater than or equal to this date.
+          max_date:
+            type: optional<string>
+            docs: Maximum date edge filter in <YYYY-MM-DD> format. Only return supply chains with edge dates that are less than or equal to this date.
+          max_depth:
+            type: optional<integer>
+            docs: The maximum depth of the traversal, from 1 to 4 inclusive. Default is 4. Reduce if query is timing out.
+          limit:
+            type: optional<integer>
+            docs: The maximum number of results to return. Default is no limit.
+      response: ProjectEntitySupplyChainSummaryResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.NotFound
+          docs: Not Found
+        - error: errors.MethodNotAllowed
+          docs: Method not allowed
+        - error: errors.RateLimitExceeded
+          docs: Rate limit exceeded
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - path-parameters:
+            projectId: "Gam5qG"
+            projectEntityId: "GOeOE8"
+          query-parameters:
+            min_date: "2023-03-15"
+            product:
+              - "8536"
+              - "8544"
+              - "4016"
+            risk_factors:
+              - "forced_labor_xinjiang_name"
+              - "forced_labor_xinjiang_uflpa"
+              - "forced_labor_uflpa_origin_direct"
+              - "exports_russian_gold"
+              - "export_to_sanctioned"
+          response:
+            body: $ProjectEntitySupplyChainSummaryResponse.Example1
+types:
+  StringOrNumber:
+    discriminated: false
+    union:
+      - string
+      - integer
+      - double
+
+  CountType:
+    enum:
+      - value: coordinates
+      - value: upstream_product_risk
+      - value: upstream_product_country
+
+  MatchResult:
+    enum:
+      - value: ambiguous
+      - value: unambiguous
+      - value: unresolved
+      - value: sayari
+
+  CaseStatus:
+    enum:
+      - value: not_assigned
+      - value: in_review
+      - value: approved
+      - value: rejected
+
+  MatchStrengthEnum:
+    enum:
+      - value: strong
+      - value: partial
+      - value: no_match
+      - value: manual
+
+  Translation:
+    properties:
+      target: string
+      source: optional<string>
+
+  ProjectEntitiesResponse:
+    properties:
+      limit: integer
+      data: list<ProjectEntityResponse>
+      size: base.QualifiedCount
+      next_token: optional<string>
+      prev_token: optional<string>
+    examples:
+      - name: Example1
+        value:
+          limit: 20
+          data:
+          - project_entity_id: 52z4Wa
+            project_id: YVB88Y
+            label: VTB Bank
+            upload_ids: []
+            strength: strong
+            created_at: '2025-04-22 22:54:00.913586+00'
+            attributes:
+              name:
+                resolve: true
+                values:
+                - VTB Bank
+              country:
+                resolve: true
+                values:
+                - RUS
+              address:
+                resolve: true
+                values:
+                - Moscow
+              identifier:
+                resolve: true
+                values:
+                - 253400V1H6ART1UQ0N98
+            matches:
+            - match_id: 52z4Wa:dy-rh2g0QtzUN_jC_e9S_A
+              sayari_entity_id: dy-rh2g0QtzUN_jC_e9S_A
+              type: company
+              label: ОТКРЫТОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО "РОССИЙСКИЕ ЖЕЛЕЗНЫЕ ДОРОГИ"
+              matched_attributes:
+                name:
+                - "<em>БАНК</em> <em>ВТБ</em> (ПАО)"
+                - "<em>VTB</em> <em>BANK</em> (PJSC)"
+                - "<em>БАНК</em> <em>ВТБ</em> (ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО)"
+                - "<em>VTB</em> <em>BANK</em> (PUBLIC JOINT STOCK COMPANY)"
+                - "<em>VTB</em> <em>Bank</em>"
+                address:
+                - 109147 <em>Moscow</em>, st. Vorontsovskaya, 43 building 1
+                - 119121 <em>Moscow</em>, st. Plyushchikha, 37.
+                - Vorontsovskaya Str., 43 <em>Moscow</em> 109044 RUSSIAN FEDERATION
+                - 37 Plyushchikha ul., <em>Moscow</em>, 119121, Russia
+                - Bashnya Zapad, Kompleks Federatsiya, 12, nab. Presnenskaya, <em>Moscow</em>,
+                  123317, Russia
+                country:
+                - "<em>RUS</em>"
+                identifier:
+                - "<em>253400V1H6ART1UQ0N98</em>"
+                - "<em>253400V1H6ART1UQ0N98</em>"
+              countries:
+              - USA
+              - CYP
+              - ITA
+              - CHN
+              - RUS
+              - UKR
+              - IND
+              - IRL
+              - KAZ
+              - DEU
+              risk_factors:
+                - id: regulatory_action
+                - id: sanctioned
+                - id: meu_list_contractors
+                - id: reputational_risk_other
+                - id: pep_adjacent
+                - id: state_owned
+                - id: export_controls
+                - id: formerly_sanctioned
+                - id: basel_aml
+                - id: cpi_score
+              business_purpose:
+              - standard: ISIC4
+                code: '6419'
+              - code: '64.19'
+                standard: unknown
+              - code: '64.9'
+                standard: unknown
+              - code: '62.09'
+                standard: unknown
+              - standard: NACE2
+                code: '64.19'
+              - code: '64.19'
+                standard: unknown
+              - standard: ISIC4
+                code: '649'
+              - code: '66.12'
+                standard: unknown
+              - standard: ISIC4
+                code: '6419'
+              - standard: ISIC4
+                code: '6209'
+              - standard: ISIC4
+                code: '6612'
+              upstream:
+                risk_factors: []
+                countries: []
+                trade_counts:
+                  shipper_of: 56
+                  receiver_of: 2
+                has_upstream: false
+                products: []
+              sources:
+              - id: eb361ba33d05a9d15b2d28aea739362a
+                label: USA SEC Central Index Key Database
+              - id: a8c6ee1cd4dfc952105ee8c0e4836f08
+                label: Acuris Risk Intelligence KYC6 (3rd Party Data)
+              - id: 3322a755c28851ec06eda3280cc2a2b2
+                label: Russia ClearSpending (3rd Party Data)
+              - id: 93de05b55a68cc964f34bbfc7ec7bc86
+                label: Consolidated Canadian Autonomous Sanctions List
+              - id: fdfedf11a5122e2aef9dc3f176c7427d
+                label: Sayari Intel (Sayari Curated Risk Data) - Archived
+              - id: e517c714b560f159a89a9501ed7dd84e
+                label: Infocredit Cyprus Company Shareholders Database (3rd Party Data)
+              - id: bef2f30139ea37c723ecb0f953b5f024
+                label: Australia Consolidated Sanctions List
+              - id: 9048153c770d941afe9500c6ad810a80
+                label: Kazakhstan DFO Registry
+              - id: 635021e4e01979cdf95fa7ee76501696
+                label: Russia E-Disclosures
+              - id: e85d865943ee6d8369307569d2ad9de0
+                label: Acuris Risk Intelligence Adverse Media Data
+              - id: 4ff85397f508e4ff8e71c5ca5ea895dd
+                label: Japan Ministry of Finance Economic Sanctions List
+              - id: ce873f184abee5b13c9e89791bd78229
+                label: Ukraine Significant Shareholders of Securities Issuers
+              - id: 8511f57f6098dcc36e3a814c3ea5bdd7
+                label: Uzbekistan Imports & Exports (January 2022 - Present)
+              - id: e6e4acebdea4e9e71af8d3586d34fcdd
+                label: Ukraine Sanctions List
+              - id: db3416894cd5f0c4d2d6ecc79bdaf366
+                label: EDI Publicly-Listed Global Security Issuers (3rd Party Data)
+              - id: b812677c0a32a1746b3ac741c7b97ae0
+                label: Legal Entity Identifier (LEI) Registry (3rd Party Data)
+              - id: a9a18eeb901e4376c912e95dc05ceb78
+                label: Russia Federal Tax Registry
+              - id: d357238101a2bb02d97d5d77a56d9455
+                label: New Zealand Russia Sanctions
+              - id: f4ce10ac8bdc0bd9bcb31cb868b4b539
+                label: EU Financial Sanctions List
+              - id: c10d482320f207d92aa814519c3bd686
+                label: UK Consolidated Sanctions List
+              - id: d1bce737c158efddbef5048d63aaf124
+                label: Ukraine Ministry of Justice Registry of Companies
+              - id: 92edb8fe6615498f6e3e7b0e220f74e6
+                label: USA Treasury OFAC Specially Designated Nationals (SDN) List
+              - id: 66dfefb726ae00fde8f09f34c5578d35
+                label: Russia Imports & Exports (January 2023 - Present)
+              - id: ad6dc774c74b92159422deabc5aee661
+                label: France National Asset Freeze Register
+              - id: b97ad5c858093e5227b2359a0078696f
+                label: USA SAM.gov Entity Exclusions Database
+              - id: ddbf93a5c5d568ccdb0c2455f7ecbfc8
+                label: USA CorpWatch SEC 10-K Exhibit 21 Database (3rd Party Data)
+              - id: 52a7bc4a30e787544ad2d95e7f54adca
+                label: USA OFAC Non-SDN Consolidated Sanctions List
+              - id: f43658cf2a19452fb45b830edeeeea44
+                label: Russia Central Bank Financial Institution UBO Disclosures
+              - id: 828f81c7c31410de845d9e6ed1a0f3e6
+                label: Russia Central Bank Financial Institutions
+              - id: 56bce0e008204712e302271ddd7b4fb1
+                label: Russia Federal Tax Registry (2018)
+              - id: e0b32f41da3b4e6c75f1f7bf6fe1c9c5
+                label: S&P Global Market Intelligence Database (3rd Party Data)
+              - id: 10a889609ddae6cc31773feebe48166b
+                label: Switzerland SECO Sanctions List
+              - id: ded706ef28cdc649b6fc5142bc542890
+                label: EU Sanctions Map
+              - id: 417400a1ac439843fda5bb2f05fb4161
+                label: USA Consolidated Screening List
+              - id: 765d0dc816bb7db35031c43a37290350
+                label: Ireland Companies Registration Office Database
+              addresses:
+              - value: 190000, г Санкт-Петербург, ул Большая Морская, дом 29
+              - value: 109147 г. Москва, ул. Воронцовская, д.43 стр.1
+              - value: 119121 г. Москва, ул. Плющиха, д. 37.
+              - value: 43, Vorontsovskaya str., Moscow, 109044, Russia
+              - value: 11, lit A, Degtyarnyy pereulok, St. Petersburg, 191144, Russia
+              - value: 29, Bolshaya Morskaya str., St. Petersburg, 190000, Russia
+              hs_codes:
+              - '847150'
+              - '8471500000'
+              - '852351'
+              - '8523519101'
+              - '860610'
+              - '8606100000'
+              - '271019'
+              - '2710196601'
+              - '490700'
+              - '4907003000'
+              - '711890'
+              - '7118900000'
+              - '490700'
+              - '4907003000'
+              - '711890'
+              - '7118900000'
+              created_at: '2025-04-22 22:54:00.913586+00'
+              updated_at: '2025-04-22 22:54:00.913586+00'
+            tags: []
+            case: not_assigned
+          size:
+            count: 1
+            qualifier: eq
+
+  SingleProjectEntityResponse:
+    properties:
+      data: ProjectEntityResponse
+    examples:
+      - name: Example1
+        value:
+          data:
+            project_entity_id: 52z4Wa
+            project_id: YVB88Y
+            label: VTB Bank
+            upload_ids: []
+            strength: strong
+            created_at: '2025-04-22 22:54:00.913586+00'
+            attributes:
+              name:
+                resolve: true
+                values:
+                - VTB Bank
+              country:
+                resolve: true
+                values:
+                - RUS
+              address:
+                resolve: true
+                values:
+                - Moscow
+              identifier:
+                resolve: true
+                values:
+                - 253400V1H6ART1UQ0N98
+            product_mapping:
+              state: unmapped
+              products: []
+            matches:
+            - match_id: 52z4Wa:dy-rh2g0QtzUN_jC_e9S_A
+              sayari_entity_id: dy-rh2g0QtzUN_jC_e9S_A
+              type: company
+              label: ОТКРЫТОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО "РОССИЙСКИЕ ЖЕЛЕЗНЫЕ ДОРОГИ"
+              matched_attributes:
+                name:
+                - "<em>БАНК</em> <em>ВТБ</em> (ПАО)"
+                - "<em>VTB</em> <em>BANK</em> (PJSC)"
+                - "<em>БАНК</em> <em>ВТБ</em> (ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО)"
+                - "<em>VTB</em> <em>BANK</em> (PUBLIC JOINT STOCK COMPANY)"
+                - "<em>VTB</em> <em>Bank</em>"
+                address:
+                - 109147 <em>Moscow</em>, st. Vorontsovskaya, 43 building 1
+                - 119121 <em>Moscow</em>, st. Plyushchikha, 37.
+                - Vorontsovskaya Str., 43 <em>Moscow</em> 109044 RUSSIAN FEDERATION
+                - 37 Plyushchikha ul., <em>Moscow</em>, 119121, Russia
+                - Bashnya Zapad, Kompleks Federatsiya, 12, nab. Presnenskaya, <em>Moscow</em>,
+                  123317, Russia
+                country:
+                - "<em>RUS</em>"
+                identifier:
+                - "<em>253400V1H6ART1UQ0N98</em>"
+                - "<em>253400V1H6ART1UQ0N98</em>"
+              countries:
+              - USA
+              - CYP
+              - ITA
+              - CHN
+              - RUS
+              - UKR
+              - IND
+              - IRL
+              - KAZ
+              - DEU
+              risk_factors:
+                - id: regulatory_action
+                - id: sanctioned
+                - id: meu_list_contractors
+                - id: reputational_risk_other
+                - id: pep_adjacent
+                - id: state_owned
+                - id: export_controls
+                - id: formerly_sanctioned
+                - id: basel_aml
+                - id: cpi_score
+              business_purpose:
+              - standard: ISIC4
+                code: '6419'
+              - code: '64.19'
+                standard: unknown
+              - code: '64.9'
+                standard: unknown
+              - code: '62.09'
+                standard: unknown
+              - standard: NACE2
+                code: '64.19'
+              - code: '64.19'
+                standard: unknown
+              - standard: ISIC4
+                code: '649'
+              - code: '66.12'
+                standard: unknown
+              - standard: ISIC4
+                code: '6419'
+              - standard: ISIC4
+                code: '6209'
+              - standard: ISIC4
+                code: '6612'
+              upstream:
+                risk_factors: []
+                countries: []
+                trade_counts:
+                  shipper_of: 56
+                  receiver_of: 2
+                has_upstream: false
+                products: []
+                risk_counts: {}
+                country_counts: {}
+              sources:
+              - id: eb361ba33d05a9d15b2d28aea739362a
+                label: USA SEC Central Index Key Database
+              - id: a8c6ee1cd4dfc952105ee8c0e4836f08
+                label: Acuris Risk Intelligence KYC6 (3rd Party Data)
+              - id: 3322a755c28851ec06eda3280cc2a2b2
+                label: Russia ClearSpending (3rd Party Data)
+              - id: 93de05b55a68cc964f34bbfc7ec7bc86
+                label: Consolidated Canadian Autonomous Sanctions List
+              - id: fdfedf11a5122e2aef9dc3f176c7427d
+                label: Sayari Intel (Sayari Curated Risk Data) - Archived
+              - id: e517c714b560f159a89a9501ed7dd84e
+                label: Infocredit Cyprus Company Shareholders Database (3rd Party Data)
+              - id: bef2f30139ea37c723ecb0f953b5f024
+                label: Australia Consolidated Sanctions List
+              - id: 9048153c770d941afe9500c6ad810a80
+                label: Kazakhstan DFO Registry
+              - id: 635021e4e01979cdf95fa7ee76501696
+                label: Russia E-Disclosures
+              - id: e85d865943ee6d8369307569d2ad9de0
+                label: Acuris Risk Intelligence Adverse Media Data
+              - id: 4ff85397f508e4ff8e71c5ca5ea895dd
+                label: Japan Ministry of Finance Economic Sanctions List
+              - id: ce873f184abee5b13c9e89791bd78229
+                label: Ukraine Significant Shareholders of Securities Issuers
+              - id: 8511f57f6098dcc36e3a814c3ea5bdd7
+                label: Uzbekistan Imports & Exports (January 2022 - Present)
+              - id: e6e4acebdea4e9e71af8d3586d34fcdd
+                label: Ukraine Sanctions List
+              - id: db3416894cd5f0c4d2d6ecc79bdaf366
+                label: EDI Publicly-Listed Global Security Issuers (3rd Party Data)
+              - id: b812677c0a32a1746b3ac741c7b97ae0
+                label: Legal Entity Identifier (LEI) Registry (3rd Party Data)
+              - id: a9a18eeb901e4376c912e95dc05ceb78
+                label: Russia Federal Tax Registry
+              - id: d357238101a2bb02d97d5d77a56d9455
+                label: New Zealand Russia Sanctions
+              - id: f4ce10ac8bdc0bd9bcb31cb868b4b539
+                label: EU Financial Sanctions List
+              - id: c10d482320f207d92aa814519c3bd686
+                label: UK Consolidated Sanctions List
+              - id: d1bce737c158efddbef5048d63aaf124
+                label: Ukraine Ministry of Justice Registry of Companies
+              - id: 92edb8fe6615498f6e3e7b0e220f74e6
+                label: USA Treasury OFAC Specially Designated Nationals (SDN) List
+              - id: 66dfefb726ae00fde8f09f34c5578d35
+                label: Russia Imports & Exports (January 2023 - Present)
+              - id: ad6dc774c74b92159422deabc5aee661
+                label: France National Asset Freeze Register
+              - id: b97ad5c858093e5227b2359a0078696f
+                label: USA SAM.gov Entity Exclusions Database
+              - id: ddbf93a5c5d568ccdb0c2455f7ecbfc8
+                label: USA CorpWatch SEC 10-K Exhibit 21 Database (3rd Party Data)
+              - id: 52a7bc4a30e787544ad2d95e7f54adca
+                label: USA OFAC Non-SDN Consolidated Sanctions List
+              - id: f43658cf2a19452fb45b830edeeeea44
+                label: Russia Central Bank Financial Institution UBO Disclosures
+              - id: 828f81c7c31410de845d9e6ed1a0f3e6
+                label: Russia Central Bank Financial Institutions
+              - id: 56bce0e008204712e302271ddd7b4fb1
+                label: Russia Federal Tax Registry (2018)
+              - id: e0b32f41da3b4e6c75f1f7bf6fe1c9c5
+                label: S&P Global Market Intelligence Database (3rd Party Data)
+              - id: 10a889609ddae6cc31773feebe48166b
+                label: Switzerland SECO Sanctions List
+              - id: ded706ef28cdc649b6fc5142bc542890
+                label: EU Sanctions Map
+              - id: 417400a1ac439843fda5bb2f05fb4161
+                label: USA Consolidated Screening List
+              - id: 765d0dc816bb7db35031c43a37290350
+                label: Ireland Companies Registration Office Database
+              addresses:
+              - value: 190000, г Санкт-Петербург, ул Большая Морская, дом 29
+              - value: 109147 г. Москва, ул. Воронцовская, д.43 стр.1
+              - value: 119121 г. Москва, ул. Плющиха, д. 37.
+              - value: 43, Vorontsovskaya str., Moscow, 109044, Russia
+              - value: 11, lit A, Degtyarnyy pereulok, St. Petersburg, 191144, Russia
+              - value: 29, Bolshaya Morskaya str., St. Petersburg, 190000, Russia
+              hs_codes:
+              - '847150'
+              - '8471500000'
+              - '852351'
+              - '8523519101'
+              - '860610'
+              - '8606100000'
+              - '271019'
+              - '2710196601'
+              - '490700'
+              - '4907003000'
+              - '711890'
+              - '7118900000'
+              - '490700'
+              - '4907003000'
+              - '711890'
+              - '7118900000'
+              created_at: '2025-04-22 22:54:00.913586+00'
+              updated_at: '2025-04-22 22:54:00.913586+00'
+            tags: []
+            case: not_assigned
+
+  FacetsResponse:
+    properties:
+      data: map<string, list<FacetBucket>>
+
+  FacetBucket:
+    properties:
+      key: string
+      doc_count: integer
+
+  SpecialFacetsResponse:
+    properties:
+      data: map<string, list<SpecialFacetBucket>>
+
+  SpecialFacetBucket:
+    properties:
+      key: string
+      doc_count: integer
+      products: optional<list<ProductBucket>>
+      lat: optional<double>
+      lon: optional<double>
+
+  ProductBucket:
+    properties:
+      key: string
+      doc_count: integer
+
+  AttributeType:
+    properties:
+      type: string
+      resolution: boolean
+
+  AttributeTypesResponse:
+    properties:
+      data: list<AttributeType>
+
+  AttributeValues:
+    properties:
+      resolve: boolean
+      values: list<string>
+
+  ProjectEntityResponse:
+    properties:
+      project_entity_id: string
+      project_id: string
+      label: string
+      upload_ids: list<string>
+      strength: MatchStrengthEnum
+      created_at: string
+      attributes: map<string, AttributeValues>
+      product_mapping: optional<ProductMapping>
+      matches: list<ProjectEntityMatchResponse>
+      tags: list<TagResponse>
+      case: optional<CaseStatus>
+      updated_at: optional<string>
+
+  ProductMapping:
+    properties:
+      products: list<string>
+      state: string
+
+  ProjectEntityMatchResponse:
+    properties:
+      match_id: string
+      sayari_entity_id: string
+      type: string
+      label: string
+      matched_attributes: MatchedAttributes
+      countries: list<string>
+      risk_factors: list<ProjectRiskFactor>
+      business_purpose: list<BusinessPurpose>
+      upstream: UpstreamInfo
+      sources: list<SourceField>
+      addresses: list<Address>
+      hs_codes: list<string>
+      created_at: string
+      updated_at: optional<string>
+      resolution_profile: optional<string>
+      deleted_at: optional<string>
+
+  MatchedAttributes:
+    properties:
+      name: optional<list<string>>
+      address: optional<list<string>>
+      contact: optional<list<string>>
+      country: optional<list<string>>
+      identifier: optional<list<string>>
+  
+  ProjectRiskFactor:
+    properties:
+      id: string
+
+  BusinessPurpose:
+    properties:
+      code: string
+      standard: string
+
+  UpstreamInfo:
+    properties:
+      risk_factors: list<ProjectRiskFactor>
+      countries: list<string>
+      trade_counts: TradeCounts
+      has_upstream: boolean
+      products: list<string>
+      risk_counts: optional<UpstreamCount>
+      country_counts: optional<UpstreamCount>
+
+  TradeCounts:
+    properties:
+      receiver_of: integer
+      shipper_of: integer
+
+  ProductCount:
+    properties:
+      product: optional<string>
+      count: integer
+
+  UpstreamCount: 
+    map<string, map<string, list<ProductCount>>>
+
+  SourceField:
+    properties:
+      id: string
+      label: string
+
+  Address:
+    properties:
+      value: string
+      country: optional<string>
+      city: optional<string>
+      state: optional<string>
+      location: optional<Location>
+
+  Location:
+    properties:
+      lat: double
+      lon: double
+
+  TagResponse:
+    properties:
+      id: string
+      label: string
+      created_at: string
+      updated_at: optional<string>
+
+  UpdateProjectEntityTagsBody:
+    properties:
+      ids: list<string>
+
+  UpdateEntityTagsResponse:
+    properties:
+      data: list<string>
+
+  ResolutionProfile:
+    enum:
+    - value: suppliers
+    - value: corporate
+    - value: search
+    - value: screen
+
+  CreateResolvedProjectEntityRequest:
+    properties:
+      identifier: optional<list<StringOrNumber>>
+      name: optional<list<string>>
+      country: optional<list<generated.Country>>
+      address: optional<list<string>>
+      date_of_birth: optional<list<string>>
+      contact: optional<list<StringOrNumber>>
+      type: optional<list<generated.Entities>>
+      city: optional<list<string>>
+      state: optional<list<string>>
+      profile: optional<ResolutionProfile>
+    examples:
+      - name: Example1
+        value:
+          name:
+          - VTB Bank
+          country:
+          - RUS
+          address:
+          - Moscow
+          identifier:
+          - 253400V1H6ART1UQ0N98
+          profile: corporate
+
+  RiskCategoriesSummary:
+    properties:
+      id: string
+      label: string
+      risk_factors: list<generated.Risk>
+
+  ProjectEntitySupplyChainSummaryResponseData:
+    properties:
+      project_id: string
+      project_entity_id: string
+      upstream: ProjectEntitySupplyChainUpstream
+
+  ProjectEntitySupplyChainUpstream:
+    properties:
+      components: list<string>
+      countries: list<generated.Country>
+      risk_categories: list<RiskCategoriesSummary>
+
+  ProjectEntitySupplyChainSummaryResponse:
+    properties:
+      filters: supply_chain.TradeTraversalFilters
+      data: ProjectEntitySupplyChainSummaryResponseData
+    examples:
+      - name: Example1
+        value:
+          filters:
+            min_date: "2023-03-15"
+            product:
+              - "8536"
+              - "8544"
+              - "4016"
+            risk_factors:
+              - "forced_labor_xinjiang_name"
+              - "forced_labor_xinjiang_uflpa"
+              - "forced_labor_uflpa_origin_direct"
+              - "exports_russian_gold"
+              - "export_to_sanctioned"
+          data: 
+            project_id: "8YMJNG"
+            project_entity_id: "Gyvp8E"
+            upstream: 
+              components: 
+                - "8536"
+                - "8544"
+                - "4016"
+              countries: 
+                - "JPN"
+                - "IND"
+                - "VNM"
+                - "PHL"
+              risk_categories: 
+                - id: "forced_labor"
+                  label: "Forced labor"
+                  risk_factors: 
+                    - "forced_labor_xinjiang_name"
+                    - "forced_labor_xinjiang_uflpa"
+                    - "forced_labor_uflpa_origin_direct"
+                - id: "export_controls"
+                  label: "Export controls"
+                  risk_factors: 
+                    - "exports_russian_gold"
+                    - "export_to_sanctioned"
+                    
+  ResolutionAttributes:
+    properties:
+      identifier: optional<list<StringOrNumber>>
+      name: optional<list<string>>
+      country: optional<list<string>>
+      address: optional<list<string>>
+      date_of_birth: optional<list<string>>
+      contact: optional<list<StringOrNumber>>
+      type: optional<list<string>>
+      city: optional<list<string>>
+      state: optional<list<string>>
+      custom_{field name}: optional<base.CustomFieldValue>
+
+  ProjectEntityIdResponse:
+    properties:
+      data: ProjectEntityExistsResponseData
+
+  ProjectEntityExistsResponseData:
+    properties:
+      project_entity_id: optional<string>
+
+  SaveProjectEntityBody:
+    properties:
+      entity_ids: list<string>
+      attributes: ResolutionAttributes
+      profile: ResolutionProfile

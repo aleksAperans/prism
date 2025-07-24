@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fern-api/fern/main/fern.schema.json
+imports:
+  errors: shared_errors.yml
+
+service:
+  auth: false
+  base-path: ""
+  endpoints:
+    getToken:
+      availability: generally-available
+      docs: Hit the auth endpoint to get a bearer token
+      path: /oauth/token
+      method: POST
+      request:
+        name: getToken
+        body:
+          properties:
+            client_id: string
+            client_secret: string
+            audience: literal<"sayari.com">
+            grant_type: literal<"client_credentials">
+      response:
+        docs: "OK"
+        type: AuthResponse
+      errors:
+        - error: errors.BadRequest
+          docs: Bad request
+        - error: errors.Unauthorized
+          docs: Unauthorized
+        - error: errors.InternalServerError
+          docs: Internal server error
+      examples:
+        - request:
+            client_id: "your client_id here"
+            client_secret: "your client_secret here"
+            audience: "sayari.com"
+            grant_type: "client_credentials"
+          response:
+            body:
+              access_token: "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+              expires_in: 86400
+              token_type: "Bearer"
+
+types:
+  AuthResponse:
+    properties:
+      access_token:
+        docs: The bearer token you will pass in to subsequent API calls to authenticate.
+        type: string
+      expires_in:
+        docs: Tells you how long (in seconds) until your bearer token expires.
+        type: integer
+      token_type:
+        docs: Will always be "Bearer"
+        type: string
