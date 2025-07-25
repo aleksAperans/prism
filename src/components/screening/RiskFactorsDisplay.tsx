@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, ChevronDown, ChevronRight, Shield, Zap, Leaf, Lock, Scale, User, FileText } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Shield, Zap, Leaf, Lock, Scale, User, FileText, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -18,12 +18,14 @@ interface RiskFactorsDisplayProps {
   riskFactors: Array<{ id?: string; factor?: string; description?: string; severity?: string }> | Record<string, unknown>;
   title?: string;
   showTitle?: boolean;
+  riskScores?: Record<string, number>;
 }
 
 export function RiskFactorsDisplay({ 
   riskFactors, 
   title = "Risk Factors Found",
-  showTitle = true 
+  showTitle = true,
+  riskScores 
 }: RiskFactorsDisplayProps) {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [expandedRiskFactors, setExpandedRiskFactors] = useState<Record<string, boolean>>({});
@@ -174,12 +176,18 @@ export function RiskFactorsDisplay({
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center text-green-600 bg-green-500/10 dark:text-green-400 dark:bg-green-500/10 p-4 rounded-md">
-            <Shield className="h-5 w-5 mr-3" />
-            <div>
-              <span className="font-medium">No Risk Factors Identified</span>
-              <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                This entity does not have any identified risk factors in our database.
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <div className="flex justify-center mb-4">
+                <div className="rounded-full bg-green-500/10 p-3">
+                  <Shield className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <h3 className="text-lg font-medium text-green-600 dark:text-green-400 mb-2">
+                No Risk Found
+              </h3>
+              <p className="text-sm text-green-600/80 dark:text-green-400/80 leading-relaxed">
+                This entity has been analyzed and no risk factors were identified based on your current risk configuration.
               </p>
             </div>
           </div>
@@ -390,6 +398,13 @@ export function RiskFactorsDisplay({
                                 </div>
                                 
                                 <div className="flex items-center space-x-2">
+                                  {/* Risk Score Points */}
+                                  {riskScores && riskScores[id] && (
+                                    <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-muted text-xs">
+                                      {riskScores[id]}
+                                    </Badge>
+                                  )}
+                                  
                                   {/* Severity Badge */}
                                   <Badge 
                                     variant="outline" 

@@ -213,9 +213,9 @@ export function RiskSummary({ risks, className }: RiskSummaryProps) {
 
   if (!hasRisks) {
     return (
-      <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
-        <Shield className="h-4 w-4 text-green-600" />
-        <span className="text-sm">No risk factors identified</span>
+      <div className={cn('flex items-center gap-2 text-green-600 dark:text-green-400', className)}>
+        <Shield className="h-4 w-4" />
+        <span className="text-sm font-medium">No risk found</span>
       </div>
     );
   }

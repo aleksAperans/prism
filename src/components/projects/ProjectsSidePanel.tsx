@@ -307,7 +307,7 @@ function ProjectCard({ project, onArchive, onDelete, isDefault, onSetDefault }: 
         </div>
         {project.archived && (
           <Badge variant="secondary" className="w-fit">
-            Archived
+            archived
           </Badge>
         )}
       </CardHeader>

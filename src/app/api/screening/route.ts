@@ -3,6 +3,7 @@ import { projectService } from '@/services/api/projects';
 import { screeningService } from '@/services/api/screening';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { loadDefaultRiskProfile, filterRiskFactorsByProfile, calculateEntityRiskScore } from '@/lib/risk-scoring';
 import type { EntityFormData } from '@/types/app.types';
 
 export async function POST(request: NextRequest) {
@@ -18,13 +19,56 @@ export async function POST(request: NextRequest) {
 
     const body: EntityFormData = await request.json();
 
-    // Validate required fields
-    if (!body.name || !body.project_id) {
+    // Comprehensive request validation
+    const validationErrors: string[] = [];
+    
+    // Required fields
+    if (!body.name || typeof body.name !== 'string' || body.name.trim() === '') {
+      validationErrors.push('Entity name is required and must be a non-empty string');
+    }
+    
+    if (!body.project_id || typeof body.project_id !== 'string') {
+      validationErrors.push('Project ID is required and must be a string');
+    }
+    
+    if (!body.type || !['company', 'person'].includes(body.type)) {
+      validationErrors.push('Entity type is required and must be either "company" or "person"');
+    }
+    
+    // Profile validation - this is crucial for Sayari API
+    if (!body.profile || !['corporate', 'suppliers', 'search', 'screen'].includes(body.profile)) {
+      validationErrors.push('Profile is required and must be one of: corporate, suppliers, search, screen');
+    }
+    
+    // Optional field validation
+    if (body.address && (typeof body.address !== 'string' || body.address.trim() === '')) {
+      validationErrors.push('Address must be a non-empty string if provided');
+    }
+    
+    if (body.country && (typeof body.country !== 'string' || body.country.length !== 3)) {
+      validationErrors.push('Country must be a 3-letter ISO country code if provided');
+    }
+    
+    if (body.date_of_birth && body.type === 'person') {
+      // Basic date format validation for persons
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(body.date_of_birth)) {
+        validationErrors.push('Date of birth must be in YYYY-MM-DD format for persons');
+      }
+    }
+    
+    if (validationErrors.length > 0) {
+      console.error('❌ Request validation errors:', validationErrors);
       return NextResponse.json(
-        { error: 'Entity name and project ID are required' },
+        { 
+          error: 'Request validation failed',
+          details: validationErrors
+        },
         { status: 400 }
       );
     }
+    
+    console.log('✅ Request validation passed for entity:', body.name);
 
     // Use the selected project from the form
     const projectId = body.project_id;
@@ -50,19 +94,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Load default risk profile configuration
+    let riskProfile;
+    try {
+      riskProfile = await loadDefaultRiskProfile();
+      if (riskProfile) {
+        console.log('✅ Loaded risk profile:', riskProfile.name);
+        console.log('📊 Risk scoring enabled:', riskProfile.riskScoringEnabled);
+        console.log('📊 Enabled factors:', riskProfile.enabledFactors.length);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load risk profile, proceeding without filtering:', error);
+    }
+
     // Perform entity analysis
     try {
       const entityAttributes = {
-        name: [body.name], // Convert to array
+        name: [body.name], // Convert to array as Sayari expects
         type: body.type as 'person' | 'company',
-        ...(body.address && { addresses: [body.address] }),
-        ...(body.country && { country: [body.country] }), // Convert to array
+        ...(body.address && { address: [body.address] }), // Fixed: use 'address' not 'addresses'
+        ...(body.country && { country: [body.country] }), // Convert to array as Sayari expects
         ...(body.date_of_birth && { date_of_birth: body.date_of_birth }),
+        profile: body.profile, // Include profile - crucial for Sayari API
       };
       
       console.log('🎯 Analyzing entity with attributes:', entityAttributes);
-      console.log('📋 Using profile:', body.profile || 'corporate');
+      console.log('📋 Using profile:', body.profile);
       console.log('🏗️ Project ID:', projectId);
+      console.log('📝 Exact Sayari request format:', {
+        projectId,
+        entityAttributes,
+        profile: body.profile
+      });
       
       // Check if entity already exists
       console.log('🔍 Checking if entity already exists...');
@@ -82,7 +145,7 @@ export async function POST(request: NextRequest) {
         screeningResult = await screeningService.screenEntity(
           projectId,
           entityAttributes,
-          (body.profile || 'corporate') as 'corporate' | 'suppliers' | 'search' | 'screen'
+          body.profile as 'corporate' | 'suppliers' | 'search' | 'screen' // Now guaranteed to be valid due to validation
         );
       }
 
@@ -122,11 +185,30 @@ export async function POST(request: NextRequest) {
         match.risk_factors?.forEach(rf => allRiskFactors.add(rf.id));
       });
 
-      const combinedRiskFactors = Array.from(allRiskFactors).map(id => ({ id }));
+      const combinedRiskFactors = Array.from(allRiskFactors).map(id => ({ id: id as string }));
 
-      console.log('🔍 Combined risk factors count:', combinedRiskFactors.length);
+      console.log('🔍 Combined risk factors count (before filtering):', combinedRiskFactors.length);
       console.log('📊 Parent risk factors:', screeningResult.risk_factors?.length || 0);
       console.log('🎯 Match count:', screeningResult.matches?.length || 0);
+
+      // Filter risk factors based on risk profile if available
+      const filteredRiskFactors = riskProfile 
+        ? filterRiskFactorsByProfile(combinedRiskFactors, riskProfile)
+        : combinedRiskFactors;
+
+      console.log('🔍 Combined risk factors count (after filtering):', filteredRiskFactors.length);
+
+      // Calculate risk score if risk scoring is enabled
+      let riskScore = null;
+      if (riskProfile && riskProfile.riskScoringEnabled) {
+        const riskFactorIds = filteredRiskFactors.map(rf => rf.id);
+        riskScore = calculateEntityRiskScore(riskFactorIds, riskProfile);
+        console.log('📊 Risk score calculated:', {
+          totalScore: riskScore.totalScore,
+          thresholdExceeded: riskScore.meetsThreshold,
+          threshold: riskScore.threshold
+        });
+      }
 
       return NextResponse.json({
         success: true,
@@ -137,10 +219,12 @@ export async function POST(request: NextRequest) {
           entity_name: body.name,
           entity_type: body.type,
           match_strength: screeningResult.strength || 'unknown',
-          risk_factors: combinedRiskFactors,
+          risk_factors: filteredRiskFactors, // Use filtered risk factors
           matches: screeningResult.matches || [],
           created_at: savedResult.created_at,
           sayari_url: screeningResult.matches?.[0]?.sayari_entity_id ? `https://sayari.com/entity/${screeningResult.matches[0].sayari_entity_id}` : undefined,
+          // Include risk scoring information
+          risk_score: riskScore,
           // Include full screening result for debugging
           full_result: {
             project_id: projectId,

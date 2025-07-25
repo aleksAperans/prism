@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Folder, Plus, Grid3X3, List, Calendar } from 'lucide-react';
+import { Folder, Plus, Grid3X3, List, Calendar, Star, MoreHorizontal, Archive, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ProjectsSidePanel } from '@/components/projects/ProjectsSidePanel';
 import { useProjects } from '@/hooks/useProjects';
 import { Skeleton } from '@/components/common/LoadingStates';
@@ -24,8 +30,17 @@ export default function ProjectsPage() {
   const router = useRouter();
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [defaultProjectId, setDefaultProjectId] = useState<string | null>(null);
   const { projects: activeProjects, loading, error, refetch: refetchActive } = useProjects({ archived: false });
   const { projects: archivedProjects, refetch: refetchArchived } = useProjects({ archived: true });
+
+  // Load default project from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedDefaultId = localStorage.getItem('defaultProjectId');
+      setDefaultProjectId(savedDefaultId);
+    }
+  }, []);
 
   const handleProjectsChanged = async () => {
     // Refresh both active and archived projects lists
@@ -33,6 +48,65 @@ export default function ProjectsPage() {
       refetchActive(),
       refetchArchived()
     ]);
+  };
+
+  const handleSetDefault = (projectId: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('defaultProjectId', projectId);
+      setDefaultProjectId(projectId);
+    }
+  };
+
+  const handleArchiveProject = async (projectId: string, currentlyArchived: boolean) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          archived: !currentlyArchived
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update project');
+      }
+
+      await handleProjectsChanged();
+    } catch (error) {
+      console.error('Failed to archive project:', error);
+      // TODO: Show error toast
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string, projectName: string) => {
+    if (!confirm(`Are you sure you want to delete "${projectName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete project');
+      }
+
+      // Clear from default if it was the default project
+      if (defaultProjectId === projectId) {
+        localStorage.removeItem('defaultProjectId');
+        setDefaultProjectId(null);
+      }
+
+      await handleProjectsChanged();
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      // TODO: Show error toast
+    }
   };
 
   const renderProjectCards = (projects: typeof activeProjects, isArchived = false) => (
@@ -130,8 +204,10 @@ export default function ProjectsPage() {
                       <TableHead>Project Name</TableHead>
                       <TableHead>Entities</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Default</TableHead>
                       <TableHead>Project ID</TableHead>
                       <TableHead>Updated</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -140,8 +216,10 @@ export default function ProjectsPage() {
                         <TableCell><Skeleton className="h-6 w-full" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-12" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-8" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-8" /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -205,22 +283,23 @@ export default function ProjectsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-b bg-muted/50">
-                        <TableHead className="w-[300px]">Project Name</TableHead>
-                        <TableHead className="w-[100px]">Entities</TableHead>
-                        <TableHead className="w-[120px]">Status</TableHead>
-                        <TableHead className="w-[150px]">Project ID</TableHead>
-                        <TableHead className="w-[120px]">Updated</TableHead>
+                        <TableHead className="w-[250px]">Project Name</TableHead>
+                        <TableHead className="w-[80px]">Entities</TableHead>
+                        <TableHead className="w-[100px]">Status</TableHead>
+                        <TableHead className="w-[80px]">Default</TableHead>
+                        <TableHead className="w-[130px]">Project ID</TableHead>
+                        <TableHead className="w-[110px]">Updated</TableHead>
+                        <TableHead className="w-[100px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {/* Active Projects First */}
                       {activeProjects.map((project) => (
-                        <TableRow 
-                          key={project.id} 
-                          className="hover:bg-muted/50 cursor-pointer"
-                          onClick={() => router.push(`/projects/${project.id}/entities`)}
-                        >
-                          <TableCell>
+                        <TableRow key={project.id} className="hover:bg-muted/50">
+                          <TableCell 
+                            className="cursor-pointer"
+                            onClick={() => router.push(`/projects/${project.id}/entities`)}
+                          >
                             <div className="flex items-center gap-3">
                               <Folder className="h-5 w-5 text-blue-600" />
                               <div>
@@ -238,6 +317,13 @@ export default function ProjectsPage() {
                             <Badge variant="outline">active</Badge>
                           </TableCell>
                           <TableCell>
+                            {defaultProjectId === project.id ? (
+                              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <code className="font-mono text-xs bg-muted px-2 py-1 rounded">
                               {project.id}
                             </code>
@@ -248,17 +334,49 @@ export default function ProjectsPage() {
                               {new Date(project.updated).toLocaleDateString()}
                             </div>
                           </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => router.push(`/projects/${project.id}/entities`)}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Entities
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleSetDefault(project.id)}
+                                  disabled={defaultProjectId === project.id}
+                                >
+                                  <Star className="h-4 w-4 mr-2" />
+                                  {defaultProjectId === project.id ? 'Default Project' : 'Set as Default'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleArchiveProject(project.id, false)}>
+                                  <Archive className="h-4 w-4 mr-2" />
+                                  Archive
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteProject(project.id, project.label)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                         </TableRow>
                       ))}
                       
                       {/* Archived Projects */}
                       {archivedProjects.map((project) => (
-                        <TableRow 
-                          key={project.id} 
-                          className="hover:bg-muted/50 cursor-pointer opacity-60"
-                          onClick={() => router.push(`/projects/${project.id}/entities`)}
-                        >
-                          <TableCell>
+                        <TableRow key={project.id} className="hover:bg-muted/50 opacity-60">
+                          <TableCell 
+                            className="cursor-pointer"
+                            onClick={() => router.push(`/projects/${project.id}/entities`)}
+                          >
                             <div className="flex items-center gap-3">
                               <Folder className="h-5 w-5 text-muted-foreground" />
                               <div>
@@ -276,6 +394,13 @@ export default function ProjectsPage() {
                             <Badge variant="secondary">archived</Badge>
                           </TableCell>
                           <TableCell>
+                            {defaultProjectId === project.id ? (
+                              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <code className="font-mono text-xs bg-muted px-2 py-1 rounded">
                               {project.id}
                             </code>
@@ -285,6 +410,39 @@ export default function ProjectsPage() {
                               <Calendar className="h-3 w-3" />
                               {new Date(project.updated).toLocaleDateString()}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => router.push(`/projects/${project.id}/entities`)}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Entities
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleSetDefault(project.id)}
+                                  disabled={defaultProjectId === project.id}
+                                >
+                                  <Star className="h-4 w-4 mr-2" />
+                                  {defaultProjectId === project.id ? 'Default Project' : 'Set as Default'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleArchiveProject(project.id, true)}>
+                                  <Archive className="h-4 w-4 mr-2" />
+                                  Unarchive
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteProject(project.id, project.label)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}

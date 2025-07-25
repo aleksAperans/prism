@@ -4,15 +4,63 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ExternalLink, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, XCircle, CircleDashed, Trash2, ShieldAlert, Building, User } from 'lucide-react';
+import { ExternalLink, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, XCircle, CircleDashed, Trash2, ShieldAlert, Building, User, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import React, { useState, useCallback, useEffect } from 'react';
 import { RiskFactorsDisplay } from './RiskFactorsDisplay';
 import { MatchedAttributesDisplay } from './MatchedAttributesDisplay';
+import { MatchRiskDisplay } from './MatchRiskDisplay';
 import { RiskLevelBadges } from '@/components/common/RiskLevelBadge';
 import { CountryBadgeList } from '@/components/common/CountryBadge';
+import { RiskScoreBadge } from '@/components/screening/RiskScoreBadge';
 import riskFactorsData from '@/lib/risk-factors-data.json';
+// Import only client-safe functions and types
+export interface RiskProfile {
+  id: string;
+  name: string;
+  description: string;
+  enabledFactors: string[];
+  isDefault: boolean;
+  createdAt: string;
+  createdBy: string;
+  riskScoringEnabled: boolean;
+  riskThreshold: number;
+  riskScores: Record<string, number>;
+  categories: Record<string, { name: string; description: string; enabled: boolean }>;
+}
+
+// Client-safe risk profile loading function
+async function clientLoadDefaultRiskProfile(): Promise<RiskProfile | null> {
+  try {
+    const response = await fetch('/api/risk-profiles/default');
+    
+    if (!response.ok) {
+      console.warn('Failed to load default risk profile from API');
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.profile || null;
+  } catch (error) {
+    console.error('Failed to load default risk profile:', error);
+    return null;
+  }
+}
+
+// Client-safe risk factor filtering function
+function filterRiskFactorsByProfile(
+  riskFactors: Array<{ id: string }>,
+  profile: RiskProfile | null
+): Array<{ id: string }> {
+  if (!profile) {
+    // If no profile is loaded, return all risk factors
+    return riskFactors;
+  }
+  
+  // Filter to only include enabled factors
+  return riskFactors.filter(rf => profile.enabledFactors.includes(rf.id));
+}
 
 interface RiskFactor {
   factor: string;
@@ -27,6 +75,15 @@ interface ScreeningResult {
   entity_type: string;
   match_strength?: string;
   risk_factors: RiskFactor[] | Record<string, unknown>;
+  risk_score?: {
+    totalScore: number;
+    triggeredRiskFactors: Array<{
+      id: string;
+      score: number;
+    }>;
+    meetsThreshold: boolean;
+    threshold: number;
+  };
   matches?: Array<{
     match_id: string;
     sayari_entity_id: string;
@@ -73,11 +130,37 @@ export function ScreeningResults({
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
   const [expandedRiskFactors, setExpandedRiskFactors] = useState<Record<string, boolean>>({});
   const [removingMatches, setRemovingMatches] = useState<Record<string, boolean>>({});
+  const [riskProfile, setRiskProfile] = useState<RiskProfile | null>(null);
 
   // Sync with parent results when they change
   useEffect(() => {
     setLocalResults(results);
   }, [results]);
+
+  // Load risk profile for filtering
+  useEffect(() => {
+    const loadRiskProfile = async () => {
+      try {
+        const profile = await clientLoadDefaultRiskProfile();
+        setRiskProfile(profile);
+      } catch (error) {
+        console.warn('Failed to load risk profile for match filtering:', error);
+      }
+    };
+    loadRiskProfile();
+  }, []);
+
+  // Helper function to get filtered risk factor count for a match
+  const getFilteredRiskFactorCount = useCallback((matchRiskFactors: Array<{ id: string }>) => {
+    if (!matchRiskFactors) return 0;
+    
+    // If risk profile hasn't loaded yet, show raw count as fallback
+    if (!riskProfile) return matchRiskFactors.length;
+    
+    // Filter risk factors based on the risk profile
+    const filteredFactors = filterRiskFactorsByProfile(matchRiskFactors, riskProfile);
+    return filteredFactors.length;
+  }, [riskProfile]);
 
   const toggleMatches = useCallback((resultId: string) => {
     setExpandedMatches(prev => ({
@@ -371,6 +454,14 @@ export function ScreeningResults({
                     </Badge>
                   )}
                   
+                  {/* Risk Score Display */}
+                  {result.risk_score && (
+                    <RiskScoreBadge 
+                      riskScore={result.risk_score}
+                      size="sm"
+                    />
+                  )}
+                  
                   {result.sayari_url && (
                     <Button variant="ghost" size="sm" asChild>
                       <a 
@@ -390,8 +481,7 @@ export function ScreeningResults({
 
             <CardContent className="space-y-4">
               {/* No Match Content */}
-              {(result.match_strength?.toLowerCase() === 'no_match' || result.match_strength === 'No_match') && 
-               !hasRisks && (
+              {(result.match_strength?.toLowerCase() === 'no_match' || result.match_strength === 'No_match') && (
                 <div className="flex items-center justify-center p-8">
                   <div className="text-center">
                     <CircleDashed className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -403,9 +493,8 @@ export function ScreeningResults({
                 </div>
               )}
 
-              {/* Risk Factors Section - Collapsible */}
-              {((Array.isArray(result.risk_factors) && result.risk_factors.length > 0) || 
-                (!Array.isArray(result.risk_factors) && Object.keys(result.risk_factors || {}).length > 0)) && (
+              {/* Risk Factors Section - Only show when entity was matched */}
+              {result.match_strength?.toLowerCase() !== 'no_match' && result.match_strength !== 'No_match' && (
                 <Collapsible 
                   key={`risk-factors-${result.id}`}
                   open={expandedRiskFactors[result.id] ?? true} 
@@ -415,14 +504,25 @@ export function ScreeningResults({
                     <button className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
                       <div className="flex items-center justify-between w-full">
                         <h4 className="text-sm font-medium flex items-center">
-                          <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
-                          Risk Factors Found ({Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length})
+                          {hasRisks ? (
+                            <>
+                              <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
+                              Risk Factors Found ({Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length})
+                            </>
+                          ) : (
+                            <>
+                              <Shield className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
+                              Risk Assessment
+                            </>
+                          )}
                         </h4>
                         <div className="flex items-center space-x-2">
-                          <RiskLevelBadges 
-                            counts={calculateLevelCounts(result.risk_factors)}
-                            size="sm"
-                          />
+                          {hasRisks && (
+                            <RiskLevelBadges 
+                              counts={calculateLevelCounts(result.risk_factors)}
+                              size="sm"
+                            />
+                          )}
                           {(expandedRiskFactors[result.id] ?? true) ? (
                             <ChevronDown className="h-4 w-4 text-muted-foreground" />
                           ) : (
@@ -438,6 +538,10 @@ export function ScreeningResults({
                       <RiskFactorsDisplay 
                         riskFactors={result.risk_factors}
                         showTitle={false}
+                        riskScores={result.risk_score?.triggeredRiskFactors?.reduce((acc, rf) => {
+                          acc[rf.id] = rf.score;
+                          return acc;
+                        }, {} as Record<string, number>)}
                       />
                     </div>
                   </CollapsibleContent>
@@ -581,7 +685,7 @@ export function ScreeningResults({
                                 </div>
                               )}
                               <div className="text-xs text-muted-foreground">
-                                Risk Factors: {match.risk_factors?.length || 0}
+                                Risk Factors: {getFilteredRiskFactorCount(match.risk_factors || [])}
                               </div>
                             </div>
                             
@@ -591,6 +695,14 @@ export function ScreeningResults({
                                 matchedAttributes={match.matched_attributes}
                               />
                             )}
+                            
+                            {/* Match-level risk display */}
+                            <MatchRiskDisplay 
+                              matchId={match.match_id}
+                              riskFactors={filterRiskFactorsByProfile(match.risk_factors || [], riskProfile)}
+                              matchLabel={match.label}
+                              className="mt-3"
+                            />
                           </div>
                         </div>
                       ))}

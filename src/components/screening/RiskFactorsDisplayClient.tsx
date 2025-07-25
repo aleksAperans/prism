@@ -31,12 +31,18 @@ export function RiskFactorsDisplayClient({
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center text-green-600 bg-green-500/10 p-4 rounded-md">
-            <Shield className="h-5 w-5 mr-3" />
-            <div>
-              <span className="font-medium">No Risk Factors Identified</span>
-              <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                This entity does not have any identified risk factors in our database.
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <div className="flex justify-center mb-4">
+                <div className="rounded-full bg-green-500/10 p-3">
+                  <Shield className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <h3 className="text-lg font-medium text-green-600 dark:text-green-400 mb-2">
+                No Risk Found
+              </h3>
+              <p className="text-sm text-green-600/80 dark:text-green-400/80 leading-relaxed">
+                This entity has been analyzed and no risk factors were identified based on your current risk configuration.
               </p>
             </div>
           </div>

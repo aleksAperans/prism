@@ -19,10 +19,14 @@ model User {
   updated_at DateTime @updatedAt
 
   // Relations
-  created_projects    Project[]        @relation("ProjectCreator")
-  project_memberships ProjectMember[]
-  screening_results   ScreeningResult[]
-  audit_logs          AuditLog[]
+  created_projects      Project[]                  @relation("ProjectCreator")
+  project_memberships   ProjectMember[]
+  screening_results     ScreeningResult[]
+  audit_logs            AuditLog[]
+  assigned_entities     ProjectEntity[]            @relation("AssignedEntities")
+  screening_audits      EntityScreeningAudit[]     @relation("ScreeningAudits")
+  assigned_cases        EntityCase[]               @relation("AssignedCases")
+  resolved_cases        EntityCase[]               @relation("ResolvedCases")
 
   @@map("users")
 }
@@ -58,6 +62,7 @@ model ProjectMember {
   @@map("project_members")
 }
 
+// Legacy screening results table - keep for backward compatibility
 model ScreeningResult {
   id                String   @id @default(cuid())
   project_id        String
@@ -75,6 +80,400 @@ model ScreeningResult {
   user    User    @relation(fields: [created_by], references: [id])
 
   @@map("screening_results")
+}
+
+// New comprehensive project entities table
+model ProjectEntity {
+  id                   String   @id @default(cuid())
+  project_id           String
+  project_entity_id    String   // Your internal entity ID
+  organization_id      String?  // For multi-tenant support
+  sayari_entity_id     String?  // Sayari's entity ID
+  
+  // Core entity information
+  entity_name          String
+  entity_label         String?
+  entity_type          String?
+  match_strength       Decimal? @db.Decimal(3,2) // 0.00 to 1.00
+  
+  // Status and workflow
+  screening_status     String   @default("pending") // pending, screened, reviewed, approved, rejected
+  workflow_state       String   @default("initial") // for case management
+  assigned_to          String?
+  
+  // Metadata
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  screened_at          DateTime?
+  last_api_sync        DateTime?
+  
+  // Relations
+  project              Project                   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  assigned_user        User?                     @relation("AssignedEntities", fields: [assigned_to], references: [id])
+  risk_assessments     EntityRiskAssessment[]
+  addresses            EntityAddress[]
+  attributes           EntityAttribute[]
+  matches              EntityMatch[]
+  supply_chain         EntitySupplyChain[]
+  trade_flows          EntityTradeFlow[]
+  country_exposures    EntityCountryExposure[]
+  data_sources         EntityDataSource[]
+  audit_logs           EntityScreeningAudit[]
+  cases                EntityCase[]
+  
+  @@unique([project_id, project_entity_id])
+  @@map("project_entities")
+}
+
+// Risk assessment results
+model EntityRiskAssessment {
+  id                      String   @id @default(cuid())
+  project_entity_id       String
+  
+  // Risk profile used
+  risk_profile_id         String   // e.g., 'sanctions-non-psa'
+  risk_profile_version    String?
+  
+  // Overall risk calculation
+  total_risk_score        Int      @default(0)
+  risk_threshold          Int      @default(5)
+  risk_level              String?  // low, medium, high, critical
+  exceeds_threshold       Boolean  @default(false)
+  
+  // Risk factors summary
+  total_factors_checked   Int      @default(0)
+  positive_factors_count  Int      @default(0)
+  critical_factors_count  Int      @default(0)
+  
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  
+  // Relations
+  project_entity          ProjectEntity        @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  risk_factors            EntityRiskFactor[]
+  
+  @@map("entity_risk_assessments")
+}
+
+// Individual risk factors found
+model EntityRiskFactor {
+  id                   String   @id @default(cuid())
+  risk_assessment_id   String
+  
+  // Risk factor details
+  factor_id            String   // e.g., 'controlled_by_aus_sanctioned'
+  factor_name          String
+  factor_category      String
+  factor_level         String   // Critical, High, Elevated, Standard
+  factor_type          String   // entity, network, etc.
+  factor_description   String?
+  
+  // Scoring
+  risk_points          Int      @default(0)
+  is_positive          Boolean  @default(false)
+  confidence_level     Decimal? @db.Decimal(3,2) // 0.00 to 1.00
+  
+  // Metadata from API
+  source_count         Int      @default(0)
+  last_seen            DateTime?
+  first_seen           DateTime?
+  
+  created_at           DateTime @default(now())
+  
+  // Relations
+  risk_assessment      EntityRiskAssessment @relation(fields: [risk_assessment_id], references: [id], onDelete: Cascade)
+  
+  @@map("entity_risk_factors")
+}
+
+// Entity addresses and geographical data
+model EntityAddress {
+  id                  String   @id @default(cuid())
+  project_entity_id   String
+  
+  // Address components
+  address_line        String?
+  city                String?
+  state_province      String?
+  postal_code         String?
+  country_code        String?  // ISO 3-letter code
+  country_name        String?
+  
+  // Geographical coordinates
+  latitude            Decimal? @db.Decimal(10, 8)
+  longitude           Decimal? @db.Decimal(11, 8)
+  
+  // Address metadata
+  address_type        String?  // registered, operational, mailing, etc.
+  is_primary          Boolean  @default(false)
+  confidence_score    Decimal? @db.Decimal(3,2)
+  source_count        Int      @default(0)
+  
+  created_at          DateTime @default(now())
+  
+  // Relations
+  project_entity      ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  
+  @@map("entity_addresses")
+}
+
+// Business classification and attributes
+model EntityAttribute {
+  id                                 String   @id @default(cuid())
+  project_entity_id                  String
+  
+  // Business classification
+  industry_code                      String?
+  industry_classification_system     String?  // ISIC4, NACE2, etc.
+  business_purpose                   String?
+  entity_status                      String?  // active, inactive, dissolved, etc.
+  
+  // Corporate structure
+  incorporation_date                 DateTime?
+  incorporation_country              String?
+  legal_form                         String?
+  
+  // Financial information
+  annual_revenue                     BigInt?
+  employee_count                     Int?
+  currency_code                      String?
+  
+  // Additional attributes (flexible key-value)
+  attribute_key                      String
+  attribute_value                    String?
+  attribute_type                     String?  // string, number, date, boolean
+  source_count                       Int      @default(0)
+  
+  created_at                         DateTime @default(now())
+  
+  // Relations
+  project_entity                     ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  
+  @@map("entity_attributes")
+}
+
+// Match details and alternative names
+model EntityMatch {
+  id                     String   @id @default(cuid())
+  project_entity_id      String
+  
+  // Match information
+  matched_name           String
+  match_type             String?  // exact, fuzzy, phonetic, alias
+  match_confidence       Decimal? @db.Decimal(3,2) // 0.00 to 1.00
+  
+  // Alternative identifiers
+  alternative_id         String?
+  alternative_id_type    String?  // tax_id, registration_number, etc.
+  
+  // Source of the match
+  source_id              String?
+  source_record_id       String?
+  
+  created_at             DateTime @default(now())
+  
+  // Relations
+  project_entity         ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  
+  @@map("entity_matches")
+}
+
+// Supply chain relationships
+model EntitySupplyChain {
+  id                     String   @id @default(cuid())
+  project_entity_id      String
+  
+  // Relationship details
+  related_entity_id      String?  // Sayari ID of related entity
+  related_entity_name    String?
+  relationship_type      String?  // supplier, buyer, subsidiary, parent, etc.
+  relationship_direction String?  // upstream, downstream
+  
+  // Supply chain tier
+  tier_level             Int?     // 1, 2, 3, etc.
+  connection_strength    Decimal? @db.Decimal(3,2) // 0.00 to 1.00
+  
+  // Trade statistics
+  total_shipments        Int      @default(0)
+  shipments_as_buyer     Int      @default(0)
+  shipments_as_supplier  Int      @default(0)
+  
+  // Temporal data
+  first_trade_date       DateTime?
+  last_trade_date        DateTime?
+  relationship_status    String?  // active, inactive, historical
+  
+  created_at             DateTime @default(now())
+  
+  // Relations
+  project_entity         ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  
+  @@map("entity_supply_chain")
+}
+
+// Trade flow data
+model EntityTradeFlow {
+  id                    String   @id @default(cuid())
+  project_entity_id     String
+  
+  // Trade direction
+  trade_type            String   // import, export
+  partner_entity_id     String?
+  partner_entity_name   String?
+  partner_country_code  String?
+  
+  // Product information
+  hs_code               String?  // Harmonized System code
+  product_description   String?
+  product_category      String?
+  
+  // Trade statistics
+  shipment_count        Int      @default(0)
+  total_value           BigInt?  // in cents/smallest currency unit
+  currency_code         String   @default("USD")
+  
+  // Time period
+  trade_year            Int?
+  trade_month           Int?
+  date_range_start      DateTime?
+  date_range_end        DateTime?
+  
+  created_at            DateTime @default(now())
+  
+  // Relations
+  project_entity        ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  
+  @@map("entity_trade_flows")
+}
+
+// Country exposure and geographical risk
+model EntityCountryExposure {
+  id                    String   @id @default(cuid())
+  project_entity_id     String
+  
+  // Country information
+  country_code          String   // ISO 3-letter
+  country_name          String
+  
+  // Exposure types
+  exposure_type         String   // operations, trade, ownership, registration
+  exposure_level        String?  // primary, secondary, minor
+  
+  // Risk assessment for this country
+  country_risk_score    Int      @default(0)
+  sanctions_risk        Boolean  @default(false)
+  export_control_risk   Boolean  @default(false)
+  
+  // Trade volume with this country
+  import_shipments      Int      @default(0)
+  export_shipments      Int      @default(0)
+  total_trade_value     BigInt   @default(0)
+  
+  created_at            DateTime @default(now())
+  
+  // Relations
+  project_entity        ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  
+  @@unique([project_entity_id, country_code, exposure_type])
+  @@map("entity_country_exposure")
+}
+
+// Data sources and provenance
+model EntityDataSource {
+  id                      String   @id @default(cuid())
+  project_entity_id       String
+  
+  // Source information
+  source_id               String
+  source_name             String?
+  source_type             String?  // government, commercial, public, etc.
+  source_country          String?
+  source_reliability_score Decimal? @db.Decimal(3,2)
+  
+  // Data coverage
+  record_count            Int      @default(0)
+  data_types              String[] // Array of data types this source provides
+  
+  // Temporal coverage
+  data_date_start         DateTime?
+  data_date_end           DateTime?
+  last_updated            DateTime?
+  
+  created_at              DateTime @default(now())
+  
+  // Relations
+  project_entity          ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  
+  @@map("entity_data_sources")
+}
+
+// Screening audit trail
+model EntityScreeningAudit {
+  id                    String   @id @default(cuid())
+  project_entity_id     String
+  
+  // Action details
+  action_type           String   // screened, reviewed, approved, rejected, rescreened
+  action_by             String?
+  action_reason         String?
+  
+  // Previous and new values for changes
+  field_changed         String?
+  old_value             String?
+  new_value             String?
+  
+  // Risk assessment changes
+  previous_risk_score   Int?
+  new_risk_score        Int?
+  risk_factors_added    String[]
+  risk_factors_removed  String[]
+  
+  // API call metadata
+  api_request_id        String?
+  processing_time_ms    Int?
+  
+  created_at            DateTime @default(now())
+  
+  // Relations
+  project_entity        ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  action_user           User?         @relation("ScreeningAudits", fields: [action_by], references: [id])
+  
+  @@map("entity_screening_audit")
+}
+
+// Case management for flagged entities
+model EntityCase {
+  id                  String   @id @default(cuid())
+  project_entity_id   String
+  
+  // Case details
+  case_number         String   @unique
+  case_priority       String   @default("medium") // low, medium, high, critical
+  case_status         String   @default("open")   // open, under_review, resolved, closed
+  
+  // Assignment
+  assigned_to         String?
+  assigned_at         DateTime?
+  
+  // Resolution
+  resolution_notes    String?
+  resolution_action   String?  // approved, rejected, requires_monitoring, escalated
+  resolved_by         String?
+  resolved_at         DateTime?
+  
+  // SLA tracking
+  due_date            DateTime?
+  escalation_level    Int      @default(0)
+  
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  
+  // Relations
+  project_entity      ProjectEntity @relation(fields: [project_entity_id], references: [id], onDelete: Cascade)
+  assigned_user       User?         @relation("AssignedCases", fields: [assigned_to], references: [id])
+  resolver_user       User?         @relation("ResolvedCases", fields: [resolved_by], references: [id])
+  
+  @@map("entity_cases")
 }
 
 model RiskFactor {

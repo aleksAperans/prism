@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Search, Building, User, FolderOpen, AlertCircle, Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Building, User, FolderOpen, AlertCircle, Plus, ChevronDown, ChevronRight, Shield } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,19 +15,22 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { CountrySelect } from '@/components/common/CountrySelect';
 import type { EntityFormData } from '@/types/app.types';
 import { useProjects } from '@/hooks/useProjects';
+import { clientLoadYamlProfiles, type RiskProfile } from '@/lib/risk-profiles/yaml-loader';
 
-// Internal form data type with "none" option for type field
+// Internal form data type with required type field
 interface InternalFormData extends Omit<EntityFormData, 'type'> {
-  type?: 'company' | 'person' | 'none';
+  type: 'company' | 'person';
+  risk_profile: string;
 }
 
 const entityFormSchema = z.object({
   project_id: z.string().min(1, 'Please select a project'),
   name: z.string().min(1, 'Entity name is required'),
-  type: z.enum(['company', 'person', 'none']).optional(),
+  type: z.enum(['company', 'person']),
   profile: z.enum(['corporate', 'suppliers', 'search', 'screen'], {
     message: 'Please select an analysis profile',
   }),
+  risk_profile: z.string().min(1, 'Please select a risk profile'),
   identifier: z.string().optional(),
   address: z.string().optional(),
   country: z.string().optional(),
@@ -44,20 +47,47 @@ export function EntityForm({ onSubmit, isLoading = false, className }: EntityFor
   const { projects, loading: projectsLoading, error: projectsError, refetch } = useProjects();
   const [isCreatingProject, setIsCreatingProject] = React.useState(false);
   const [projectSectionOpen, setProjectSectionOpen] = useState(false);
+  const [riskProfileSectionOpen, setRiskProfileSectionOpen] = useState(false);
+  const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([]);
+  const [riskProfilesLoading, setRiskProfilesLoading] = useState(true);
 
   const form = useForm<InternalFormData>({
     resolver: zodResolver(entityFormSchema),
     defaultValues: {
       project_id: '',
       name: '',
-      type: undefined,
+      type: 'company', // Set company as default
       profile: 'corporate', // Set corporate as default
+      risk_profile: '',
       identifier: '',
       address: '',
       country: '',
       date_of_birth: '',
     },
   });
+
+  // Load risk profiles on component mount
+  React.useEffect(() => {
+    const loadRiskProfiles = async () => {
+      try {
+        setRiskProfilesLoading(true);
+        const profiles = await clientLoadYamlProfiles();
+        setRiskProfiles(profiles);
+        
+        // Set default risk profile
+        const defaultProfile = profiles.find(p => p.isDefault);
+        if (defaultProfile && !form.getValues('risk_profile')) {
+          form.setValue('risk_profile', defaultProfile.id);
+        }
+      } catch (error) {
+        console.error('Failed to load risk profiles:', error);
+      } finally {
+        setRiskProfilesLoading(false);
+      }
+    };
+    
+    loadRiskProfiles();
+  }, [form]);
 
   // Set default project when projects load
   React.useEffect(() => {
@@ -73,10 +103,11 @@ export function EntityForm({ onSubmit, isLoading = false, className }: EntityFor
   }, [projects, form]);
 
   const handleSubmit = (data: InternalFormData) => {
-    // Clean up optional fields - remove empty strings and convert "none" to undefined
+    // Clean up optional fields - remove empty strings
     const cleanedData: EntityFormData = {
       ...data,
-      type: data.type === 'none' ? undefined : data.type,
+      type: data.type,
+      risk_profile: data.risk_profile,
       identifier: data.identifier || undefined,
       address: data.address || undefined,
       country: data.country || undefined,
@@ -120,7 +151,144 @@ export function EntityForm({ onSubmit, isLoading = false, className }: EntityFor
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Project Selection - Now First and Required */}
+            {/* Entity Name */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Entity Name *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter company or person name" 
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Entity Type */}
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Entity Type</FormLabel>
+                  <FormControl>
+                    <div className="flex space-x-2">
+                      <Button
+                        type="button"
+                        variant={field.value === 'company' ? 'default' : 'outline'}
+                        onClick={() => field.onChange('company')}
+                        disabled={isLoading}
+                        className="flex-1"
+                      >
+                        <Building className="mr-2 h-4 w-4" />
+                        Company
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={field.value === 'person' ? 'default' : 'outline'}
+                        onClick={() => field.onChange('person')}
+                        disabled={isLoading}
+                        className="flex-1"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        Person
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Address */}
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter physical address" 
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Country */}
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <FormControl>
+                    <CountrySelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder="Search for a country..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Identifier */}
+            <FormField
+              control={form.control}
+              name="identifier"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Identifier</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g., Tax ID, Registration Number, LEI, etc." 
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Date of Birth - only show for persons */}
+            {watchedType === 'person' && (
+              <FormField
+                control={form.control}
+                name="date_of_birth"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date of Birth</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date"
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Separator */}
+            <div className="border-t" />
+
+            {/* Project Selection */}
             <FormField
               control={form.control}
               name="project_id"
@@ -235,166 +403,96 @@ export function EntityForm({ onSubmit, isLoading = false, className }: EntityFor
               }}
             />
 
-            {/* Entity Name */}
+            {/* Risk Profile Selection */}
             <FormField
               control={form.control}
-              name="name"
-              render={({ field }) => (
+              name="risk_profile"
+              render={({ field }) => {
+                const selectedProfile = riskProfiles.find(p => p.id === field.value);
+                
+                return (
                 <FormItem>
-                  <FormLabel>Entity Name *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter company or person name" 
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Entity Type */}
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Entity Type</FormLabel>
-                  <FormControl>
-                    <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                      }} 
-                      value={field.value}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select entity type (optional)">
-                          {field.value === 'company' && (
-                            <div className="flex items-center">
-                              <Building className="mr-2 h-4 w-4" />
-                              Company
+                  <Collapsible 
+                    open={riskProfileSectionOpen} 
+                    onOpenChange={setRiskProfileSectionOpen}
+                  >
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Risk Profile *</FormLabel>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="p-0 h-auto"
+                        >
+                          {riskProfileSectionOpen ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <div className="flex items-center text-sm">
+                              {selectedProfile ? (
+                                <>
+                                  <Shield className="mr-1 h-3 w-3 text-muted-foreground" />
+                                  <span className="font-medium">{selectedProfile.name}</span>
+                                  <span className="text-muted-foreground ml-1">({selectedProfile.enabledFactors.length} factors)</span>
+                                </>
+                              ) : (
+                                <span className="text-muted-foreground">Select risk profile</span>
+                              )}
+                              <ChevronRight className="ml-1 h-4 w-4" />
                             </div>
                           )}
-                          {field.value === 'person' && (
-                            <div className="flex items-center">
-                              <User className="mr-2 h-4 w-4" />
-                              Person
-                            </div>
-                          )}
-                          {field.value === 'none' && (
-                            <span className="text-muted-foreground">No type specified</span>
-                          )}
-                          {!field.value && "Select entity type (optional)"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">
-                          <span className="text-muted-foreground">No type specified</span>
-                        </SelectItem>
-                        <SelectItem value="company">
-                          <div className="flex items-center">
-                            <Building className="mr-2 h-4 w-4" />
-                            Company
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="person">
-                          <div className="flex items-center">
-                            <User className="mr-2 h-4 w-4" />
-                            Person
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Address */}
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter physical address" 
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Country */}
-            <FormField
-              control={form.control}
-              name="country"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Country</FormLabel>
-                  <FormControl>
-                    <CountrySelect
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={isLoading}
-                      placeholder="Search for a country..."
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Identifier */}
-            <FormField
-              control={form.control}
-              name="identifier"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Identifier</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="e.g., Tax ID, Registration Number, LEI, etc." 
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Optional Fields */}
-            <div className="space-y-4">
-
-              {/* Date of Birth - only show for persons */}
-              {watchedType === 'person' && (
-                <FormField
-                  control={form.control}
-                  name="date_of_birth"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date of Birth</FormLabel>
+                        </Button>
+                      </CollapsibleTrigger>
+                    </div>
+                    <CollapsibleContent>
                       <FormControl>
-                        <Input 
-                          type="date"
-                          {...field}
-                          disabled={isLoading}
-                        />
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value}
+                          disabled={isLoading || riskProfilesLoading}
+                        >
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select a risk profile" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {riskProfilesLoading ? (
+                              <div className="p-2 text-sm text-muted-foreground flex items-center">
+                                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-primary" />
+                                Loading risk profiles...
+                              </div>
+                            ) : riskProfiles.length === 0 ? (
+                              <div className="p-2 text-sm text-muted-foreground flex items-center">
+                                <Shield className="mr-2 h-4 w-4" />
+                                No risk profiles available
+                              </div>
+                            ) : (
+                              riskProfiles.map((profile) => (
+                                <SelectItem key={profile.id} value={profile.id}>
+                                  <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center">
+                                      <Shield className="mr-2 h-4 w-4 text-muted-foreground" />
+                                      <span className="font-medium">{profile.name}</span>
+                                      {profile.isDefault && (
+                                        <span className="ml-1 text-xs bg-muted text-muted-foreground px-1 rounded">default</span>
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground ml-4">
+                                      {profile.enabledFactors.length} factors
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <FormMessage />
+                </FormItem>
+                );
+              }}
+            />
 
           </form>
         </Form>

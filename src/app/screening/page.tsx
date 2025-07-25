@@ -16,6 +16,15 @@ interface ScreeningResult {
   entity_type: string;
   match_strength?: string;
   risk_factors: Record<string, unknown>;
+  risk_score?: {
+    totalScore: number;
+    triggeredRiskFactors: Array<{
+      id: string;
+      score: number;
+    }>;
+    meetsThreshold: boolean;
+    threshold: number;
+  };
   matches?: Array<{
     match_id: string;
     sayari_entity_id: string;

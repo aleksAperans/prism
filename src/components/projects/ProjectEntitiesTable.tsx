@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ChevronLeft, 
   Search, 
   Filter, 
   Download, 
@@ -48,7 +47,8 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/common/LoadingStates';
 import { CountryBadgeList } from '@/components/common/CountryBadge';
-import type { SayariProjectEntity, SayariResponse } from '@/types/api.types';
+import { useBreadcrumb } from '@/components/providers/BreadcrumbProvider';
+import type { SayariProjectEntity, SayariResponse, SayariProject } from '@/types/api.types';
 
 interface ProjectEntitiesTableProps {
   projectId: string;
@@ -61,7 +61,9 @@ interface TableSort {
 
 export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
   const router = useRouter();
+  const { setData } = useBreadcrumb();
   const [entities, setEntities] = useState<SayariProjectEntity[]>([]);
+  const [project, setProject] = useState<SayariProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +73,33 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
     hasNext: false,
     next: undefined as string | undefined,
   });
+
+  const fetchProject = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects?limit=50&archived=false`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
+      }
+      
+      const data = await response.json();
+      if (data.success && data.data?.data) {
+        const foundProject = data.data.data.find((p: SayariProject) => p.id === projectId);
+        setProject(foundProject || null);
+        
+        // Update breadcrumb context with project data
+        setData({
+          projectName: foundProject?.label,
+          projectId: projectId,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch project info:', err);
+      // Set basic breadcrumb data even if project fetch fails
+      setData({
+        projectId: projectId,
+      });
+    }
+  }, [projectId, setData]);
 
   const fetchEntities = useCallback(async (nextToken?: string) => {
     try {
@@ -120,8 +149,9 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
   }, [projectId, sort, selectedEntityType]);
 
   useEffect(() => {
+    fetchProject();
     fetchEntities();
-  }, [projectId, sort, selectedEntityType, fetchEntities]);
+  }, [projectId, sort, selectedEntityType, fetchEntities, fetchProject]);
 
   const filteredEntities = useMemo(() => {
     if (!searchQuery) return entities;
@@ -181,21 +211,13 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Projects
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Project Entities</h1>
-            <p className="text-muted-foreground">
-              {filteredEntities.length} entities found
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold">
+            {project?.label ? `${project.label} Entities` : 'Project Entities'}
+          </h1>
+          <p className="text-muted-foreground">
+            {filteredEntities.length} entities found
+          </p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -332,10 +354,10 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
                         </TableCell>
                         
                         <TableCell>
-                          <Badge variant="outline" className="capitalize">
+                          <Badge variant="outline">
                             <div className="flex items-center">
                               {getEntityTypeIcon(entity.summary?.type || 'company')}
-                              <span className="ml-1">{entity.summary?.type || 'Unknown'}</span>
+                              <span className="ml-1">{(entity.summary?.type || 'unknown').toLowerCase()}</span>
                             </div>
                           </Badge>
                         </TableCell>

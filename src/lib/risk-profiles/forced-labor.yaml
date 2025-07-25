@@ -1,0 +1,163 @@
+name: Forced Labor Risk Profile
+description: Focused risk profile for forced labor, modern slavery, child labor, and related compliance violations including Xinjiang, UFLPA, WRO, and ASPI indicators
+version: '1.0'
+created_at: '2025-07-25T20:30:00.000Z'
+created_by: system
+is_default: false
+risk_scoring_enabled: true
+risk_threshold: 10
+enabled_factors:
+  - aspi_uyghur_forced_labor_report_entity
+  - aspi_uyghur_forced_labor_report_entity_adjacent
+  - exports_ilab_child_labor
+  - exports_ilab_forced_labor
+  - forced_labor_aspi_origin_direct
+  - forced_labor_aspi_origin_subtier
+  - forced_labor_china_keywords
+  - forced_labor_sheffield_hallam_university_reports_origin_direct
+  - forced_labor_sheffield_hallam_university_reports_origin_subtier
+  - forced_labor_uflpa_origin_direct
+  - forced_labor_uflpa_origin_subtier
+  - forced_labor_wro_origin_direct
+  - forced_labor_wro_origin_subtier
+  - forced_labor_xinjiang_contractors
+  - forced_labor_xinjiang_cotton_entity
+  - forced_labor_xinjiang_geospatial
+  - forced_labor_xinjiang_name
+  - forced_labor_xinjiang_operations
+  - forced_labor_xinjiang_origin_direct
+  - forced_labor_xinjiang_origin_subtier
+  - forced_labor_xinjiang_registration
+  - forced_labor_xinjiang_uflpa
+  - forced_labor_xinjiang_uflpa_adjacent
+  - former_wro_entity
+  - owned_by_aspi_forced_labor_entity
+  - owned_by_forced_labor_xinjiang_uflpa
+  - owned_by_sheffield_hallam_university_reports_forced_labor_entity
+  - owned_by_wro_entity
+  - owned_by_xinjiang_entity
+  - owner_of_aspi_forced_labor_entity
+  - owner_of_forced_labor_xinjiang_entity
+  - owner_of_forced_labor_xinjiang_uflpa
+  - owner_of_sheffield_hallam_university_reports_forced_labor_entity
+  - owner_of_wro_entity
+  - psa_exports_ilab_child_labor
+  - psa_exports_ilab_forced_labor
+  - psa_forced_labor_aspi_origin_direct
+  - psa_forced_labor_aspi_origin_subtier
+  - psa_forced_labor_aspi_uyghur
+  - psa_forced_labor_sheffield_hallam_university_reports_origin_direct
+  - psa_forced_labor_sheffield_hallam_university_reports_origin_subtier
+  - psa_forced_labor_uflpa_origin_direct
+  - psa_forced_labor_uflpa_origin_subtier
+  - psa_forced_labor_wro_origin_direct
+  - psa_forced_labor_wro_origin_subtier
+  - psa_forced_labor_xinjiang_cotton_entity
+  - psa_forced_labor_xinjiang_geospatial
+  - psa_forced_labor_xinjiang_name
+  - psa_forced_labor_xinjiang_operations
+  - psa_forced_labor_xinjiang_origin_direct
+  - psa_forced_labor_xinjiang_origin_subtier
+  - psa_forced_labor_xinjiang_registration
+  - psa_forced_labor_xinjiang_uflpa
+  - psa_owned_by_aspi_forced_labor_entity
+  - psa_owned_by_forced_labor_xinjiang_uflpa
+  - psa_owned_by_sheffield_hallam_university_reports_forced_labor_entity
+  - psa_owned_by_wro_entity
+  - psa_owned_by_xinjiang_entity
+  - psa_owner_of_aspi_forced_labor_entity
+  - psa_owner_of_forced_labor_xinjiang_entity
+  - psa_owner_of_forced_labor_xinjiang_uflpa
+  - psa_owner_of_sheffield_hallam_university_reports_forced_labor_entity
+  - psa_owner_of_wro_entity
+  - psa_sheffield_hallam_university_forced_labor_entity
+  - psa_sheffield_hallam_university_intermediary_entity
+  - psa_wro_entity
+  - reputational_risk_forced_labor
+  - sheffield_hallam_university_forced_labor_entity
+  - sheffield_hallam_university_forced_labor_reports_entity_adjacent
+  - sheffield_hallam_university_forced_labor_reports_intermediary_entity
+  - wro_entity
+  - wro_entity_adjacent
+risk_scores:
+  aspi_uyghur_forced_labor_report_entity: 1
+  aspi_uyghur_forced_labor_report_entity_adjacent: 1
+  exports_ilab_child_labor: 1
+  exports_ilab_forced_labor: 1
+  forced_labor_aspi_origin_direct: 1
+  forced_labor_aspi_origin_subtier: 1
+  forced_labor_china_keywords: 3
+  forced_labor_sheffield_hallam_university_reports_origin_direct: 3
+  forced_labor_sheffield_hallam_university_reports_origin_subtier: 1
+  forced_labor_uflpa_origin_direct: 3
+  forced_labor_uflpa_origin_subtier: 1
+  forced_labor_wro_origin_direct: 3
+  forced_labor_wro_origin_subtier: 1
+  forced_labor_xinjiang_contractors: 3
+  forced_labor_xinjiang_cotton_entity: 1
+  forced_labor_xinjiang_geospatial: 3
+  forced_labor_xinjiang_name: 3
+  forced_labor_xinjiang_operations: 3
+  forced_labor_xinjiang_origin_direct: 3
+  forced_labor_xinjiang_origin_subtier: 1
+  forced_labor_xinjiang_registration: 3
+  forced_labor_xinjiang_uflpa: 5
+  forced_labor_xinjiang_uflpa_adjacent: 1
+  former_wro_entity: 3
+  owned_by_aspi_forced_labor_entity: 1
+  owned_by_forced_labor_xinjiang_uflpa: 3
+  owned_by_sheffield_hallam_university_reports_forced_labor_entity: 3
+  owned_by_wro_entity: 3
+  owned_by_xinjiang_entity: 3
+  owner_of_aspi_forced_labor_entity: 1
+  owner_of_forced_labor_xinjiang_entity: 3
+  owner_of_forced_labor_xinjiang_uflpa: 3
+  owner_of_sheffield_hallam_university_reports_forced_labor_entity: 3
+  owner_of_wro_entity: 3
+  psa_exports_ilab_child_labor: 1
+  psa_exports_ilab_forced_labor: 1
+  psa_forced_labor_aspi_origin_direct: 1
+  psa_forced_labor_aspi_origin_subtier: 1
+  psa_forced_labor_aspi_uyghur: 1
+  psa_forced_labor_sheffield_hallam_university_reports_origin_direct: 3
+  psa_forced_labor_sheffield_hallam_university_reports_origin_subtier: 1
+  psa_forced_labor_uflpa_origin_direct: 3
+  psa_forced_labor_uflpa_origin_subtier: 1
+  psa_forced_labor_wro_origin_direct: 3
+  psa_forced_labor_wro_origin_subtier: 1
+  psa_forced_labor_xinjiang_cotton_entity: 1
+  psa_forced_labor_xinjiang_geospatial: 3
+  psa_forced_labor_xinjiang_name: 3
+  psa_forced_labor_xinjiang_operations: 3
+  psa_forced_labor_xinjiang_origin_direct: 3
+  psa_forced_labor_xinjiang_origin_subtier: 1
+  psa_forced_labor_xinjiang_registration: 3
+  psa_forced_labor_xinjiang_uflpa: 5
+  psa_owned_by_aspi_forced_labor_entity: 1
+  psa_owned_by_forced_labor_xinjiang_uflpa: 3
+  psa_owned_by_sheffield_hallam_university_reports_forced_labor_entity: 3
+  psa_owned_by_wro_entity: 3
+  psa_owned_by_xinjiang_entity: 3
+  psa_owner_of_aspi_forced_labor_entity: 1
+  psa_owner_of_forced_labor_xinjiang_entity: 3
+  psa_owner_of_forced_labor_xinjiang_uflpa: 3
+  psa_owner_of_sheffield_hallam_university_reports_forced_labor_entity: 3
+  psa_owner_of_wro_entity: 3
+  psa_sheffield_hallam_university_forced_labor_entity: 5
+  psa_sheffield_hallam_university_intermediary_entity: 3
+  psa_wro_entity: 5
+  reputational_risk_forced_labor: 1
+  sheffield_hallam_university_forced_labor_entity: 5
+  sheffield_hallam_university_forced_labor_reports_entity_adjacent: 1
+  sheffield_hallam_university_forced_labor_reports_intermediary_entity: 3
+  wro_entity: 5
+  wro_entity_adjacent: 1
+categories:
+  forced_labor:
+    name: Forced Labor
+    description: Forced labor and human trafficking indicators
+    enabled: true
+  adverse_media:
+    name: Adverse Media
+    description: Forced labor related adverse media coverage
+    enabled: true
