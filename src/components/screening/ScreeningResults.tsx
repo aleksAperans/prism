@@ -94,6 +94,7 @@ interface ScreeningResult {
       name: string[];
       address?: string[];
       country: string[];
+      identifier?: string[];
     };
     countries: string[];
   }>;
@@ -216,7 +217,7 @@ export function ScreeningResults({
   const toggleIndividualMatch = useCallback((uniqueMatchKey: string) => {
     setExpandedIndividualMatches(prev => ({
       ...prev,
-      [uniqueMatchKey]: !(prev[uniqueMatchKey] ?? true) // Default to true (expanded)
+      [uniqueMatchKey]: !(prev[uniqueMatchKey] ?? false) // Default to false (collapsed)
     }));
   }, []);
 
@@ -609,7 +610,10 @@ export function ScreeningResults({
                     <button className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
                       <h4 className="text-sm font-medium flex items-center">
                         <ExternalLink className="h-4 w-4 mr-2 text-primary" />
-                        Matches Found ({result.matches.length})
+                        Matches Found
+                        <Badge variant="outline" className="text-xs ml-2">
+                          {result.matches.length}
+                        </Badge>
                       </h4>
                       {expandedMatches[result.id] ? (
                         <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -643,6 +647,7 @@ export function ScreeningResults({
                           }
                           return isValid;
                         })
+                        // No sorting - maintain API response order
                         .map((match, index) => {
                           const uniqueMatchKey = `${result.id}-${match.match_id}-${index}`;
                           return (
@@ -653,13 +658,13 @@ export function ScreeningResults({
                             }`}
                           >
                             <Collapsible 
-                              open={expandedIndividualMatches[uniqueMatchKey] ?? true}
+                              open={expandedIndividualMatches[uniqueMatchKey] ?? false}
                               onOpenChange={() => toggleIndividualMatch(uniqueMatchKey)}
                             >
                               <CollapsibleTrigger asChild>
-                                <button className="w-full flex items-center justify-between p-4 rounded-t-lg hover:bg-accent transition-colors">
-                                  <div className="flex items-center space-x-2">
-                                    <span className="font-medium text-base">{match.label}</span>
+                                <button className="w-full flex items-center justify-between p-4 rounded-t-lg hover:bg-accent transition-colors text-left">
+                                  <div className="flex items-center space-x-2 flex-1">
+                                    <span className="font-medium text-base text-left">{match.label}</span>
                                     <Badge variant="outline" className="text-xs">
                                       <div className="flex items-center">
                                         {match.type === 'company' ? (
@@ -671,8 +676,8 @@ export function ScreeningResults({
                                       </div>
                                     </Badge>
                                   </div>
-                                  <div className="flex items-center space-x-2">
-                                    {(expandedIndividualMatches[uniqueMatchKey] ?? true) ? (
+                                  <div className="flex items-center space-x-2 flex-shrink-0">
+                                    {(expandedIndividualMatches[uniqueMatchKey] ?? false) ? (
                                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                     ) : (
                                       <ChevronRight className="h-4 w-4 text-muted-foreground" />

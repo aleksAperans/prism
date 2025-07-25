@@ -1,8 +1,9 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { User, MapPin, Home, ChevronDown, ChevronRight } from 'lucide-react';
+import { User, MapPin, Home, Hash, ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface MatchedAttributesDisplayProps {
@@ -10,11 +11,26 @@ interface MatchedAttributesDisplayProps {
     name?: string[];
     address?: string[];
     country?: string[];
+    identifier?: string[];
   };
 }
 
 export function MatchedAttributesDisplay({ matchedAttributes }: MatchedAttributesDisplayProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Auto-expanded by default
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    // All sections auto-expanded by default
+    names: true,
+    addresses: true,
+    countries: true,
+    identifiers: true
+  });
+
+  const toggleSection = (sectionKey: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !(prev[sectionKey] ?? true) // Default to true (expanded)
+    }));
+  };
 
   const renderHighlightedText = (text: string) => {
     // Replace <em> tags with highlighted spans
@@ -34,115 +50,260 @@ export function MatchedAttributesDisplay({ matchedAttributes }: MatchedAttribute
   const hasNames = matchedAttributes.name && matchedAttributes.name.length > 0;
   const hasAddresses = matchedAttributes.address && matchedAttributes.address.length > 0;
   const hasCountries = matchedAttributes.country && matchedAttributes.country.length > 0;
+  const hasIdentifiers = matchedAttributes.identifier && matchedAttributes.identifier.length > 0;
 
-  if (!hasNames && !hasAddresses && !hasCountries) {
+  if (!hasNames && !hasAddresses && !hasCountries && !hasIdentifiers) {
     return null;
   }
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'names': return <User className="h-4 w-4 text-muted-foreground" />;
+      case 'addresses': return <Home className="h-4 w-4 text-muted-foreground" />;
+      case 'countries': return <MapPin className="h-4 w-4 text-muted-foreground" />;
+      case 'identifiers': return <Hash className="h-4 w-4 text-muted-foreground" />;
+      default: return <User className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
   return (
-    <div className="border rounded-md bg-card">
-      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-between p-3 rounded-md hover:bg-accent transition-colors">
-            <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-blue-500" />
-              <span className="font-medium text-foreground text-sm">Matched Attributes</span>
-              <Badge variant="outline" className="text-xs">
-                {[hasNames, hasAddresses, hasCountries].filter(Boolean).length}
-              </Badge>
-            </div>
-            <div className="flex items-center">
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
-            </div>
-          </button>
-        </CollapsibleTrigger>
-      
-      <CollapsibleContent>
-        {/* Single Container with All Attributes */}
-        <div className="border-t p-4 space-y-6">
+    <Card>
+      <CardContent className="p-0">
+        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-between p-4 rounded-t-md hover:bg-accent transition-colors">
+              <div className="flex items-center space-x-2">
+                <User className="h-4 w-4 text-blue-500" />
+                <span className="font-medium text-foreground">Matched Attributes</span>
+                <Badge variant="outline" className="text-xs">
+                  {[hasNames, hasAddresses, hasCountries, hasIdentifiers].filter(Boolean).length}
+                </Badge>
+              </div>
+              <div className="flex items-center">
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+            </button>
+          </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <div className="p-4 pt-0 space-y-3">
           
           {/* Matched Names */}
           {hasNames && (
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 pb-2 border-b border-blue-600/30">
-                <User className="h-4 w-4 text-blue-700 dark:text-blue-300" />
-                <span className="font-medium text-blue-700 dark:text-blue-300 text-sm uppercase tracking-wide">Names</span>
-                <Badge variant="secondary" className="text-xs h-5">
-                  {matchedAttributes.name!.length}
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                {matchedAttributes.name!.map((name, index) => (
-                  <div 
-                    key={index} 
-                    className="py-2 px-3 bg-blue-600/5 rounded-lg border border-blue-600/10"
-                  >
-                    <div className="w-full">
-                      {renderHighlightedText(name)}
+            <Collapsible 
+              open={expandedSections['names'] ?? true} 
+              onOpenChange={() => toggleSection('names')}
+            >
+              <CollapsibleTrigger asChild>
+                <button className="w-full p-3 rounded-lg border bg-blue-500/5 border-blue-500/10 transition-colors hover:bg-blue-500/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {getCategoryIcon('names')}
+                      <div className="text-left">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Names</span>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20"
+                          >
+                            {matchedAttributes.name!.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Matched entity names</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {(expandedSections['names'] ?? true) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </button>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="mt-2 ml-6 space-y-2">
+                  {matchedAttributes.name!.map((name, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 bg-card border rounded-md shadow-sm"
+                    >
+                      <div className="text-sm">
+                        {renderHighlightedText(name)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
 
           {/* Matched Addresses */}
           {hasAddresses && (
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 pb-2 border-b border-blue-500/30">
-                <Home className="h-4 w-4 text-blue-500 dark:text-blue-500" />
-                <span className="font-medium text-blue-500 dark:text-blue-500 text-sm uppercase tracking-wide">Addresses</span>
-                <Badge variant="secondary" className="text-xs h-5">
-                  {matchedAttributes.address!.length}
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                {matchedAttributes.address!.map((address, index) => (
-                  <div 
-                    key={index} 
-                    className="py-2 px-3 bg-blue-500/5 rounded-lg border border-blue-500/10"
-                  >
-                    <div className="w-full">
-                      {renderHighlightedText(address)}
+            <Collapsible 
+              open={expandedSections['addresses'] ?? true} 
+              onOpenChange={() => toggleSection('addresses')}
+            >
+              <CollapsibleTrigger asChild>
+                <button className="w-full p-3 rounded-lg border bg-blue-500/5 border-blue-500/10 transition-colors hover:bg-blue-500/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {getCategoryIcon('addresses')}
+                      <div className="text-left">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Addresses</span>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20"
+                          >
+                            {matchedAttributes.address!.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Matched addresses</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {(expandedSections['addresses'] ?? true) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </button>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="mt-2 ml-6 space-y-2">
+                  {matchedAttributes.address!.map((address, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 bg-card border rounded-md shadow-sm"
+                    >
+                      <div className="text-sm">
+                        {renderHighlightedText(address)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
 
           {/* Matched Countries */}
           {hasCountries && (
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 pb-2 border-b border-blue-400/30">
-                <MapPin className="h-4 w-4 text-blue-400 dark:text-blue-600" />
-                <span className="font-medium text-blue-400 dark:text-blue-600 text-sm uppercase tracking-wide">Countries</span>
-                <Badge variant="secondary" className="text-xs h-5">
-                  {matchedAttributes.country!.length}
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                {matchedAttributes.country!.map((country, index) => (
-                  <div 
-                    key={index} 
-                    className="py-2 px-3 bg-blue-400/5 rounded-lg border border-blue-400/10"
-                  >
-                    <div className="w-full">
-                      {renderHighlightedText(country)}
+            <Collapsible 
+              open={expandedSections['countries'] ?? true} 
+              onOpenChange={() => toggleSection('countries')}
+            >
+              <CollapsibleTrigger asChild>
+                <button className="w-full p-3 rounded-lg border bg-blue-500/5 border-blue-500/10 transition-colors hover:bg-blue-500/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {getCategoryIcon('countries')}
+                      <div className="text-left">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Countries</span>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20"
+                          >
+                            {matchedAttributes.country!.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Matched countries</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {(expandedSections['countries'] ?? true) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </button>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="mt-2 ml-6 space-y-2">
+                  {matchedAttributes.country!.map((country, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 bg-card border rounded-md shadow-sm"
+                    >
+                      <div className="text-sm">
+                        {renderHighlightedText(country)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {/* Matched Identifiers */}
+          {hasIdentifiers && (
+            <Collapsible 
+              open={expandedSections['identifiers'] ?? true} 
+              onOpenChange={() => toggleSection('identifiers')}
+            >
+              <CollapsibleTrigger asChild>
+                <button className="w-full p-3 rounded-lg border bg-blue-500/5 border-blue-500/10 transition-colors hover:bg-blue-500/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {getCategoryIcon('identifiers')}
+                      <div className="text-left">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Identifiers</span>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20"
+                          >
+                            {matchedAttributes.identifier!.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Matched identifiers</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {(expandedSections['identifiers'] ?? true) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="mt-2 ml-6 space-y-2">
+                  {matchedAttributes.identifier!.map((identifier, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 bg-card border rounded-md shadow-sm"
+                    >
+                      <div className="text-sm">
+                        {renderHighlightedText(identifier)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
           
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
-    </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+      </CardContent>
+    </Card>
   );
 }

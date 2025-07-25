@@ -34,7 +34,9 @@ interface ScreeningResult {
     risk_factors: Array<{ id: string }>;
     matched_attributes: {
       name: string[];
+      address?: string[];
       country: string[];
+      identifier?: string[];
     };
     countries: string[];
   }>;

@@ -38,6 +38,7 @@ export interface EntityAttributes {
   type: 'company' | 'person';
   addresses?: string[];
   country?: string[];
+  identifier?: string[];
   date_of_birth?: string; // YYYY-MM-DD format
 }
 
@@ -151,7 +152,9 @@ export interface EntityMatch {
   label: string;
   matched_attributes: {
     name: string[];
+    address?: string[];
     country: string[];
+    identifier?: string[];
   };
   countries: string[];
   risk_factors: Array<{ id: string }>;

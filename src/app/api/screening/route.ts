@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    if (body.identifier && (typeof body.identifier !== 'string' || body.identifier.trim() === '')) {
+      validationErrors.push('Identifier must be a non-empty string if provided');
+    }
+    
     if (validationErrors.length > 0) {
       console.error('❌ Request validation errors:', validationErrors);
       return NextResponse.json(
@@ -123,10 +127,11 @@ export async function POST(request: NextRequest) {
       const entityAttributes = {
         name: [body.name], // Convert to array as Sayari expects
         type: body.type as 'person' | 'company',
-        ...(body.address && { address: [body.address] }), // Fixed: use 'address' not 'addresses'
+        ...(body.address && { addresses: [body.address] }), // Use 'addresses' as per EntityAttributes interface
         ...(body.country && { country: [body.country] }), // Convert to array as Sayari expects
+        ...(body.identifier && { identifier: [body.identifier] }), // Add identifier support
         ...(body.date_of_birth && { date_of_birth: body.date_of_birth }),
-        profile: body.profile, // Include profile - crucial for Sayari API
+        // Profile is passed separately to screenEntity method, not as part of attributes
       };
       
       console.log('🎯 Analyzing entity with attributes:', entityAttributes);
