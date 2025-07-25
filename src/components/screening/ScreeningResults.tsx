@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ExternalLink, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, XCircle, CircleDashed, Trash2, ShieldAlert, Building, User, Shield } from 'lucide-react';
+import { ExternalLink, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, XCircle, CircleDashed, Trash2, ShieldAlert, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import React, { useState, useCallback, useEffect } from 'react';
@@ -14,6 +14,7 @@ import { MatchRiskDisplay } from './MatchRiskDisplay';
 import { RiskLevelBadges } from '@/components/common/RiskLevelBadge';
 import { CountryBadgeList } from '@/components/common/CountryBadge';
 import { RiskScoreBadge } from '@/components/screening/RiskScoreBadge';
+import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import riskFactorsData from '@/lib/risk-factors-data.json';
 // Import only client-safe functions and types
 export interface RiskProfile {
@@ -422,13 +423,17 @@ export function ScreeningResults({
       {/* Already Exists Notification */}
       {alreadyExists && (
         <Alert>
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription className="flex flex-wrap items-center gap-1">
-            <span>This entity already exists in the project</span>
-            {localResults[0]?.full_result?.project_entity_id && (
-              <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{localResults[0].full_result.project_entity_id}</code>
-            )}
-            <span>-- showing existing result.</span>
+          <CheckCircle className="h-4 w-4 flex-shrink-0" />
+          <AlertDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 flex-wrap">
+              <span>This entity already exists in the project</span>
+              {localResults[0]?.full_result?.project_entity_id && (
+                <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono break-all">
+                  {localResults[0].full_result.project_entity_id}
+                </code>
+              )}
+              <span>-- showing existing result.</span>
+            </div>
           </AlertDescription>
         </Alert>
       )}
@@ -442,99 +447,89 @@ export function ScreeningResults({
         return (
           <Card key={result.id}>
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold">{result.entity_name}</h3>
-                      <CardDescription className="space-y-1 mt-1">
-                        <div className="flex items-center gap-2">
-                          <div className="inline-flex items-center rounded border border-border bg-muted px-2 py-0.5 text-xs">
-                            {result.entity_type === 'company' ? (
-                              <>
-                                <Building className="mr-1 h-3 w-3" />
-                                <span>company</span>
-                              </>
-                            ) : result.entity_type === 'person' ? (
-                              <>
-                                <User className="mr-1 h-3 w-3" />
-                                <span>person</span>
-                              </>
-                            ) : (
-                              <span>{result.entity_type || 'unknown'}</span>
-                            )}
-                          </div>
-                          <span>Analyzed {formatDistanceToNow(new Date(result.created_at))} ago</span>
-                        </div>
-                        {result.full_result?.countries && result.full_result.countries.length > 0 && (
-                          <div className="flex items-center flex-wrap gap-1">
-                            <CountryBadgeList 
-                              countryCodes={result.full_result.countries}
-                              size="sm"
-                              maxVisible={5}
-                            />
-                          </div>
-                        )}
-                      </CardDescription>
-                    </div>
+              <div className="space-y-3">
+                {/* Entity name with badges and action button in same row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg font-semibold truncate mb-1">{result.entity_name}</h3>
+                  </div>
+                  
+                  {/* Badges and action button - aligned with entity name */}
+                  <div className="flex items-center flex-wrap gap-2 flex-shrink-0">
+                    {result.matches && result.matches.length > 0 && (
+                      <Badge variant="outline" className="text-xs whitespace-nowrap">
+                        {result.matches.length} match{result.matches.length !== 1 ? 'es' : ''}
+                      </Badge>
+                    )}
+                    {result.match_strength && (
+                      <Badge 
+                        variant="outline" 
+                        className={`${getMatchStrengthColor(result.match_strength)} whitespace-nowrap text-xs`}
+                      >
+                        {result.match_strength === 'strong' ? 'high confidence' : 
+                         result.match_strength === 'partial' ? 'medium confidence' :
+                         result.match_strength === 'medium' ? 'medium confidence' : 
+                         result.match_strength === 'no_match' ? 'no match' :
+                         result.match_strength === 'No_match' ? 'no match' :
+                         result.match_strength}
+                      </Badge>
+                    )}
+                    
+                    {/* Risk Score Display */}
+                    {result.risk_score && (
+                      <RiskScoreBadge 
+                        riskScore={result.risk_score}
+                        size="sm"
+                      />
+                    )}
+                    
+                    {result.sayari_url && (
+                      <Button variant="ghost" size="sm" asChild className="flex-shrink-0">
+                        <a 
+                          href={result.sayari_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center space-x-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          <span className="text-xs">View Details</span>
+                        </a>
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  {result.matches && result.matches.length > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      {result.matches.length} match{result.matches.length !== 1 ? 'es' : ''}
-                    </Badge>
-                  )}
-                  {result.match_strength && (
-                    <Badge 
-                      variant="outline" 
-                      className={getMatchStrengthColor(result.match_strength)}
-                    >
-                      <span className="capitalize">
-                        {result.match_strength === 'strong' ? 'High Confidence' : 
-                         result.match_strength === 'partial' ? 'Medium Confidence' :
-                         result.match_strength === 'medium' ? 'Medium Confidence' : 
-                         result.match_strength === 'no_match' ? 'No Match' :
-                         result.match_strength === 'No_match' ? 'No Match' :
-                         result.match_strength}
-                      </span>
-                    </Badge>
-                  )}
-                  
-                  {/* Risk Score Display */}
-                  {result.risk_score && (
-                    <RiskScoreBadge 
-                      riskScore={result.risk_score}
-                      size="sm"
-                    />
-                  )}
-                  
-                  {result.sayari_url && (
-                    <Button variant="ghost" size="sm" asChild>
-                      <a 
-                        href={result.sayari_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-1"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        <span className="text-xs">View Details</span>
-                      </a>
-                    </Button>
-                  )}
+                {/* Entity type badge row */}
+                <div className="flex items-center">
+                  <EntityTypeBadge type={result.entity_type} />
                 </div>
+                
+                {/* Metadata row */}
+                <CardDescription className="space-y-2">
+                  {result.full_result?.countries && result.full_result.countries.length > 0 && (
+                    <div className="flex items-center flex-wrap gap-1">
+                      <CountryBadgeList 
+                        countryCodes={result.full_result.countries}
+                        size="sm"
+                        maxVisible={5}
+                      />
+                    </div>
+                  )}
+                  <div className="text-sm text-muted-foreground">
+                    Analyzed {formatDistanceToNow(new Date(result.created_at))} ago
+                  </div>
+                </CardDescription>
               </div>
             </CardHeader>
 
             <CardContent className="space-y-4">
               {/* No Match Content */}
               {(result.match_strength?.toLowerCase() === 'no_match' || result.match_strength === 'No_match') && (
-                <div className="flex items-center justify-center p-8">
-                  <div className="text-center">
-                    <CircleDashed className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No Match Found</h3>
-                    <p className="text-sm text-muted-foreground max-w-md">
+                <div className="flex items-center justify-center p-4 sm:p-8">
+                  <div className="text-center max-w-sm mx-auto">
+                    <CircleDashed className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-base sm:text-lg font-medium mb-2">No Match Found</h3>
+                    <p className="text-sm text-muted-foreground">
                       This entity was not found in our knowledge graph.
                     </p>
                   </div>
@@ -551,35 +546,48 @@ export function ScreeningResults({
                   <CollapsibleTrigger asChild>
                     <button className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
                       <div className="flex items-center justify-between w-full">
-                        <h4 className="text-sm font-medium flex items-center">
-                          {hasRisks ? (
-                            <>
-                              <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
-                              Risk Factors Found
-                              <Badge variant="outline" className="text-xs ml-2">
-                                {Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length}
-                              </Badge>
-                            </>
-                          ) : (
-                            <>
-                              <Shield className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
-                              Risk Assessment
-                            </>
-                          )}
-                        </h4>
-                        <div className="flex items-center space-x-2">
-                          {hasRisks && (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full">
+                          <h4 className="text-sm font-medium flex items-center gap-2 min-w-0">
+                            {hasRisks ? (
+                              <>
+                                <ShieldAlert className="h-4 w-4 text-black dark:text-white flex-shrink-0" />
+                                <span className="truncate">Risk Factors Found</span>
+                                <Badge variant="outline" className="text-xs whitespace-nowrap flex-shrink-0">
+                                  {Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length}
+                                </Badge>
+                              </>
+                            ) : (
+                              <>
+                                <Shield className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                <span>Risk Assessment</span>
+                              </>
+                            )}
+                          </h4>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {hasRisks && (
+                              <div className="hidden sm:block">
+                                <RiskLevelBadges 
+                                  counts={calculateLevelCounts(result.risk_factors)}
+                                  size="sm"
+                                />
+                              </div>
+                            )}
+                            {(expandedRiskFactors[result.id] ?? true) ? (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        </div>
+                        {/* Risk level badges on mobile - show below title */}
+                        {hasRisks && (
+                          <div className="sm:hidden mt-2">
                             <RiskLevelBadges 
                               counts={calculateLevelCounts(result.risk_factors)}
                               size="sm"
                             />
-                          )}
-                          {(expandedRiskFactors[result.id] ?? true) ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </button>
                   </CollapsibleTrigger>
@@ -607,24 +615,26 @@ export function ScreeningResults({
                   onOpenChange={() => toggleMatches(result.id)}
                 >
                   <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors">
-                      <h4 className="text-sm font-medium flex items-center">
-                        <ExternalLink className="h-4 w-4 mr-2 text-primary" />
-                        Matches Found
-                        <Badge variant="outline" className="text-xs ml-2">
+                    <button className="w-full flex items-center justify-between p-2 rounded-md hover:bg-accent transition-colors gap-2">
+                      <h4 className="text-sm font-medium flex items-center gap-2 min-w-0">
+                        <ExternalLink className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="truncate">Matches Found</span>
+                        <Badge variant="outline" className="text-xs whitespace-nowrap flex-shrink-0">
                           {result.matches.length}
                         </Badge>
                       </h4>
-                      {expandedMatches[result.id] ? (
-                        <ChevronDown className="h-4 w-4 text-gray-500" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-gray-500" />
-                      )}
+                      <div className="flex-shrink-0">
+                        {expandedMatches[result.id] ? (
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-gray-500" />
+                        )}
+                      </div>
                     </button>
                   </CollapsibleTrigger>
                   
                   <CollapsibleContent>
-                    <div className="space-y-4 mt-3">
+                    <div className="space-y-3 mt-3">
                       {result.matches
                         .filter(match => {
                           // Validate match data integrity
@@ -653,7 +663,7 @@ export function ScreeningResults({
                           return (
                           <div 
                             key={uniqueMatchKey} 
-                            className={`bg-card border rounded-lg shadow-sm transition-all duration-200 ${
+                            className={`bg-card border rounded-lg shadow-sm transition-all duration-200 overflow-hidden ${
                               removingMatches[match.match_id] ? 'opacity-75 scale-[0.98]' : 'opacity-100 scale-100'
                             }`}
                           >
@@ -662,21 +672,12 @@ export function ScreeningResults({
                               onOpenChange={() => toggleIndividualMatch(uniqueMatchKey)}
                             >
                               <CollapsibleTrigger asChild>
-                                <button className="w-full flex items-center justify-between p-4 rounded-t-lg hover:bg-accent transition-colors text-left">
-                                  <div className="flex items-center space-x-2 flex-1">
-                                    <span className="font-medium text-base text-left">{match.label}</span>
-                                    <Badge variant="outline" className="text-xs">
-                                      <div className="flex items-center">
-                                        {match.type === 'company' ? (
-                                          <Building className="mr-1 h-3 w-3" />
-                                        ) : match.type === 'person' ? (
-                                          <User className="mr-1 h-3 w-3" />
-                                        ) : null}
-                                        {match.type}
-                                      </div>
-                                    </Badge>
+                                <button className="w-full flex items-center justify-between p-4 rounded-t-lg hover:bg-accent transition-colors text-left gap-2">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <span className="font-medium text-sm text-left truncate">{match.label}</span>
+                                    <EntityTypeBadge type={match.type} className="flex-shrink-0" />
                                   </div>
-                                  <div className="flex items-center space-x-2 flex-shrink-0">
+                                  <div className="flex items-center flex-shrink-0">
                                     {(expandedIndividualMatches[uniqueMatchKey] ?? false) ? (
                                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                     ) : (
@@ -688,65 +689,67 @@ export function ScreeningResults({
                               
                               <CollapsibleContent>
                                 <div className="px-4 pb-4 space-y-3">
-                                  {/* Country flags and action buttons on same row */}
-                                  <div className="flex items-center justify-between">
+                                  {/* Country flags */}
+                                  {match.countries && match.countries.length > 0 && (
                                     <div className="flex items-center flex-wrap gap-1">
-                                      {match.countries && match.countries.length > 0 && (
-                                        <CountryBadgeList 
-                                          countryCodes={match.countries}
-                                          size="sm"
-                                          maxVisible={3}
-                                        />
-                                      )}
+                                      <CountryBadgeList 
+                                        countryCodes={match.countries}
+                                        size="sm"
+                                        maxVisible={3}
+                                      />
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                      <Button variant="ghost" size="sm" asChild>
-                                        <a 
-                                          href={`https://graph.sayari.com/resource/entity/${match.sayari_entity_id}`}
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="flex items-center space-x-1"
-                                        >
-                                          <ExternalLink className="h-3 w-3" />
-                                          <span className="text-xs">View in Graph</span>
-                                        </a>
+                                  )}
+                                  
+                                  {/* Action buttons - separate row for better spacing */}
+                                  <div className="flex items-center flex-wrap gap-2 pt-1">
+                                    <Button variant="ghost" size="sm" asChild className="flex-shrink-0">
+                                      <a 
+                                        href={`https://graph.sayari.com/resource/entity/${match.sayari_entity_id}`}
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="flex items-center space-x-1"
+                                      >
+                                        <ExternalLink className="h-3 w-3" />
+                                        <span className="text-xs hidden sm:inline">View in Graph</span>
+                                        <span className="text-xs sm:hidden">Graph</span>
+                                      </a>
+                                    </Button>
+                                    {result.full_result?.project_entity_id && (
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => {
+                                          const projectId = result.full_result?.project_id || '';
+                                          const projectEntityId = result.full_result?.project_entity_id || '';
+                                          
+                                          if (!projectId || !projectEntityId) {
+                                            console.error('Missing required IDs for match removal:', { projectId, projectEntityId });
+                                            return;
+                                          }
+                                          
+                                          removeMatch(match.match_id, projectId, projectEntityId);
+                                        }}
+                                        disabled={removingMatches[match.match_id]}
+                                        className={`flex-shrink-0 transition-colors ${
+                                          removingMatches[match.match_id] 
+                                            ? 'text-gray-400 cursor-not-allowed'
+                                            : ''
+                                        }`}
+                                      >
+                                        {removingMatches[match.match_id] ? (
+                                          <>
+                                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                                            <span className="ml-1 text-xs hidden sm:inline">Removing...</span>
+                                            <span className="ml-1 text-xs sm:hidden">...</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Trash2 className="h-3 w-3" />
+                                            <span className="ml-1 text-xs hidden sm:inline">Remove</span>
+                                          </>
+                                        )}
                                       </Button>
-                                      {result.full_result?.project_entity_id && (
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm"
-                                          onClick={() => {
-                                            const projectId = result.full_result?.project_id || '';
-                                            const projectEntityId = result.full_result?.project_entity_id || '';
-                                            
-                                            if (!projectId || !projectEntityId) {
-                                              console.error('Missing required IDs for match removal:', { projectId, projectEntityId });
-                                              return;
-                                            }
-                                            
-                                            removeMatch(match.match_id, projectId, projectEntityId);
-                                          }}
-                                          disabled={removingMatches[match.match_id]}
-                                          className={`transition-colors ${
-                                            removingMatches[match.match_id] 
-                                              ? 'text-gray-400 cursor-not-allowed'
-                                              : ''
-                                          }`}
-                                        >
-                                          {removingMatches[match.match_id] ? (
-                                            <>
-                                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-                                              <span className="ml-1 text-xs">Removing...</span>
-                                            </>
-                                          ) : (
-                                            <>
-                                              <Trash2 className="h-3 w-3" />
-                                              <span className="ml-1 text-xs">Remove</span>
-                                            </>
-                                          )}
-                                        </Button>
-                                      )}
-                                    </div>
+                                    )}
                                   </div>
                                   
                                   {/* Enhanced matched attributes display */}

@@ -73,7 +73,7 @@ export function RiskLevelBadges({
   const levels: RiskLevel[] = ['critical', 'high', 'elevated', 'other'];
   
   return (
-    <>
+    <div className={cn("flex items-center gap-3", className)}>
       {levels.map(level => {
         const count = counts[level] || 0;
         if (count === 0) return null;
@@ -84,10 +84,9 @@ export function RiskLevelBadges({
             level={level}
             count={count}
             size={size}
-            className={className}
           />
         );
       })}
-    </>
+    </div>
   );
 }

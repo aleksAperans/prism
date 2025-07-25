@@ -82,7 +82,7 @@ export function CountryBadgeList({
 
   return (
     <TooltipProvider>
-      <div className={cn('flex flex-wrap gap-1', className)}>
+      <div className={cn('flex flex-wrap gap-1 items-center', className)}>
         {visibleCodes.map((code) => (
           <CountryBadge
             key={code}
@@ -90,6 +90,7 @@ export function CountryBadgeList({
             variant={variant}
             size={size}
             showName={showName}
+            className="flex-shrink-0"
           />
         ))}
         {remainingCount > 0 && (
@@ -97,7 +98,7 @@ export function CountryBadgeList({
             <TooltipTrigger asChild>
               <Badge 
                 variant={variant} 
-                className={cn(sizeClasses[size], 'cursor-help')}
+                className={cn(sizeClasses[size], 'cursor-help flex-shrink-0 whitespace-nowrap')}
               >
                 +{remainingCount}
               </Badge>

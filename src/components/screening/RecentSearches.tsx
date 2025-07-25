@@ -162,12 +162,12 @@ export function RecentSearches({ onSelectSearch, className = '' }: RecentSearche
                       variant="outline" 
                       className={getMatchStrengthColor(search.matchStrength)}
                     >
-                      <span className="capitalize">
-                        {search.matchStrength === 'strong' ? 'High Confidence' : 
-                         search.matchStrength === 'partial' ? 'Medium Confidence' :
-                         search.matchStrength === 'medium' ? 'Medium Confidence' : 
-                         search.matchStrength === 'no_match' ? 'No Match' :
-                         search.matchStrength === 'No_match' ? 'No Match' :
+                      <span>
+                        {search.matchStrength === 'strong' ? 'high confidence' : 
+                         search.matchStrength === 'partial' ? 'medium confidence' :
+                         search.matchStrength === 'medium' ? 'medium confidence' : 
+                         search.matchStrength === 'no_match' ? 'no match' :
+                         search.matchStrength === 'No_match' ? 'no match' :
                          search.matchStrength}
                       </span>
                     </Badge>

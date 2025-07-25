@@ -175,15 +175,15 @@ export function RiskFactorsDisplay({
   if (riskFactorIds.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center p-8">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center py-6">
             <div className="text-center max-w-md">
-              <div className="flex justify-center mb-4">
-                <div className="rounded-full bg-green-500/10 p-3">
-                  <Shield className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <div className="flex justify-center mb-3">
+                <div className="rounded-full bg-green-500/10 p-2.5">
+                  <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
               </div>
-              <h3 className="text-lg font-medium text-green-600 dark:text-green-400 mb-2">
+              <h3 className="text-base font-medium text-green-600 dark:text-green-400 mb-1.5">
                 No Risk Found
               </h3>
               <p className="text-sm text-green-600/80 dark:text-green-400/80 leading-relaxed">
@@ -329,7 +329,7 @@ export function RiskFactorsDisplay({
                       {getCategoryIcon(categoryKey)}
                       <div className="text-left">
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium">{category.name}</span>
+                          <span className="font-medium text-sm">{category.name}</span>
                           <Badge 
                             variant="outline" 
                             className={`text-xs ${getCategoryBadgeColor(dynamicSeverity)}`}
