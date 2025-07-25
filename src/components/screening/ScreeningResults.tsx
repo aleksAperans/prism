@@ -92,6 +92,7 @@ interface ScreeningResult {
     risk_factors: Array<{ id: string }>;
     matched_attributes: {
       name: string[];
+      address?: string[];
       country: string[];
     };
     countries: string[];
@@ -553,7 +554,10 @@ export function ScreeningResults({
                           {hasRisks ? (
                             <>
                               <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
-                              Risk Factors Found ({Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length})
+                              Risk Factors Found
+                              <Badge variant="outline" className="text-xs ml-2">
+                                {Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length}
+                              </Badge>
                             </>
                           ) : (
                             <>

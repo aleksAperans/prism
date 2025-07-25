@@ -2,6 +2,7 @@
 
 import { Shield, ShieldAlert, ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
 import { RiskFactorsDisplay } from './RiskFactorsDisplay';
 import { RiskLevelBadges } from '@/components/common/RiskLevelBadge';
 import { useState } from 'react';
@@ -76,7 +77,10 @@ export function MatchRiskDisplay({
             <div className="flex items-center justify-between w-full">
               <h5 className="text-sm font-medium flex items-center">
                 <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
-                Risk Factors Found ({riskFactors.length})
+                Risk Factors Found
+                <Badge variant="outline" className="text-xs ml-2">
+                  {riskFactors.length}
+                </Badge>
               </h5>
               <div className="flex items-center space-x-2">
                 <RiskLevelBadges 
