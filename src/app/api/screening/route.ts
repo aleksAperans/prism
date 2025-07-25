@@ -3,7 +3,7 @@ import { projectService } from '@/services/api/projects';
 import { screeningService } from '@/services/api/screening';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
-import { loadDefaultRiskProfile, filterRiskFactorsByProfile, calculateEntityRiskScore } from '@/lib/risk-scoring';
+import { loadDefaultRiskProfile, loadRiskProfileById, filterRiskFactorsByProfile, calculateEntityRiskScore } from '@/lib/risk-scoring';
 import type { EntityFormData } from '@/types/app.types';
 
 export async function POST(request: NextRequest) {
@@ -94,10 +94,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Load default risk profile configuration
+    // Load risk profile configuration
     let riskProfile;
     try {
-      riskProfile = await loadDefaultRiskProfile();
+      // Use the selected risk profile if provided, otherwise load the default
+      if (body.risk_profile) {
+        console.log('🎯 Loading selected risk profile:', body.risk_profile);
+        riskProfile = await loadRiskProfileById(body.risk_profile);
+      }
+      
+      // Fall back to default if the selected profile couldn't be loaded
+      if (!riskProfile) {
+        console.log('📋 Loading default risk profile as fallback');
+        riskProfile = await loadDefaultRiskProfile();
+      }
+      
       if (riskProfile) {
         console.log('✅ Loaded risk profile:', riskProfile.name);
         console.log('📊 Risk scoring enabled:', riskProfile.riskScoringEnabled);
@@ -119,7 +130,8 @@ export async function POST(request: NextRequest) {
       };
       
       console.log('🎯 Analyzing entity with attributes:', entityAttributes);
-      console.log('📋 Using profile:', body.profile);
+      console.log('📋 Using Sayari profile:', body.profile);
+      console.log('🔍 Using risk profile:', body.risk_profile || 'default');
       console.log('🏗️ Project ID:', projectId);
       console.log('📝 Exact Sayari request format:', {
         projectId,

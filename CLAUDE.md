@@ -82,12 +82,22 @@ Core entities: User, Project, ProjectMember, ScreeningResult, RiskFactor, AuditL
 - Use the CLI to install new components: `npx shadcn@latest add [component-name]`
 - Existing components are in `/src/components/ui/` and should be used consistently
 
+### Shared Component Guidelines
+- **Use existing shared components** instead of creating duplicates or using basic HTML/shadcn components directly
+- **Country Display**: ALWAYS use `CountryBadge` or `CountryBadgeList` components for displaying countries
+  - Shows flag + 3-digit ISO code format consistently
+  - Located in `/src/components/common/CountryBadge.tsx`
+  - Never use plain Badge components for countries
+- **Risk Badges**: Use `RiskScoreBadge` for risk score display with proper theming
+- **Type Badges**: Use consistent entity type badges with Building/User icons
+- **Before creating new components**: Check `/src/components/common/` for existing shared components
+- **Component Discovery**: Use `find src/components -name "*.tsx" | grep -i [keyword]` to find existing components
+
 ### Component Guidelines
 - **Composition over customization**: Use shadcn components as building blocks and compose them together
 - **Consistent styling**: All styling should use Tailwind CSS classes, following shadcn patterns
 - **Accessibility first**: shadcn components come with built-in accessibility, maintain these standards
 - **TypeScript strict**: All components must be fully typed with proper TypeScript interfaces
-- **Country display**: Always use CountryBadge or CountryBadgeList components for displaying countries with flag + 3-digit ISO format
 - **Badge text formatting**: All badge text must be in lowercase for consistency across the application
 
 ### State Management Patterns

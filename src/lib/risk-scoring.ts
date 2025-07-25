@@ -96,6 +96,55 @@ export function getRiskLevel(score: number, threshold: number): 'low' | 'medium'
 }
 
 /**
+ * Load a specific risk profile by ID (server-side)
+ */
+export async function loadRiskProfileById(profileId: string): Promise<RiskProfile | null> {
+  try {
+    const profilesDir = path.join(process.cwd(), 'src', 'lib', 'risk-profiles');
+    const filePath = path.join(profilesDir, `${profileId}.yaml`);
+    
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Risk profile not found: ${profileId}`);
+      return null;
+    }
+
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const yamlData = yaml.load(fileContent) as {
+      name: string;
+      description: string;
+      is_default: boolean;
+      enabled_factors: string[];
+      created_at: string;
+      created_by: string;
+      risk_scoring_enabled: boolean;
+      risk_threshold: number;
+      risk_scores: Record<string, number>;
+      categories: Record<string, { name: string; description: string; enabled: boolean }>;
+    };
+    
+    const profile: RiskProfile = {
+      id: profileId,
+      name: yamlData.name,
+      description: yamlData.description,
+      enabledFactors: yamlData.enabled_factors || [],
+      isDefault: yamlData.is_default || false,
+      createdAt: yamlData.created_at,
+      createdBy: yamlData.created_by || 'system',
+      riskScoringEnabled: yamlData.risk_scoring_enabled || false,
+      riskThreshold: yamlData.risk_threshold || 5,
+      riskScores: yamlData.risk_scores || {},
+      categories: yamlData.categories || {}
+    };
+    
+    console.log('✅ Loaded risk profile:', profile.name);
+    return profile;
+  } catch (error) {
+    console.error('Failed to load risk profile:', error);
+    return null;
+  }
+}
+
+/**
  * Load the default risk profile configuration (server-side)
  */
 export async function loadDefaultRiskProfile(): Promise<RiskProfile | null> {
@@ -110,7 +159,45 @@ export async function loadDefaultRiskProfile(): Promise<RiskProfile | null> {
     // Get all YAML files in the directory
     const files = fs.readdirSync(profilesDir).filter(file => file.endsWith('.yaml'));
     
-    // Find the default profile
+    // First pass: validate that only one profile is marked as default
+    const defaultProfiles: string[] = [];
+    for (const file of files) {
+      try {
+        const filePath = path.join(profilesDir, file);
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const yamlData = yaml.load(fileContent) as {
+          name: string;
+          description: string;
+          is_default: boolean;
+          enabled_factors: string[];
+          created_at: string;
+          created_by: string;
+          risk_scoring_enabled: boolean;
+          risk_threshold: number;
+          risk_scores: Record<string, number>;
+          categories: Record<string, { name: string; description: string; enabled: boolean }>;
+        };
+        
+        if (yamlData.is_default) {
+          defaultProfiles.push(`${yamlData.name} (${file})`);
+        }
+      } catch (error) {
+        console.warn(`Failed to parse risk profile ${file}:`, error);
+      }
+    }
+    
+    // Validate default profile configuration
+    if (defaultProfiles.length === 0) {
+      console.warn('⚠️ No risk profile marked as default (is_default: true)');
+      return null;
+    } else if (defaultProfiles.length > 1) {
+      console.error('❌ CONFIGURATION ERROR: Multiple risk profiles marked as default:');
+      defaultProfiles.forEach(profile => console.error(`   - ${profile}`));
+      console.error('❌ Please ensure only ONE profile has is_default: true');
+      return null;
+    }
+    
+    // Second pass: load the single default profile
     for (const file of files) {
       const filePath = path.join(profilesDir, file);
       const fileContent = fs.readFileSync(filePath, 'utf8');

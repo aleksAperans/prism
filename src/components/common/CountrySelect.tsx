@@ -58,7 +58,7 @@ export function CountrySelect({
 
   const handleSelect = (country: { code: string; name: string }) => {
     onValueChange(country.code);
-    setQuery(country.name);
+    setQuery(''); // Clear query when country is selected
     setIsOpen(false);
   };
 
@@ -69,6 +69,14 @@ export function CountrySelect({
     // If user clears the input, clear the selection
     if (inputValue === '') {
       onValueChange('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Clear selection on backspace when there's a selected country
+    if (e.key === 'Backspace' && selectedCountry && query === '') {
+      e.preventDefault();
+      handleClear();
     }
   };
 
@@ -88,6 +96,7 @@ export function CountrySelect({
           ref={inputRef}
           value={displayValue}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
           disabled={disabled}

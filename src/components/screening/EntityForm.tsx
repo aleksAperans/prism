@@ -41,9 +41,10 @@ interface EntityFormProps {
   onSubmit: (data: EntityFormData) => void;
   isLoading?: boolean;
   className?: string;
+  onFormReady?: (setValue: (field: keyof InternalFormData, value: unknown) => void) => void;
 }
 
-export function EntityForm({ onSubmit, isLoading = false, className }: EntityFormProps) {
+export function EntityForm({ onSubmit, isLoading = false, className, onFormReady }: EntityFormProps) {
   const { projects, loading: projectsLoading, error: projectsError, refetch } = useProjects();
   const [isCreatingProject, setIsCreatingProject] = React.useState(false);
   const [projectSectionOpen, setProjectSectionOpen] = useState(false);
@@ -101,6 +102,13 @@ export function EntityForm({ onSubmit, isLoading = false, className }: EntityFor
       form.setValue('project_id', defaultProject.id);
     }
   }, [projects, form]);
+
+  // Expose form setValue method when component mounts
+  React.useEffect(() => {
+    if (onFormReady) {
+      onFormReady((field, value) => form.setValue(field, value));
+    }
+  }, [form, onFormReady]);
 
   const handleSubmit = (data: InternalFormData) => {
     // Clean up optional fields - remove empty strings

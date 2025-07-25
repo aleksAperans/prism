@@ -22,6 +22,9 @@ export function MatchRiskDisplay({
 
   // Check if there are any risks
   const hasRisks = riskFactors && riskFactors.length > 0;
+  
+  // Debug logging
+  console.log('🔍 MatchRiskDisplay received risk factors:', riskFactors?.length || 0, riskFactors?.map(rf => rf.id));
 
   // Calculate level counts for badges
   const calculateLevelCounts = (riskFactorArray: Array<{ id: string }>) => {
@@ -72,8 +75,8 @@ export function MatchRiskDisplay({
           <button className="w-full flex items-center justify-between p-3 rounded-md hover:bg-accent transition-colors">
             <div className="flex items-center justify-between w-full">
               <h5 className="text-sm font-medium flex items-center">
-                <ShieldAlert className="h-4 w-4 mr-2 text-orange-600 dark:text-orange-400" />
-                Match Risk Factors ({riskFactors.length})
+                <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
+                Risk Factors Found ({riskFactors.length})
               </h5>
               <div className="flex items-center space-x-2">
                 <RiskLevelBadges 

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { EntityForm } from '@/components/screening/EntityForm';
 import { ScreeningResults } from '@/components/screening/ScreeningResults';
+import { RecentSearches, saveRecentSearch } from '@/components/screening/RecentSearches';
 import { EmptyState } from '@/components/common/EmptyStates';
 import { LoadingCard } from '@/components/common/LoadingStates';
 import { ExportButton } from '@/components/common/ExportButton';
@@ -55,6 +56,8 @@ export default function ScreeningPage() {
   const [result, setResult] = useState<ScreeningResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [alreadyExists, setAlreadyExists] = useState<boolean>(false);
+  const [selectedRiskProfile, setSelectedRiskProfile] = useState<string | undefined>(undefined);
+  const formSetValueRef = useRef<((field: string, value: unknown) => void) | null>(null);
 
   const handleScreening = async (data: EntityFormData) => {
     setIsLoading(true);
@@ -62,6 +65,8 @@ export default function ScreeningPage() {
     // Hard reset - clear previous result
     setResult(null);
     setAlreadyExists(false);
+    // Capture the selected risk profile for match filtering
+    setSelectedRiskProfile(data.risk_profile);
     
     try {
       const response = await fetch('/api/screening', {
@@ -82,6 +87,21 @@ export default function ScreeningPage() {
         // Set single result instead of array
         setResult(responseData.result);
         setAlreadyExists(responseData.already_exists || false);
+        
+        // Save to recent searches with result data
+        saveRecentSearch(data, {
+          matchStrength: responseData.result.match_strength,
+          riskScore: responseData.result.risk_score ? {
+            totalScore: responseData.result.risk_score.totalScore,
+            meetsThreshold: responseData.result.risk_score.meetsThreshold,
+            threshold: responseData.result.risk_score.threshold
+          } : {
+            // Default when no risk score is calculated (e.g., no risk factors found)
+            totalScore: 0,
+            meetsThreshold: false,
+            threshold: 5 // Default threshold, could be fetched from config
+          }
+        });
       }
       
     } catch (error) {
@@ -94,6 +114,17 @@ export default function ScreeningPage() {
 
   const handleRetry = () => {
     setError(null);
+  };
+
+  const handleSelectRecentSearch = (searchData: EntityFormData) => {
+    if (formSetValueRef.current) {
+      // Populate all form fields with the recent search data
+      Object.entries(searchData).forEach(([field, value]) => {
+        if (value !== undefined) {
+          formSetValueRef.current!(field, value);
+        }
+      });
+    }
   };
 
   const handleMatchRemoved = (refreshedData?: { matches: unknown[]; risk_factors: unknown[] | Record<string, unknown>; match_count: number }) => {
@@ -151,11 +182,17 @@ export default function ScreeningPage() {
 
       {/* Two Column Layout */}
       <div className="grid gap-6 lg:grid-cols-5 items-start">
-        {/* Input Form - Left Side */}
-        <div className="lg:col-span-2">
+        {/* Input Form and Recent Searches - Left Side */}
+        <div className="lg:col-span-2 space-y-4">
           <EntityForm 
             onSubmit={handleScreening} 
             isLoading={isLoading}
+            onFormReady={(setValue) => { formSetValueRef.current = setValue; }}
+          />
+          
+          {/* Recent Searches */}
+          <RecentSearches 
+            onSelectSearch={handleSelectRecentSearch}
           />
         </div>
         
@@ -173,6 +210,7 @@ export default function ScreeningPage() {
               onRetry={handleRetry}
               onMatchRemoved={handleMatchRemoved}
               alreadyExists={alreadyExists}
+              selectedRiskProfile={selectedRiskProfile}
             />
           ) : (
             <EmptyState 

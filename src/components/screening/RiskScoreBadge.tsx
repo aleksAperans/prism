@@ -8,12 +8,14 @@ interface RiskScoreBadgeProps {
   riskScore: EntityRiskScore;
   size?: 'sm' | 'default' | 'lg';
   showDetails?: boolean;
+  showThresholdExceeded?: boolean;
 }
 
 export function RiskScoreBadge({ 
   riskScore, 
   size = 'default',
-  showDetails = false 
+  showDetails = false,
+  showThresholdExceeded = true
 }: RiskScoreBadgeProps) {
   const { totalScore, meetsThreshold, threshold, triggeredRiskFactors } = riskScore;
   
@@ -24,14 +26,13 @@ export function RiskScoreBadge({
 
   const getRiskVariant = () => {
     if (!meetsThreshold) return 'secondary';
-    if (totalScore >= threshold * 2) return 'destructive';
-    return 'default';
+    // If threshold is exceeded, use outline variant to match critical risk badge styling
+    return 'outline';
   };
 
   const getRiskIcon = () => {
-    if (!meetsThreshold) return Shield;
-    if (totalScore >= threshold * 2) return AlertTriangle;
-    return TrendingUp;
+    // Always use Shield icon for consistency across the application
+    return Shield;
   };
 
   const Icon = getRiskIcon();
@@ -45,7 +46,9 @@ export function RiskScoreBadge({
           className={cn(
             "font-mono",
             size === 'sm' && "text-xs",
-            size === 'lg' && "text-base px-3 py-1"
+            size === 'lg' && "text-base px-3 py-1",
+            // Apply critical risk badge styling when threshold is exceeded
+            meetsThreshold && "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
           )}
         >
           <Icon className={cn(
@@ -57,8 +60,11 @@ export function RiskScoreBadge({
           {totalScore}/{threshold}
         </Badge>
         
-        {meetsThreshold && (
-          <Badge variant="destructive" className="text-xs animate-pulse">
+        {showThresholdExceeded && meetsThreshold && (
+          <Badge 
+            variant="outline" 
+            className="text-xs animate-pulse bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+          >
             threshold exceeded
           </Badge>
         )}

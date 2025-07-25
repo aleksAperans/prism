@@ -116,6 +116,7 @@ interface ScreeningResultsProps {
   onRetry?: () => void;
   onMatchRemoved?: (refreshedData?: { matches: unknown[]; risk_factors: unknown[]; match_count: number }) => void;
   alreadyExists?: boolean;
+  selectedRiskProfile?: string; // Add the selected risk profile ID
 }
 
 export function ScreeningResults({ 
@@ -124,31 +125,66 @@ export function ScreeningResults({
   error, 
   onRetry,
   onMatchRemoved,
-  alreadyExists = false
+  alreadyExists = false,
+  selectedRiskProfile
 }: ScreeningResultsProps) {
   const [localResults, setLocalResults] = useState<ScreeningResult[]>(results);
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
   const [expandedRiskFactors, setExpandedRiskFactors] = useState<Record<string, boolean>>({});
+  const [expandedIndividualMatches, setExpandedIndividualMatches] = useState<Record<string, boolean>>({});
   const [removingMatches, setRemovingMatches] = useState<Record<string, boolean>>({});
   const [riskProfile, setRiskProfile] = useState<RiskProfile | null>(null);
 
   // Sync with parent results when they change
   useEffect(() => {
     setLocalResults(results);
+    // Force risk profile reload when new results come in
+    if (results.length > 0) {
+      console.log('📊 New screening results received, will reload risk profile');
+    }
   }, [results]);
 
   // Load risk profile for filtering
   useEffect(() => {
     const loadRiskProfile = async () => {
       try {
-        const profile = await clientLoadDefaultRiskProfile();
+        let profile = null;
+        
+        // Load the selected risk profile if provided
+        if (selectedRiskProfile) {
+          console.log('🎯 Loading selected risk profile for match filtering:', selectedRiskProfile);
+          
+          // Handle special case for "default" profile
+          if (selectedRiskProfile === 'default') {
+            console.log('📋 Selected profile is "default", loading default profile');
+            profile = await clientLoadDefaultRiskProfile();
+          } else {
+            // Load specific profile by ID
+            const response = await fetch(`/api/risk-profiles/${selectedRiskProfile}`);
+            if (response.ok) {
+              const data = await response.json();
+              profile = data.profile;
+            }
+          }
+        }
+        
+        // Fall back to default if no profile was selected or loading failed
+        if (!profile) {
+          console.log('📋 Loading default risk profile as final fallback');
+          profile = await clientLoadDefaultRiskProfile();
+        }
+        
         setRiskProfile(profile);
+        if (profile) {
+          console.log('✅ Risk profile loaded for match filtering:', profile.name);
+          console.log('📋 Enabled factors:', profile.enabledFactors.length, profile.enabledFactors);
+        }
       } catch (error) {
         console.warn('Failed to load risk profile for match filtering:', error);
       }
     };
     loadRiskProfile();
-  }, []);
+  }, [selectedRiskProfile, results]);
 
   // Helper function to get filtered risk factor count for a match
   const getFilteredRiskFactorCount = useCallback((matchRiskFactors: Array<{ id: string }>) => {
@@ -173,6 +209,13 @@ export function ScreeningResults({
     setExpandedRiskFactors(prev => ({
       ...prev,
       [resultId]: !(prev[resultId] ?? false)
+    }));
+  }, []);
+
+  const toggleIndividualMatch = useCallback((uniqueMatchKey: string) => {
+    setExpandedIndividualMatches(prev => ({
+      ...prev,
+      [uniqueMatchKey]: !(prev[uniqueMatchKey] ?? true) // Default to true (expanded)
     }));
   }, []);
 
@@ -398,37 +441,41 @@ export function ScreeningResults({
           <Card key={result.id}>
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center">
-                    <h3 className="text-lg font-semibold mr-3">{result.entity_name}</h3>
-                    <div className="inline-flex items-center rounded border border-border bg-muted px-2 py-1 text-xs">
-                      {result.entity_type === 'company' ? (
-                        <>
-                          <Building className="mr-1 h-3 w-3" />
-                          <span>company</span>
-                        </>
-                      ) : result.entity_type === 'person' ? (
-                        <>
-                          <User className="mr-1 h-3 w-3" />
-                          <span>person</span>
-                        </>
-                      ) : (
-                        <span>{result.entity_type || 'unknown'}</span>
-                      )}
+                <div className="flex-1">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold">{result.entity_name}</h3>
+                      <CardDescription className="space-y-1 mt-1">
+                        <div className="flex items-center gap-2">
+                          <div className="inline-flex items-center rounded border border-border bg-muted px-2 py-0.5 text-xs">
+                            {result.entity_type === 'company' ? (
+                              <>
+                                <Building className="mr-1 h-3 w-3" />
+                                <span>company</span>
+                              </>
+                            ) : result.entity_type === 'person' ? (
+                              <>
+                                <User className="mr-1 h-3 w-3" />
+                                <span>person</span>
+                              </>
+                            ) : (
+                              <span>{result.entity_type || 'unknown'}</span>
+                            )}
+                          </div>
+                          <span>Analyzed {formatDistanceToNow(new Date(result.created_at))} ago</span>
+                        </div>
+                        {result.full_result?.countries && result.full_result.countries.length > 0 && (
+                          <div className="flex items-center flex-wrap gap-1">
+                            <CountryBadgeList 
+                              countryCodes={result.full_result.countries}
+                              size="sm"
+                              maxVisible={5}
+                            />
+                          </div>
+                        )}
+                      </CardDescription>
                     </div>
                   </div>
-                  <CardDescription className="space-y-1">
-                    <div>Analyzed {formatDistanceToNow(new Date(result.created_at))} ago</div>
-                    {result.full_result?.countries && result.full_result.countries.length > 0 && (
-                      <div className="flex items-center flex-wrap gap-1 mt-1">
-                        <CountryBadgeList 
-                          countryCodes={result.full_result.countries}
-                          size="sm"
-                          maxVisible={5}
-                        />
-                      </div>
-                    )}
-                  </CardDescription>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -442,8 +489,7 @@ export function ScreeningResults({
                       variant="outline" 
                       className={getMatchStrengthColor(result.match_strength)}
                     >
-                      {getMatchStrengthIcon(result.match_strength)}
-                      <span className="ml-1 capitalize">
+                      <span className="capitalize">
                         {result.match_strength === 'strong' ? 'High Confidence' : 
                          result.match_strength === 'partial' ? 'Medium Confidence' :
                          result.match_strength === 'medium' ? 'Medium Confidence' : 
@@ -593,119 +639,127 @@ export function ScreeningResults({
                           }
                           return isValid;
                         })
-                        .map((match) => (
+                        .map((match, index) => {
+                          const uniqueMatchKey = `${result.id}-${match.match_id}-${index}`;
+                          return (
                           <div 
-                            key={match.match_id} 
-                            className={`p-4 bg-card border rounded-lg shadow-sm transition-all duration-200 ${
+                            key={uniqueMatchKey} 
+                            className={`bg-card border rounded-lg shadow-sm transition-all duration-200 ${
                               removingMatches[match.match_id] ? 'opacity-75 scale-[0.98]' : 'opacity-100 scale-100'
                             }`}
                           >
-                            <div className="space-y-3">
-                            {/* Match header */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium text-base">{match.label}</span>
-                                <Badge variant="outline" className="text-xs">
-                                  <div className="flex items-center">
-                                    {match.type === 'company' ? (
-                                      <Building className="mr-1 h-3 w-3" />
-                                    ) : match.type === 'person' ? (
-                                      <User className="mr-1 h-3 w-3" />
-                                    ) : null}
-                                    {match.type}
+                            <Collapsible 
+                              open={expandedIndividualMatches[uniqueMatchKey] ?? true}
+                              onOpenChange={() => toggleIndividualMatch(uniqueMatchKey)}
+                            >
+                              <CollapsibleTrigger asChild>
+                                <button className="w-full flex items-center justify-between p-4 rounded-t-lg hover:bg-accent transition-colors">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium text-base">{match.label}</span>
+                                    <Badge variant="outline" className="text-xs">
+                                      <div className="flex items-center">
+                                        {match.type === 'company' ? (
+                                          <Building className="mr-1 h-3 w-3" />
+                                        ) : match.type === 'person' ? (
+                                          <User className="mr-1 h-3 w-3" />
+                                        ) : null}
+                                        {match.type}
+                                      </div>
+                                    </Badge>
                                   </div>
-                                </Badge>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Button variant="ghost" size="sm" asChild>
-                                  <a 
-                                    href={`https://graph.sayari.com/resource/entity/${match.sayari_entity_id}`}
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center space-x-1"
-                                  >
-                                    <ExternalLink className="h-3 w-3" />
-                                    <span className="text-xs">View in Graph</span>
-                                  </a>
-                                </Button>
-                                {result.full_result?.project_entity_id && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => {
-                                      // Based on the Sayari API docs, we need:
-                                      // - project_id: The project identifier
-                                      // - project_entity_id: The project entity identifier  
-                                      // - match_id: The match identifier
-                                      
-                                      // From the screening response, we should have access to both
-                                      // Get the project_id and project_entity_id from the full_result
-                                      const projectId = result.full_result?.project_id || '';
-                                      const projectEntityId = result.full_result?.project_entity_id || '';
-                                      
-                                      if (!projectId || !projectEntityId) {
-                                        console.error('Missing required IDs for match removal:', { projectId, projectEntityId });
-                                        return;
-                                      }
-                                      
-                                      removeMatch(match.match_id, projectId, projectEntityId);
-                                    }}
-                                    disabled={removingMatches[match.match_id]}
-                                    className={`transition-colors ${
-                                      removingMatches[match.match_id] 
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : ''
-                                    }`}
-                                  >
-                                    {removingMatches[match.match_id] ? (
-                                      <>
-                                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-                                        <span className="ml-1 text-xs">Removing...</span>
-                                      </>
+                                  <div className="flex items-center space-x-2">
+                                    {(expandedIndividualMatches[uniqueMatchKey] ?? true) ? (
+                                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                     ) : (
-                                      <>
-                                        <Trash2 className="h-3 w-3" />
-                                        <span className="ml-1 text-xs">Remove</span>
-                                      </>
+                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                     )}
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Basic match info */}
-                            <div className="space-y-2">
-                              {match.countries && match.countries.length > 0 && (
-                                <div className="flex items-center flex-wrap gap-1">
-                                  <CountryBadgeList 
-                                    countryCodes={match.countries}
-                                    size="sm"
-                                    maxVisible={3}
+                                  </div>
+                                </button>
+                              </CollapsibleTrigger>
+                              
+                              <CollapsibleContent>
+                                <div className="px-4 pb-4 space-y-3">
+                                  {/* Country flags and action buttons on same row */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center flex-wrap gap-1">
+                                      {match.countries && match.countries.length > 0 && (
+                                        <CountryBadgeList 
+                                          countryCodes={match.countries}
+                                          size="sm"
+                                          maxVisible={3}
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Button variant="ghost" size="sm" asChild>
+                                        <a 
+                                          href={`https://graph.sayari.com/resource/entity/${match.sayari_entity_id}`}
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="flex items-center space-x-1"
+                                        >
+                                          <ExternalLink className="h-3 w-3" />
+                                          <span className="text-xs">View in Graph</span>
+                                        </a>
+                                      </Button>
+                                      {result.full_result?.project_entity_id && (
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm"
+                                          onClick={() => {
+                                            const projectId = result.full_result?.project_id || '';
+                                            const projectEntityId = result.full_result?.project_entity_id || '';
+                                            
+                                            if (!projectId || !projectEntityId) {
+                                              console.error('Missing required IDs for match removal:', { projectId, projectEntityId });
+                                              return;
+                                            }
+                                            
+                                            removeMatch(match.match_id, projectId, projectEntityId);
+                                          }}
+                                          disabled={removingMatches[match.match_id]}
+                                          className={`transition-colors ${
+                                            removingMatches[match.match_id] 
+                                              ? 'text-gray-400 cursor-not-allowed'
+                                              : ''
+                                          }`}
+                                        >
+                                          {removingMatches[match.match_id] ? (
+                                            <>
+                                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                                              <span className="ml-1 text-xs">Removing...</span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Trash2 className="h-3 w-3" />
+                                              <span className="ml-1 text-xs">Remove</span>
+                                            </>
+                                          )}
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Enhanced matched attributes display */}
+                                  {match.matched_attributes && (
+                                    <MatchedAttributesDisplay 
+                                      matchedAttributes={match.matched_attributes}
+                                    />
+                                  )}
+                                  
+                                  {/* Match-level risk display */}
+                                  <MatchRiskDisplay 
+                                    matchId={match.match_id}
+                                    riskFactors={filterRiskFactorsByProfile(match.risk_factors || [], riskProfile)}
+                                    matchLabel={match.label}
+                                    className="mt-3"
                                   />
                                 </div>
-                              )}
-                              <div className="text-xs text-muted-foreground">
-                                Risk Factors: {getFilteredRiskFactorCount(match.risk_factors || [])}
-                              </div>
-                            </div>
-                            
-                            {/* Enhanced matched attributes display */}
-                            {match.matched_attributes && (
-                              <MatchedAttributesDisplay 
-                                matchedAttributes={match.matched_attributes}
-                              />
-                            )}
-                            
-                            {/* Match-level risk display */}
-                            <MatchRiskDisplay 
-                              matchId={match.match_id}
-                              riskFactors={filterRiskFactorsByProfile(match.risk_factors || [], riskProfile)}
-                              matchLabel={match.label}
-                              className="mt-3"
-                            />
+                              </CollapsibleContent>
+                            </Collapsible>
                           </div>
-                        </div>
-                      ))}
+                          );
+                        })}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
