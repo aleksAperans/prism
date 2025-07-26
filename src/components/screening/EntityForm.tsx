@@ -39,12 +39,32 @@ const entityFormSchema = z.object({
 
 interface EntityFormProps {
   onSubmit: (data: EntityFormData) => void;
+  onFormReady?: (setter: (field: any, value: any) => void) => void;
+  className?: string;
+  isLoading?: boolean;
 }
 
-export function EntityForm({ onSubmit }: EntityFormProps) {
+export function EntityForm({ onSubmit, onFormReady, className, isLoading = false }: EntityFormProps) {
   const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([]);
   const [riskProfilesLoading, setRiskProfilesLoading] = useState(false);
   const [selectedRiskProfile, setSelectedRiskProfile] = useState<string>('default');
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  
+  const { projects, loading: projectsLoading, refetch } = useProjects();
+  
+  const form = useForm<InternalFormData>({
+    resolver: zodResolver(entityFormSchema),
+    defaultValues: {
+      name: '',
+      type: 'company',
+      identifier: '',
+      address: '',
+      country: '',
+      date_of_birth: '',
+      project_id: '',
+      risk_profile: 'default',
+    },
+  });
 
   React.useEffect(() => {
     const loadRiskProfiles = async () => {
@@ -55,8 +75,9 @@ export function EntityForm({ onSubmit }: EntityFormProps) {
         
         // Set default risk profile
         const defaultProfile = profiles.find(p => p.isDefault);
-        if (defaultProfile && !form.getValues('risk_profile')) {
-          form.setValue('risk_profile', defaultProfile.id);
+        if (defaultProfile) {
+          setSelectedRiskProfile(defaultProfile.id);
+          // We'll set the form value in a separate effect once form is ready
         }
       } catch (error) {
         console.error('Failed to load risk profiles:', error);
@@ -66,7 +87,14 @@ export function EntityForm({ onSubmit }: EntityFormProps) {
     };
     
     loadRiskProfiles();
-  }, [form]);
+  }, []);
+
+  // Sync selected risk profile with form
+  React.useEffect(() => {
+    if (selectedRiskProfile && form) {
+      form.setValue('risk_profile', selectedRiskProfile);
+    }
+  }, [selectedRiskProfile, form]);
 
   // Set default project when projects load
   React.useEffect(() => {
@@ -79,14 +107,14 @@ export function EntityForm({ onSubmit }: EntityFormProps) {
       
       form.setValue('project_id', defaultProject.id);
     }
-  }, [projects, form]);
+  }, [projects]);
 
   // Expose form setValue method when component mounts
   React.useEffect(() => {
     if (onFormReady) {
       onFormReady((field, value) => form.setValue(field, value));
     }
-  }, [form, onFormReady]);
+  }, [onFormReady]);
 
   const handleSubmit = (data: InternalFormData) => {
     // Clean up optional fields - remove empty strings
