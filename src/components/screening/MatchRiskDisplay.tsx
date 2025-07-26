@@ -13,11 +13,15 @@ interface MatchRiskDisplayProps {
   riskFactors: Array<{ id: string }>;
   matchLabel: string;
   className?: string;
+  showTitle?: boolean;
+  riskScores?: Record<string, number>;
 }
 
 export function MatchRiskDisplay({ 
   riskFactors, 
-  className = "" 
+  className = "",
+  showTitle = true,
+  riskScores
 }: MatchRiskDisplayProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -69,6 +73,19 @@ export function MatchRiskDisplay({
     );
   }
 
+  if (!showTitle) {
+    // When no title is shown, display the risk factors directly without collapsible wrapper
+    return (
+      <div className={className}>
+        <RiskFactorsDisplay 
+          riskFactors={riskFactors}
+          showTitle={false}
+          riskScores={riskScores}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`border rounded-md bg-card ${className}`}>
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -102,6 +119,7 @@ export function MatchRiskDisplay({
             <RiskFactorsDisplay 
               riskFactors={riskFactors}
               showTitle={false}
+              riskScores={riskScores}
             />
           </div>
         </CollapsibleContent>
