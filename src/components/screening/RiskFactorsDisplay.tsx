@@ -364,10 +364,6 @@ export function RiskFactorsDisplay({
                                                      b.info.severity === 'high' ? 'High' : 
                                                      b.info.severity === 'elevated' ? 'Elevated' : 'Other');
                       
-                      // Debug logging
-                      if (process.env.NODE_ENV === 'development') {
-                        console.log(`Comparing ${a.info.label} (${levelA}) vs ${b.info.label} (${levelB})`);
-                      }
                       
                       const levelComparison = (levelOrder[levelA as keyof typeof levelOrder] ?? 4) - 
                                              (levelOrder[levelB as keyof typeof levelOrder] ?? 4);
@@ -401,6 +397,7 @@ export function RiskFactorsDisplay({
                                   {/* Risk Score Points */}
                                   {riskScores && riskScores[id] && (
                                     <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-muted text-xs">
+                                      <Shield className="h-3 w-3 mr-1" />
                                       {riskScores[id]}
                                     </Badge>
                                   )}

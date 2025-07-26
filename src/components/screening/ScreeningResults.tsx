@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ExternalLink, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, XCircle, CircleDashed, Trash2, ShieldAlert, Shield } from 'lucide-react';
+import { ExternalLink, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronRight, XCircle, CircleDashed, Trash2, ShieldAlert, Shield, Eye, User } from 'lucide-react';
+import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import React, { useState, useCallback, useEffect } from 'react';
@@ -475,25 +476,17 @@ export function ScreeningResults({
                       </Badge>
                     )}
                     
-                    {/* Risk Score Display */}
-                    {result.risk_score && (
-                      <RiskScoreBadge 
-                        riskScore={result.risk_score}
-                        size="sm"
-                      />
-                    )}
                     
-                    {result.sayari_url && (
+                    {/* Entity Profile Link */}
+                    {result.full_result?.project_id && result.full_result?.project_entity_id && (
                       <Button variant="ghost" size="sm" asChild className="flex-shrink-0">
-                        <a 
-                          href={result.sayari_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
+                        <Link 
+                          href={`/projects/${result.full_result.project_id}/entities/${result.full_result.project_entity_id}?from=screening`}
                           className="flex items-center space-x-1"
                         >
-                          <ExternalLink className="h-3 w-3" />
-                          <span className="text-xs">View Details</span>
-                        </a>
+                          <Eye className="h-3 w-3" />
+                          <span className="text-xs">View Profile</span>
+                        </Link>
                       </Button>
                     )}
                   </div>
@@ -555,6 +548,13 @@ export function ScreeningResults({
                                 <Badge variant="outline" className="text-xs whitespace-nowrap flex-shrink-0">
                                   {Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length}
                                 </Badge>
+                                {/* Risk Score Display */}
+                                {result.risk_score && (
+                                  <RiskScoreBadge 
+                                    riskScore={result.risk_score}
+                                    size="sm"
+                                  />
+                                )}
                               </>
                             ) : (
                               <>
@@ -760,11 +760,39 @@ export function ScreeningResults({
                               <CollapsibleContent>
                                 <div className="px-4 pb-4 space-y-3">
                                   
-                                  {/* Enhanced matched attributes display */}
+                                  {/* Collapsible matched attributes display */}
                                   {match.matched_attributes && (
-                                    <MatchedAttributesDisplay 
-                                      matchedAttributes={match.matched_attributes}
-                                    />
+                                    <Collapsible 
+                                      open={expandedIndividualMatches[`${uniqueMatchKey}-attributes`] ?? true}
+                                      onOpenChange={() => {
+                                        const key = `${uniqueMatchKey}-attributes`;
+                                        setExpandedIndividualMatches(prev => ({
+                                          ...prev,
+                                          [key]: !(prev[key] ?? true)
+                                        }));
+                                      }}
+                                    >
+                                      <CollapsibleTrigger asChild>
+                                        <button className="w-full flex items-center justify-between py-2 px-3 rounded-md hover:bg-accent transition-colors">
+                                          <div className="flex items-center gap-2 text-sm font-medium">
+                                            <User className="h-4 w-4 text-muted-foreground" />
+                                            Matched Attributes
+                                          </div>
+                                          {(expandedIndividualMatches[`${uniqueMatchKey}-attributes`] ?? true) ? (
+                                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                          ) : (
+                                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                          )}
+                                        </button>
+                                      </CollapsibleTrigger>
+                                      <CollapsibleContent>
+                                        <div className="pt-2">
+                                          <MatchedAttributesDisplay 
+                                            matchedAttributes={match.matched_attributes}
+                                          />
+                                        </div>
+                                      </CollapsibleContent>
+                                    </Collapsible>
                                   )}
                                   
                                   {/* Match-level risk display */}
@@ -773,6 +801,7 @@ export function ScreeningResults({
                                     riskFactors={filterRiskFactorsByProfile(match.risk_factors || [], riskProfile)}
                                     matchLabel={match.label}
                                     className="mt-3"
+                                    riskScores={riskProfile?.riskScores}
                                   />
                                 </div>
                               </CollapsibleContent>

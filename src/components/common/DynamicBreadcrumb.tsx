@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Home, Search, Folder, Settings, MoreHorizontal } from 'lucide-react';
+import { Home, Search, Folder, Settings, MoreHorizontal, Book } from 'lucide-react';
 import { useBreadcrumb } from '@/components/providers/BreadcrumbProvider';
 import {
   Breadcrumb,
@@ -169,11 +169,15 @@ function formatSegmentLabel(segment: string): string {
 interface DynamicBreadcrumbWithDataProps {
   projectName?: string;
   projectId?: string;
+  referrer?: string;
+  referrerLabel?: string;
 }
 
 export function DynamicBreadcrumbWithData({ 
   projectName, 
-  projectId 
+  projectId,
+  referrer,
+  referrerLabel
 }: DynamicBreadcrumbWithDataProps) {
   const pathname = usePathname();
   
@@ -182,7 +186,7 @@ export function DynamicBreadcrumbWithData({
     return null;
   }
 
-  const segments = generateBreadcrumbSegmentsWithData(pathname, { projectName, projectId });
+  const segments = generateBreadcrumbSegmentsWithData(pathname, { projectName, projectId, referrer, referrerLabel });
   
   // Don't show breadcrumbs if we only have one segment (the current page)
   if (segments.length <= 1) {
@@ -224,7 +228,7 @@ export function DynamicBreadcrumbWithData({
 
 function generateBreadcrumbSegmentsWithData(
   pathname: string,
-  data: { projectName?: string; projectId?: string }
+  data: { projectName?: string; projectId?: string; referrer?: string; referrerLabel?: string }
 ): BreadcrumbSegment[] {
   const segments: BreadcrumbSegment[] = [];
   
@@ -234,6 +238,27 @@ function generateBreadcrumbSegmentsWithData(
     href: '/',
     icon: Home,
   });
+
+  // If we're on an entity profile page and have a referrer, use that instead of the default project path
+  const isEntityProfilePage = pathname.match(/^\/projects\/[^\/]+\/entities\/[^\/]+$/);
+  if (isEntityProfilePage && data.referrer && data.referrerLabel) {
+    // Add the referrer as the intermediate breadcrumb
+    segments.push({
+      label: data.referrerLabel,
+      href: data.referrer,
+      icon: data.referrer === '/screening' ? Search : Folder,
+    });
+    
+    // Add the current page with project entity ID
+    const projectEntityId = pathname.split('/').pop();
+    segments.push({
+      label: `Project Entity [${projectEntityId}]`,
+      icon: Book,
+      isCurrentPage: true,
+    });
+    
+    return segments;
+  }
 
   // Parse the pathname
   const pathParts = pathname.split('/').filter(Boolean);
@@ -272,7 +297,7 @@ function generateDynamicSegmentWithData(
   pathParts: string[],
   index: number,
   isLast: boolean,
-  data: { projectName?: string; projectId?: string }
+  data: { projectName?: string; projectId?: string; referrer?: string; referrerLabel?: string }
 ): BreadcrumbSegment | null {
   // Handle project ID routes with actual project name
   if (pathParts[index - 1] === 'projects' && index === 1) {
