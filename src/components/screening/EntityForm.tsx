@@ -49,8 +49,11 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
   const [riskProfilesLoading, setRiskProfilesLoading] = useState(false);
   const [selectedRiskProfile, setSelectedRiskProfile] = useState<string>('default');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [projectSectionOpen, setProjectSectionOpen] = useState(true);
+  const [additionalFieldsOpen, setAdditionalFieldsOpen] = useState(false);
+  const [riskProfileSectionOpen, setRiskProfileSectionOpen] = useState(true);
   
-  const { projects, loading: projectsLoading, refetch } = useProjects();
+  const { projects, loading: projectsLoading, error: projectsError, refetch } = useProjects();
   
   const form = useForm<InternalFormData>({
     resolver: zodResolver(entityFormSchema),
