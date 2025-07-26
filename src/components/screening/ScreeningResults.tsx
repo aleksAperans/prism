@@ -225,6 +225,7 @@ export function ScreeningResults({
   const removeMatch = async (matchId: string, projectId: string, projectEntityId: string) => {
     // Prevent multiple simultaneous requests for the same match
     if (removingMatches[matchId]) {
+      console.log('🚫 Already removing match:', matchId);
       return;
     }
     
@@ -236,7 +237,7 @@ export function ScreeningResults({
     );
     
     if (!resultWithMatch) {
-      console.error('❌ Could not find result containing match:', matchId);
+      console.log('❌ Match not found in local results (may have been already removed):', matchId);
       return;
     }
     
@@ -269,21 +270,20 @@ export function ScreeningResults({
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Match removal confirmed by server');
-        // Update parent with server data
-        onMatchRemoved?.(result.refreshedEntity);
+        // Don't call onMatchRemoved here - let the optimistic update stand
+        // The parent will get updated through other means if needed
       } else {
         const error = await response.json();
         console.error('❌ Server failed to remove match:', error);
         
-        // Rollback optimistic update on error
-        setLocalResults(results);
-        
-        // Handle 404 gracefully - match might already be removed
+        // Handle 404 gracefully - match was already removed, keep optimistic update
         if (response.status === 404) {
-          console.log('⚠️ Match was already removed on server');
-          onMatchRemoved?.();
+          console.log('⚠️ Match was already removed on server - keeping optimistic update');
+          // Don't rollback, the match is gone either way
         } else {
-          console.log('🔄 Refreshing to get current state after error');
+          console.log('🔄 Rolling back optimistic update due to server error');
+          // Rollback optimistic update on non-404 errors
+          setLocalResults(results);
           onMatchRemoved?.();
         }
       }
@@ -551,7 +551,7 @@ export function ScreeningResults({
                             {hasRisks ? (
                               <>
                                 <ShieldAlert className="h-4 w-4 text-black dark:text-white flex-shrink-0" />
-                                <span className="truncate">Risk Factors Found</span>
+                                <span className="truncate">Risk Assessment</span>
                                 <Badge variant="outline" className="text-xs whitespace-nowrap flex-shrink-0">
                                   {Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length}
                                 </Badge>
@@ -672,85 +672,93 @@ export function ScreeningResults({
                               onOpenChange={() => toggleIndividualMatch(uniqueMatchKey)}
                             >
                               <CollapsibleTrigger asChild>
-                                <button className="w-full flex items-center justify-between p-4 rounded-t-lg hover:bg-accent transition-colors text-left gap-2">
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <span className="font-medium text-sm text-left truncate">{match.label}</span>
-                                    <EntityTypeBadge type={match.type} className="flex-shrink-0" />
-                                  </div>
-                                  <div className="flex items-center flex-shrink-0">
-                                    {(expandedIndividualMatches[uniqueMatchKey] ?? false) ? (
-                                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                    ) : (
-                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                <div className="w-full p-4 rounded-t-lg hover:bg-accent transition-colors cursor-pointer">
+                                  <div className="space-y-2">
+                                    {/* Match name with action buttons */}
+                                    <div className="flex items-center justify-between gap-3">
+                                      <div className="min-w-0 flex-1">
+                                        <span className="font-medium text-sm truncate">{match.label}</span>
+                                      </div>
+                                      
+                                      {/* Action buttons and collapse indicator */}
+                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                        <Button variant="ghost" size="sm" asChild className="flex-shrink-0">
+                                          <a 
+                                            href={`https://graph.sayari.com/resource/entity/${match.sayari_entity_id}`}
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="flex items-center space-x-1"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <ExternalLink className="h-3 w-3" />
+                                            <span className="text-xs">View in Graph</span>
+                                          </a>
+                                        </Button>
+                                        {result.full_result?.project_entity_id && (
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              const projectId = result.full_result?.project_id || '';
+                                              const projectEntityId = result.full_result?.project_entity_id || '';
+                                              
+                                              if (!projectId || !projectEntityId) {
+                                                console.error('Missing required IDs for match removal:', { projectId, projectEntityId });
+                                                return;
+                                              }
+                                              
+                                              removeMatch(match.match_id, projectId, projectEntityId);
+                                            }}
+                                            disabled={removingMatches[match.match_id]}
+                                            className={`flex-shrink-0 transition-colors ${
+                                              removingMatches[match.match_id] 
+                                                ? 'text-gray-400 cursor-not-allowed'
+                                                : ''
+                                            }`}
+                                          >
+                                            {removingMatches[match.match_id] ? (
+                                              <>
+                                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                                                <span className="ml-1 text-xs">Removing...</span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Trash2 className="h-3 w-3" />
+                                                <span className="ml-1 text-xs">Remove</span>
+                                              </>
+                                            )}
+                                          </Button>
+                                        )}
+                                        
+                                        {/* Collapse indicator */}
+                                        <div className="flex items-center">
+                                          {(expandedIndividualMatches[uniqueMatchKey] ?? false) ? (
+                                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                          ) : (
+                                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Countries row - elegant and subtle */}
+                                    {match.countries && match.countries.length > 0 && (
+                                      <div className="flex items-center gap-1 pl-1">
+                                        <CountryBadgeList 
+                                          countryCodes={match.countries}
+                                          size="sm"
+                                          maxVisible={4}
+                                          className="opacity-75"
+                                        />
+                                      </div>
                                     )}
                                   </div>
-                                </button>
+                                </div>
                               </CollapsibleTrigger>
                               
                               <CollapsibleContent>
                                 <div className="px-4 pb-4 space-y-3">
-                                  {/* Country flags */}
-                                  {match.countries && match.countries.length > 0 && (
-                                    <div className="flex items-center flex-wrap gap-1">
-                                      <CountryBadgeList 
-                                        countryCodes={match.countries}
-                                        size="sm"
-                                        maxVisible={3}
-                                      />
-                                    </div>
-                                  )}
-                                  
-                                  {/* Action buttons - separate row for better spacing */}
-                                  <div className="flex items-center flex-wrap gap-2 pt-1">
-                                    <Button variant="ghost" size="sm" asChild className="flex-shrink-0">
-                                      <a 
-                                        href={`https://graph.sayari.com/resource/entity/${match.sayari_entity_id}`}
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="flex items-center space-x-1"
-                                      >
-                                        <ExternalLink className="h-3 w-3" />
-                                        <span className="text-xs hidden sm:inline">View in Graph</span>
-                                        <span className="text-xs sm:hidden">Graph</span>
-                                      </a>
-                                    </Button>
-                                    {result.full_result?.project_entity_id && (
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm"
-                                        onClick={() => {
-                                          const projectId = result.full_result?.project_id || '';
-                                          const projectEntityId = result.full_result?.project_entity_id || '';
-                                          
-                                          if (!projectId || !projectEntityId) {
-                                            console.error('Missing required IDs for match removal:', { projectId, projectEntityId });
-                                            return;
-                                          }
-                                          
-                                          removeMatch(match.match_id, projectId, projectEntityId);
-                                        }}
-                                        disabled={removingMatches[match.match_id]}
-                                        className={`flex-shrink-0 transition-colors ${
-                                          removingMatches[match.match_id] 
-                                            ? 'text-gray-400 cursor-not-allowed'
-                                            : ''
-                                        }`}
-                                      >
-                                        {removingMatches[match.match_id] ? (
-                                          <>
-                                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-                                            <span className="ml-1 text-xs hidden sm:inline">Removing...</span>
-                                            <span className="ml-1 text-xs sm:hidden">...</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Trash2 className="h-3 w-3" />
-                                            <span className="ml-1 text-xs hidden sm:inline">Remove</span>
-                                          </>
-                                        )}
-                                      </Button>
-                                    )}
-                                  </div>
                                   
                                   {/* Enhanced matched attributes display */}
                                   {match.matched_attributes && (

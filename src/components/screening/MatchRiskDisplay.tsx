@@ -77,7 +77,7 @@ export function MatchRiskDisplay({
             <div className="flex items-center justify-between w-full">
               <h5 className="text-sm font-medium flex items-center">
                 <ShieldAlert className="h-4 w-4 mr-2 text-black dark:text-white" />
-                Risk Factors Found
+                Risk Assessment
                 <Badge variant="outline" className="text-xs ml-2">
                   {riskFactors.length}
                 </Badge>

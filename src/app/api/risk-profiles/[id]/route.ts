@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -16,7 +16,7 @@ export async function GET(
       );
     }
 
-    const profileId = params.id;
+    const { id: profileId } = await params;
     
     if (!profileId) {
       return NextResponse.json(
