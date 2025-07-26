@@ -39,35 +39,13 @@ const entityFormSchema = z.object({
 
 interface EntityFormProps {
   onSubmit: (data: EntityFormData) => void;
-  isLoading?: boolean;
-  className?: string;
-  onFormReady?: (setValue: (field: keyof InternalFormData, value: unknown) => void) => void;
 }
 
-export function EntityForm({ onSubmit, isLoading = false, className, onFormReady }: EntityFormProps) {
-  const { projects, loading: projectsLoading, error: projectsError, refetch } = useProjects();
-  const [isCreatingProject, setIsCreatingProject] = React.useState(false);
-  const [projectSectionOpen, setProjectSectionOpen] = useState(false);
-  const [riskProfileSectionOpen, setRiskProfileSectionOpen] = useState(false);
+export function EntityForm({ onSubmit }: EntityFormProps) {
   const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([]);
-  const [riskProfilesLoading, setRiskProfilesLoading] = useState(true);
+  const [riskProfilesLoading, setRiskProfilesLoading] = useState(false);
+  const [selectedRiskProfile, setSelectedRiskProfile] = useState<string>('default');
 
-  const form = useForm<InternalFormData>({
-    resolver: zodResolver(entityFormSchema),
-    defaultValues: {
-      project_id: '',
-      name: '',
-      type: 'company', // Set company as default
-      profile: 'corporate', // Set corporate as default
-      risk_profile: '',
-      identifier: '',
-      address: '',
-      country: '',
-      date_of_birth: '',
-    },
-  });
-
-  // Load risk profiles on component mount
   React.useEffect(() => {
     const loadRiskProfiles = async () => {
       try {
