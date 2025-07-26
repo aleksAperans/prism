@@ -421,7 +421,7 @@ export function RiskConfiguration() {
             Configure which risk factors are enabled for your analysis profiles.
             You have {enabledCount} of {totalCount} risk factors enabled.
             {selectedCount > 0 && ` (${selectedCount} selected)`}
-            {riskScoringEnabled && ` • Risk scoring enabled`}
+            {riskScoringEnabled ? ` • Risk scoring enabled` : ` • Risk scoring disabled (toggle below to enable Points column)`}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -721,28 +721,28 @@ export function RiskConfiguration() {
           </div>
 
           {/* Risk Factors Table */}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40px]">
-                  <Checkbox
-                    checked={allVisibleSelected}
-                    onCheckedChange={handleSelectAll}
-                    aria-label="Select all visible risk factors"
-                  />
-                </TableHead>
-                <TableHead className="w-[60px]">Enable</TableHead>
-                <TableHead className="w-[150px]">Risk</TableHead>
-                <TableHead className="w-[200px]">ID</TableHead>
-                <TableHead className="min-w-0">Description</TableHead>
-                <TableHead className="w-[90px]">Category</TableHead>
-                <TableHead className="w-[70px]">Level</TableHead>
-                <TableHead className="w-[65px]">Type</TableHead>
-                {riskScoringEnabled && (
-                  <TableHead className="w-[80px]">Points</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto">
+            <Table className="min-w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      checked={allVisibleSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all visible risk factors"
+                    />
+                  </TableHead>
+                  <TableHead className="w-[70px]">Enable</TableHead>
+                  <TableHead className="w-[180px]">Risk</TableHead>
+                  <TableHead className="flex-1 min-w-[300px]">Description</TableHead>
+                  <TableHead className="w-[110px]">Category</TableHead>
+                  <TableHead className="w-[70px]">Level</TableHead>
+                  <TableHead className="w-[60px]">Type</TableHead>
+                  {riskScoringEnabled && (
+                    <TableHead className="w-[70px]">Points</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {filteredRiskFactors.map((factor) => (
                 <TableRow
@@ -779,21 +779,14 @@ export function RiskConfiguration() {
                     </div>
                   </TableCell>
 
-                  {/* Risk Factor ID */}
-                  <TableCell>
-                    <div className={`text-xs font-mono ${!factor.enabled ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
-                      {factor.id}
-                    </div>
-                  </TableCell>
-
                   {/* Risk Description */}
-                  <TableCell>
+                  <TableCell className="flex-1 min-w-[300px]">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className={`text-sm cursor-help ${!factor.enabled ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
-                            {factor.description.length > 80 
-                              ? `${factor.description.substring(0, 80)}...` 
+                          <div className={`text-sm cursor-help leading-relaxed ${!factor.enabled ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
+                            {factor.description.length > 120 
+                              ? `${factor.description.substring(0, 120)}...` 
                               : factor.description
                             }
                           </div>
@@ -853,6 +846,8 @@ export function RiskConfiguration() {
               ))}
             </TableBody>
           </Table>
+          
+          </div>
         </CardContent>
       </Card>
     </div>
