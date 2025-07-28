@@ -20,6 +20,7 @@ import { clientLoadYamlProfiles, type RiskProfile } from '@/lib/risk-profiles/ya
 // Internal form data type with required type field
 interface InternalFormData extends Omit<EntityFormData, 'type'> {
   type: 'company' | 'person';
+  profile: 'corporate' | 'suppliers' | 'search' | 'screen';
   risk_profile: string;
 }
 
@@ -60,6 +61,7 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
     defaultValues: {
       name: '',
       type: 'company',
+      profile: 'corporate', // Hidden field with corporate as default
       identifier: '',
       address: '',
       country: '',
@@ -120,10 +122,15 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
   }, [onFormReady]);
 
   const handleSubmit = (data: InternalFormData) => {
+    console.log('🔍 Form submitted with data:', data);
+    console.log('🔍 Form validation state:', form.formState);
+    console.log('🔍 Form errors:', form.formState.errors);
+    
     // Clean up optional fields - remove empty strings
     const cleanedData: EntityFormData = {
       ...data,
       type: data.type,
+      profile: data.profile,
       risk_profile: data.risk_profile,
       identifier: data.identifier || undefined,
       address: data.address || undefined,
@@ -131,6 +138,7 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
       date_of_birth: data.date_of_birth || undefined,
     };
     
+    console.log('🔍 Cleaned data being passed to onSubmit:', cleanedData);
     onSubmit(cleanedData);
   };
 
@@ -516,6 +524,11 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
               type="submit" 
               className="w-full"
               disabled={isLoading}
+              onClick={(e) => {
+                console.log('🔍 Button clicked!', e);
+                console.log('🔍 Form is valid:', form.formState.isValid);
+                console.log('🔍 Current form values:', form.getValues());
+              }}
             >
               {isLoading ? (
                 <>
