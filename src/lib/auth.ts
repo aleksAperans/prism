@@ -6,14 +6,17 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 // Debug environment variables
 console.log('🔍 Auth Debug:', {
   hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+  nextAuthUrl: process.env.NEXTAUTH_URL,
   hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
-  nodeEnv: process.env.NODE_ENV
+  nodeEnv: process.env.NODE_ENV,
+  vercelUrl: process.env.VERCEL_URL
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // Temporarily disable Prisma adapter to isolate auth issue
   // adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  trustHost: true, // Allow NextAuth to auto-detect the host in production
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -31,16 +34,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const demoUsers = [
           {
             id: '1',
-            email: 'admin@sayari.com',
+            email: 'aleksaperans@protonmail.com',
             password: 'admin123', // In production, this would be hashed
-            name: 'Admin User',
+            name: 'Aleks Aperans',
             role: 'admin',
           },
           {
             id: '2',
-            email: 'user@sayari.com',
-            password: 'user123', // In production, this would be hashed
-            name: 'Demo User',
+            email: 'demo@prism-screening.com',
+            password: 'prism-demo-123', // In production, this would be hashed
+            name: 'Prism Demo User',
             role: 'user',
           },
         ];

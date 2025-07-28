@@ -45,11 +45,11 @@ export default function SignInPage() {
 
   const fillDemoCredentials = (type: 'admin' | 'user') => {
     if (type === 'admin') {
-      setEmail('admin@sayari.com');
+      setEmail('aleksaperans@protonmail.com');
       setPassword('admin123');
     } else {
-      setEmail('user@sayari.com');
-      setPassword('user123');
+      setEmail('demo@prism-screening.com');
+      setPassword('prism-demo-123');
     }
   };
 
@@ -136,7 +136,7 @@ export default function SignInPage() {
               onClick={() => fillDemoCredentials('admin')}
               type="button"
             >
-              Admin User (admin@sayari.com)
+              Admin User (aleksaperans@protonmail.com)
             </Button>
             <Button 
               variant="outline" 
@@ -145,7 +145,7 @@ export default function SignInPage() {
               onClick={() => fillDemoCredentials('user')}
               type="button"
             >
-              Demo User (user@sayari.com)
+              Demo User (demo@prism-screening.com)
             </Button>
           </CardContent>
         </Card>
