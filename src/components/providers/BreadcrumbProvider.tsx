@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 interface BreadcrumbData {
@@ -20,7 +20,11 @@ const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(undef
 export function useBreadcrumb() {
   const context = useContext(BreadcrumbContext);
   if (!context) {
-    throw new Error('useBreadcrumb must be used within a BreadcrumbProvider');
+    // Return default values instead of throwing during static generation
+    return {
+      data: {},
+      setData: () => {}
+    };
   }
   return context;
 }
@@ -29,7 +33,7 @@ interface BreadcrumbProviderProps {
   children: ReactNode;
 }
 
-export function BreadcrumbProvider({ children }: BreadcrumbProviderProps) {
+function BreadcrumbProviderInner({ children }: BreadcrumbProviderProps) {
   const [data, setData] = useState<BreadcrumbData>({});
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -102,5 +106,13 @@ export function BreadcrumbProvider({ children }: BreadcrumbProviderProps) {
     <BreadcrumbContext.Provider value={{ data, setData }}>
       {children}
     </BreadcrumbContext.Provider>
+  );
+}
+
+export function BreadcrumbProvider({ children }: BreadcrumbProviderProps) {
+  return (
+    <Suspense fallback={<div>{children}</div>}>
+      <BreadcrumbProviderInner>{children}</BreadcrumbProviderInner>
+    </Suspense>
   );
 }

@@ -39,7 +39,7 @@ const entityFormSchema = z.object({
 
 interface EntityFormProps {
   onSubmit: (data: EntityFormData) => void;
-  onFormReady?: (setter: (field: any, value: any) => void) => void;
+  onFormReady?: (setter: (field: string, value: unknown) => void) => void;
   className?: string;
   isLoading?: boolean;
 }
@@ -115,7 +115,7 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
   // Expose form setValue method when component mounts
   React.useEffect(() => {
     if (onFormReady) {
-      onFormReady((field, value) => form.setValue(field, value));
+      onFormReady((field, value) => form.setValue(field as keyof EntityFormData, value as string));
     }
   }, [onFormReady]);
 

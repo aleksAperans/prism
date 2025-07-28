@@ -6,7 +6,6 @@ import {
   Filter, 
   Download, 
   MoreHorizontal,
-  MapPin,
   AlertTriangle,
   Eye,
   Trash2,
@@ -44,6 +43,7 @@ import { Skeleton } from '@/components/common/LoadingStates';
 import { CountryBadgeList } from '@/components/common/CountryBadge';
 import { RiskScoreBadge } from '@/components/common/RiskScoreBadge';
 import { calculateEntityRiskScore, clientLoadDefaultRiskProfile } from '@/lib/risk-scoring-client';
+import type { RiskProfile } from '@/lib/risk-profiles/yaml-loader';
 import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import { useBreadcrumb } from '@/components/providers/BreadcrumbProvider';
 import type { SayariResponse, SayariProject, ProjectEntity } from '@/types/api.types';
@@ -81,7 +81,7 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
   const [project, setProject] = useState<SayariProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [riskProfile, setRiskProfile] = useState<any>(null);
+  const [riskProfile, setRiskProfile] = useState<RiskProfile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sort, setSort] = useState<TableSort>({ column: 'updated', direction: 'desc' });
   const [selectedEntityType, setSelectedEntityType] = useState<string>('all');

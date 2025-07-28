@@ -3,20 +3,17 @@ import { notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ExternalLink, Building, CheckCircle, ShieldAlert, Shield, Database, Network, FileText, Upload, Save, Plus, Construction, Book, SquareCheck, NotebookPen, Waypoints } from 'lucide-react';
+import { ExternalLink, ShieldAlert, Shield, Network, FileText, Upload, Save, Plus, Construction, Book, SquareCheck, NotebookPen, Waypoints } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { CountryBadgeList } from '@/components/common/CountryBadge';
 import { RiskLevelBadges } from '@/components/common/RiskLevelBadge';
 import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import { RiskFactorsDisplay } from '@/components/screening/RiskFactorsDisplay';
-import { MatchedAttributesDisplay } from '@/components/screening/MatchedAttributesDisplay';
-import { MatchRiskDisplay } from '@/components/screening/MatchRiskDisplay';
 import { RiskScoreBadge } from '@/components/common/RiskScoreBadge';
 import riskFactorsData from '@/lib/risk-factors-data.json';
 import { calculateEntityRiskScore, loadDefaultRiskProfile, filterRiskFactorsByProfile } from '@/lib/risk-scoring';
@@ -80,14 +77,14 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
   const allRiskFactors = new Set();
   
   // Add parent-level risk factors
-  entity.risk_factors?.forEach((rf: any) => {
+  entity.risk_factors?.forEach((rf: { id?: string; factor?: string } | string) => {
     const id = typeof rf === 'string' ? rf : rf.id || rf.factor;
     if (id) allRiskFactors.add(id);
   });
   
   // Add risk factors from all matches
-  entity.matches?.forEach((match: any) => {
-    match.risk_factors?.forEach((rf: any) => {
+  entity.matches?.forEach((match: { risk_factors?: Array<{ id?: string; factor?: string } | string> }) => {
+    match.risk_factors?.forEach((rf: { id?: string; factor?: string } | string) => {
       const id = typeof rf === 'string' ? rf : rf.id || rf.factor;
       if (id) allRiskFactors.add(id);
     });
@@ -338,7 +335,7 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground mb-3">Upstream Risk Factors</h4>
                       <RiskFactorsDisplay 
-                        riskFactors={entity.upstream.risk_factors}
+                        riskFactors={entity.upstream.risk_factors as Array<{ id?: string; factor?: string; description?: string; severity?: string }> | Record<string, unknown>}
                         showTitle={false}
                         riskScores={riskProfile?.riskScores}
                       />

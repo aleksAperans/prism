@@ -3,7 +3,6 @@ import type {
   SayariProject,
   CreateProjectRequest,
   SayariResponse,
-  SayariProjectEntity,
   ProjectEntity,
 } from '@/types/api.types';
 

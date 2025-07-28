@@ -338,7 +338,7 @@ export interface EntityScreeningAudit {
   
   // Relations
   project_entity?: ProjectEntity;
-  action_user?: any; // User interface
+  action_user?: { id: string; name: string; email: string }; // User interface
 }
 
 export interface EntityCase {
@@ -369,8 +369,8 @@ export interface EntityCase {
   
   // Relations
   project_entity?: ProjectEntity;
-  assigned_user?: any; // User interface
-  resolver_user?: any; // User interface
+  assigned_user?: { id: string; name: string; email: string }; // User interface
+  resolver_user?: { id: string; name: string; email: string }; // User interface
 }
 
 // ============================================================================
