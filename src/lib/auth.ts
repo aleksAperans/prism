@@ -3,9 +3,17 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+// Debug environment variables
+console.log('🔍 Auth Debug:', {
+  hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+  hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
+  nodeEnv: process.env.NODE_ENV
+});
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  secret: process.env.NEXTAUTH_SECRET,
+  // Temporarily disable Prisma adapter to isolate auth issue
+  // adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'credentials',
