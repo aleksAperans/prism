@@ -511,29 +511,27 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
               }}
             />
 
+            {/* Submit Button - moved inside form */}
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                  Screening...
+                </>
+              ) : (
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Screen Entity
+                </>
+              )}
+            </Button>
           </form>
         </Form>
       </CardContent>
-      <CardFooter>
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={isLoading}
-          onClick={form.handleSubmit(handleSubmit)}
-        >
-          {isLoading ? (
-            <>
-              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-              Screening...
-            </>
-          ) : (
-            <>
-              <Search className="mr-2 h-4 w-4" />
-              Screen Entity
-            </>
-          )}
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
