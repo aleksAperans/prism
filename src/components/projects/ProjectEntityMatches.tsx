@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ExternalLink, Building, Trash2, ChevronRight, FileText, ShieldAlert, User, Database } from 'lucide-react';
+import { ExternalLink, Building, Trash2, ChevronRight, FileText, ShieldAlert, User, Database, Network } from 'lucide-react';
 import { CountryBadgeList, CountryBadge } from '@/components/common/CountryBadge';
 import { MatchedAttributesDisplay } from '@/components/screening/MatchedAttributesDisplay';
 import { MatchRiskDisplay } from '@/components/screening/MatchRiskDisplay';
@@ -35,6 +35,7 @@ interface Match {
     source_type: string;
     country: string;
   }>;
+  relationship_count?: Record<string, number>;
 }
 
 interface ProjectEntityMatchesProps {
@@ -60,6 +61,7 @@ export function ProjectEntityMatches({
   const [expandedAttributes, setExpandedAttributes] = useState<Record<string, boolean>>({});
   const [expandedRiskSections, setExpandedRiskSections] = useState<Record<string, boolean>>({});
   const [expandedSourcesSections, setExpandedSourcesSections] = useState<Record<string, boolean>>({});
+  const [expandedRelationshipsSections, setExpandedRelationshipsSections] = useState<Record<string, boolean>>({});
 
   const toggleMatch = useCallback((matchId: string) => {
     setExpandedMatches(prev => ({
@@ -84,6 +86,13 @@ export function ProjectEntityMatches({
 
   const toggleSourcesSection = useCallback((matchId: string) => {
     setExpandedSourcesSections(prev => ({
+      ...prev,
+      [matchId]: !prev[matchId]
+    }));
+  }, []);
+
+  const toggleRelationshipsSection = useCallback((matchId: string) => {
+    setExpandedRelationshipsSections(prev => ({
       ...prev,
       [matchId]: !prev[matchId]
     }));
@@ -202,6 +211,7 @@ export function ProjectEntityMatches({
         const areAttributesExpanded = expandedAttributes[match.match_id] ?? true;
         const isRiskSectionExpanded = expandedRiskSections[match.match_id] ?? true;
         const isSourcesSectionExpanded = expandedSourcesSections[match.match_id] ?? false;
+        const isRelationshipsSectionExpanded = expandedRelationshipsSections[match.match_id] ?? false;
 
         return (
           <Card key={match.match_id || index} className={cn("transition-opacity", isRemoving && "opacity-50")}>
@@ -235,7 +245,6 @@ export function ProjectEntityMatches({
                             <CountryBadgeList 
                               countryCodes={match.countries}
                               size="sm"
-                              maxVisible={5}
                             />
                           </div>
                         )}
@@ -365,8 +374,8 @@ export function ProjectEntityMatches({
                                 {match.sources.length}
                               </Badge>
                             </div>
-                            {/* Source type badges - right aligned */}
-                            <div className="flex items-center gap-1 flex-wrap">
+                            {/* Source type badges - right aligned with overflow handling */}
+                            <div className="flex items-center gap-2 ml-auto">
                               {(() => {
                                 // Group sources by type and count them
                                 const sourceTypeCounts = match.sources.reduce((acc, source) => {
@@ -375,43 +384,139 @@ export function ProjectEntityMatches({
                                   return acc;
                                 }, {} as Record<string, number>);
                                 
-                                return Object.entries(sourceTypeCounts).map(([type, count]) => (
-                                  <Badge key={type} variant="secondary" className="text-xs">
-                                    {count} {type}
-                                  </Badge>
-                                ));
+                                const entries = Object.entries(sourceTypeCounts)
+                                  .sort(([, a], [, b]) => b - a); // Sort by count descending
+                                const maxBadges = 3;
+                                const displayEntries = entries.slice(0, maxBadges);
+                                const remainingCount = entries.length - maxBadges;
+                                
+                                return (
+                                  <>
+                                    {displayEntries.map(([type, count]) => (
+                                      <Badge key={type} variant="secondary" className="text-xs whitespace-nowrap">
+                                        {count} {type}
+                                      </Badge>
+                                    ))}
+                                    {remainingCount > 0 && (
+                                      <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                        +{remainingCount} more
+                                      </Badge>
+                                    )}
+                                  </>
+                                );
                               })()}
+                              <ChevronRight 
+                                className={cn(
+                                  "h-4 w-4 transition-transform text-muted-foreground flex-shrink-0",
+                                  isSourcesSectionExpanded && "rotate-90"
+                                )} 
+                              />
                             </div>
                           </div>
-                          <ChevronRight 
-                            className={cn(
-                              "h-4 w-4 transition-transform text-muted-foreground flex-shrink-0",
-                              isSourcesSectionExpanded && "rotate-90"
-                            )} 
-                          />
                         </button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <div className="pl-6 pb-2 pt-2 space-y-2">
-                          {match.sources.map((source, sourceIndex) => (
-                            <div key={source.id || sourceIndex} className="bg-card border rounded-md p-3 space-y-2">
-                              {/* Source Label */}
-                              <div className="font-medium text-sm">
-                                {source.label}
+                          {/* Sort sources by source_type for grouping */}
+                          {match.sources
+                            .sort((a, b) => a.source_type.localeCompare(b.source_type))
+                            .map((source, sourceIndex) => (
+                              <div key={source.id || sourceIndex} className="bg-card border rounded-md p-3 space-y-2">
+                                {/* Source Label */}
+                                <div className="font-medium text-sm">
+                                  {source.label}
+                                </div>
+                                
+                                {/* Source Type and Country */}
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {source.source_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </Badge>
+                                  <CountryBadge 
+                                    countryCode={source.country}
+                                    size="sm"
+                                  />
+                                </div>
                               </div>
-                              
-                              {/* Source Type and Country */}
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {source.source_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </Badge>
-                                <CountryBadge 
-                                  countryCode={source.country}
-                                  size="sm"
-                                />
-                              </div>
+                            ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+
+                  {/* Relationships */}
+                  {match.relationship_count && Object.keys(match.relationship_count).length > 0 && (
+                    <Collapsible open={isRelationshipsSectionExpanded}>
+                      <CollapsibleTrigger asChild>
+                        <button 
+                          className="w-full flex items-center justify-between py-2 px-3 rounded-md hover:bg-accent transition-colors"
+                          onClick={() => toggleRelationshipsSection(match.match_id)}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                              <Network className="h-4 w-4 text-muted-foreground" />
+                              Relationships
+                              <Badge variant="outline" className="text-xs">
+                                {Object.values(match.relationship_count).reduce((sum, count) => sum + count, 0)}
+                              </Badge>
                             </div>
-                          ))}
+                            {/* Relationship type badges - right aligned with overflow handling */}
+                            <div className="flex items-center gap-2 ml-auto">
+                              {(() => {
+                                const entries = Object.entries(match.relationship_count)
+                                  .sort(([, a], [, b]) => b - a); // Sort by count descending
+                                const maxBadges = 3;
+                                const displayEntries = entries.slice(0, maxBadges);
+                                const remainingCount = entries.length - maxBadges;
+                                
+                                return (
+                                  <>
+                                    {displayEntries.map(([type, count]) => (
+                                      <Badge key={type} variant="secondary" className="text-xs whitespace-nowrap">
+                                        {count} {type.replace(/_/g, ' ')}
+                                      </Badge>
+                                    ))}
+                                    {remainingCount > 0 && (
+                                      <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                        +{remainingCount} more
+                                      </Badge>
+                                    )}
+                                  </>
+                                );
+                              })()}
+                              <ChevronRight 
+                                className={cn(
+                                  "h-4 w-4 transition-transform text-muted-foreground flex-shrink-0",
+                                  isRelationshipsSectionExpanded && "rotate-90"
+                                )} 
+                              />
+                            </div>
+                          </div>
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="pl-6 pb-2 pt-2 space-y-2">
+                          {/* Sort relationships by count descending (highest to lowest) */}
+                          {Object.entries(match.relationship_count)
+                            .sort(([, a], [, b]) => b - a)
+                            .map(([type, count]) => (
+                              <div key={type} className="bg-card border rounded-md p-3 space-y-2">
+                                {/* Relationship Type */}
+                                <div className="flex items-center justify-between">
+                                  <div className="font-medium text-sm">
+                                    {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </div>
+                                  <Badge variant="outline" className="text-xs">
+                                    {count}
+                                  </Badge>
+                                </div>
+                                
+                                {/* Relationship Description */}
+                                <div className="text-xs text-muted-foreground">
+                                  {count} relationship{count !== 1 ? 's' : ''} of this type
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       </CollapsibleContent>
                     </Collapsible>

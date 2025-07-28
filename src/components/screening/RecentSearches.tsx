@@ -1,11 +1,12 @@
 'use client';
 
-import { Clock, Building, User, ArrowRight, Search, ShieldAlert, XCircle } from 'lucide-react';
+import { Clock, Building, User, ArrowRight, Search, ShieldAlert, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CountryBadge } from '@/components/common/CountryBadge';
-import { RiskScoreBadge } from '@/components/screening/RiskScoreBadge';
+import { RiskScoreBadge } from '@/components/common/RiskScoreBadge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
 import type { EntityFormData } from '@/types/app.types';
@@ -56,6 +57,7 @@ const getMatchStrengthIcon = (strength?: string) => {
 
 export function RecentSearches({ onSelectSearch, className = '' }: RecentSearchesProps) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [isOpen, setIsOpen] = useState(true);
 
   // Load recent searches from localStorage on mount
   useEffect(() => {
@@ -101,37 +103,61 @@ export function RecentSearches({ onSelectSearch, className = '' }: RecentSearche
   if (recentSearches.length === 0) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center">
-            <Clock className="mr-2 h-4 w-4" />
-            Most Recent
-          </CardTitle>
-          <CardDescription>
-            Your recent searches will appear here
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6 text-muted-foreground">
-            <Search className="mx-auto h-8 w-8 mb-2 opacity-50" />
-            <p className="text-sm">No recent searches yet</p>
-          </div>
-        </CardContent>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer">
+              <CardTitle className="text-base flex items-center justify-between">
+                <div className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4" />
+                  Most Recent
+                </div>
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                Your recent searches will appear here
+              </CardDescription>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="text-center py-6 text-muted-foreground">
+                <Search className="mx-auto h-8 w-8 mb-2 opacity-50" />
+                <p className="text-sm">No recent searches yet</p>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
     );
   }
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center">
-          <Clock className="mr-2 h-4 w-4" />
-          Most Recent
-        </CardTitle>
-        <CardDescription>
-          Click to re-run a previous screening
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer">
+            <CardTitle className="text-base flex items-center justify-between">
+              <div className="flex items-center">
+                <Clock className="mr-2 h-4 w-4" />
+                Most Recent
+              </div>
+              {isOpen ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </CardTitle>
+            <CardDescription>
+              Click to re-run a previous screening
+            </CardDescription>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="space-y-2">
         {recentSearches.map((search) => (
           <Button
             key={search.id}
@@ -193,7 +219,9 @@ export function RecentSearches({ onSelectSearch, className = '' }: RecentSearche
             </div>
           </Button>
         ))}
-      </CardContent>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }

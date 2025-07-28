@@ -42,8 +42,8 @@ export function BreadcrumbProvider({ children }: BreadcrumbProviderProps) {
       let referrerLabel = 'Back';
       if (fromParam === 'screening') {
         referrerLabel = 'Screen Entities';
-      } else if (fromParam.startsWith('projects')) {
-        referrerLabel = 'Project';
+      } else if (fromParam.startsWith('projects/')) {
+        referrerLabel = 'Projects';
       }
       
       const referrerPath = fromParam === 'screening' ? '/screening' : `/${fromParam}`;

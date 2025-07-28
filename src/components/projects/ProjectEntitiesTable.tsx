@@ -1,23 +1,18 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { 
   Search, 
   Filter, 
   Download, 
   MoreHorizontal,
-  Building2,
-  User,
   MapPin,
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  Shield,
   AlertTriangle,
   Eye,
   Trash2,
-  ArrowUpDown
+  ArrowUpDown,
+  Share2,
+  FileDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,8 +42,25 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/common/LoadingStates';
 import { CountryBadgeList } from '@/components/common/CountryBadge';
+import { RiskScoreBadge } from '@/components/common/RiskScoreBadge';
+import { calculateEntityRiskScore, clientLoadDefaultRiskProfile } from '@/lib/risk-scoring-client';
+import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import { useBreadcrumb } from '@/components/providers/BreadcrumbProvider';
-import type { SayariProjectEntity, SayariResponse, SayariProject } from '@/types/api.types';
+import type { SayariResponse, SayariProject, ProjectEntity } from '@/types/api.types';
+import Link from 'next/link';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface ProjectEntitiesTableProps {
   projectId: string;
@@ -59,16 +71,23 @@ interface TableSort {
   direction: 'asc' | 'desc';
 }
 
+// Extended ProjectEntity type to include matches from API response
+// The API response structure matches ProjectEntity type
+type ProjectEntityData = ProjectEntity;
+
 export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
-  const router = useRouter();
   const { setData } = useBreadcrumb();
-  const [entities, setEntities] = useState<SayariProjectEntity[]>([]);
+  const [entities, setEntities] = useState<ProjectEntity[]>([]);
   const [project, setProject] = useState<SayariProject | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [riskProfile, setRiskProfile] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sort, setSort] = useState<TableSort>({ column: 'updated', direction: 'desc' });
   const [selectedEntityType, setSelectedEntityType] = useState<string>('all');
+  const [selectedEntities, setSelectedEntities] = useState<Set<string>>(new Set());
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [entityToDelete, setEntityToDelete] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     hasNext: false,
     next: undefined as string | undefined,
@@ -125,7 +144,7 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
         throw new Error(`Failed to fetch entities: ${response.status}`);
       }
 
-      const data: { success: boolean; data: SayariResponse<SayariProjectEntity[]> } = await response.json();
+      const data: { success: boolean; data: SayariResponse<ProjectEntity[]> } = await response.json();
       
       if (!data.success) {
         throw new Error('Failed to fetch entities');
@@ -151,17 +170,56 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
   useEffect(() => {
     fetchProject();
     fetchEntities();
+    
+    // Load risk profile using client-safe function
+    const loadRiskProfile = async () => {
+      const profile = await clientLoadDefaultRiskProfile();
+      setRiskProfile(profile);
+    };
+    
+    loadRiskProfile();
   }, [projectId, sort, selectedEntityType, fetchEntities, fetchProject]);
 
   const filteredEntities = useMemo(() => {
     if (!searchQuery) return entities;
     
-    return entities.filter(entity =>
-      entity.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entity.summary?.countries?.some(country => country.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      entity.summary?.addresses?.some(address => address.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    return entities.filter(entity => {
+      const label = entity.label || '';
+      const countries = entity.countries || [];
+      
+      return label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        countries.some((country: string) => country.toLowerCase().includes(searchQuery.toLowerCase()));
+    });
   }, [entities, searchQuery]);
+
+  // Helper functions to safely access entity properties regardless of format
+  const getEntityLabel = (entity: ProjectEntityData): string => {
+    // Always read from root level label
+    return entity.label || '';
+  };
+
+  const getEntityId = (entity: ProjectEntityData): string => {
+    // ProjectEntity uses project_entity_id
+    return entity.project_entity_id;
+  };
+
+  const getEntityType = (entity: ProjectEntityData): string => {
+    // Get type from attributes
+    if (entity.attributes?.type?.values?.[0]) {
+      return entity.attributes.type.values[0];
+    }
+    return 'company'; // Default to company if not specified
+  };
+
+  const getEntityCountries = (entity: ProjectEntityData): string[] => {
+    // Only read from root level countries array
+    return entity.countries || [];
+  };
+
+  const getEntityUpdated = (entity: ProjectEntityData): string => {
+    // Use created_at field from ProjectEntity
+    return entity.created_at || new Date().toISOString();
+  };
 
   const handleSort = (column: string) => {
     setSort(prev => ({
@@ -170,26 +228,96 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
     }));
   };
 
-  const getEntityTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'company':
-        return <Building2 className="h-4 w-4" />;
-      case 'person':
-        return <User className="h-4 w-4" />;
-      default:
-        return <Building2 className="h-4 w-4" />;
+  const toggleEntitySelection = (entityId: string) => {
+    setSelectedEntities(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(entityId)) {
+        newSet.delete(entityId);
+      } else {
+        newSet.add(entityId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllEntities = () => {
+    if (selectedEntities.size === filteredEntities.length) {
+      setSelectedEntities(new Set());
+    } else {
+      setSelectedEntities(new Set(filteredEntities.map(e => getEntityId(e))));
     }
   };
 
-  const getRiskLevel = (entity: SayariProjectEntity) => {
-    const riskCount = entity.summary?.risk ? Object.keys(entity.summary.risk).length : 0;
-    if (riskCount === 0) return { level: 'low', color: 'bg-green-500/10 text-green-600 dark:bg-green-500/10 dark:text-green-400' };
-    if (riskCount <= 2) return { level: 'medium', color: 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400' };
-    return { level: 'high', color: 'bg-red-500/10 text-red-600 dark:bg-red-500/10 dark:text-red-400' };
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copied successfully`);
+    } catch (err) {
+      toast.error("Unable to copy to clipboard");
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const handleDeleteEntity = async (entityId: string) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/entities/${entityId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setEntities(prev => prev.filter(e => getEntityId(e) !== entityId));
+        setSelectedEntities(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(entityId);
+          return newSet;
+        });
+        toast.success("Entity has been removed from the project");
+      } else {
+        throw new Error('Failed to delete entity');
+      }
+    } catch (err) {
+      toast.error("Unable to remove entity from project");
+    }
+  };
+
+  const getMatchConfidence = (entity: ProjectEntityData) => {
+    // Check for strength field
+    switch (entity.strength) {
+      case 'strong':
+        return { label: 'high confidence', color: 'bg-green-500/10 text-green-600 dark:bg-green-500/10 dark:text-green-400' };
+      case 'partial':
+        return { label: 'medium confidence', color: 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400' };
+      case 'manual':
+        return { label: 'manual match', color: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' };
+      case 'no_match':
+      default:
+        return { label: 'no match', color: 'bg-muted text-muted-foreground' };
+    }
+  };
+
+  const getRiskLevel = (entity: ProjectEntityData) => {
+    if (!riskProfile || !riskProfile.riskScoringEnabled) {
+      // Fallback to simple count if no risk profile
+      const riskCount = entity.risk_factors?.length || 0;
+      if (riskCount === 0) return { level: 'low', count: 0, threshold: 0, color: 'bg-green-500/10 text-green-600 dark:bg-green-500/10 dark:text-green-400' };
+      if (riskCount <= 2) return { level: 'medium', count: riskCount, threshold: 0, color: 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400' };
+      return { level: 'high', count: riskCount, threshold: 0, color: 'bg-red-500/10 text-red-600 dark:bg-red-500/10 dark:text-red-400' };
+    }
+
+    // Calculate actual risk score using risk profile
+    const riskFactorIds = entity.risk_factors?.map(rf => rf.id) || [];
+    const riskScore = calculateEntityRiskScore(riskFactorIds, riskProfile);
+    
+    const meetsThreshold = riskScore.meetsThreshold;
+    const color = meetsThreshold 
+      ? 'bg-red-500/10 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+      : 'bg-green-500/10 text-green-600 dark:bg-green-500/10 dark:text-green-400';
+    
+    return {
+      level: meetsThreshold ? 'high' : 'low',
+      count: riskScore.totalScore,
+      threshold: riskScore.threshold,
+      color
+    };
   };
 
   if (error) {
@@ -221,9 +349,39 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
         </div>
         
         <div className="flex items-center gap-2">
+          {selectedEntities.size > 0 && (
+            <>
+              <span className="text-sm text-muted-foreground">
+                {selectedEntities.size} selected
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  toast.success(`Exporting ${selectedEntities.size} entities`);
+                }}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export Selected
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={() => {
+                  if (selectedEntities.size > 0) {
+                    setEntityToDelete(Array.from(selectedEntities).join(','));
+                    setDeleteDialogOpen(true);
+                  }
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Selected
+              </Button>
+            </>
+          )}
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export
+            Export All
           </Button>
         </div>
       </div>
@@ -270,6 +428,13 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
             <Table>
               <TableHeader>
                 <TableRow className="border-b bg-muted/50">
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={selectedEntities.size === filteredEntities.length && filteredEntities.length > 0}
+                      onCheckedChange={toggleAllEntities}
+                      aria-label="Select all entities"
+                    />
+                  </TableHead>
                   <TableHead className="w-[300px]">
                     <Button 
                       variant="ghost" 
@@ -277,25 +442,35 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
                       onClick={() => handleSort('label')}
                       className="h-auto p-0 font-semibold"
                     >
-                      Entity Name
+                      Name
                       <ArrowUpDown className="h-3 w-3 ml-2" />
                     </Button>
                   </TableHead>
-                  <TableHead className="w-[100px]">Type</TableHead>
-                  <TableHead className="w-[200px]">Countries</TableHead>
+                  <TableHead className="w-[100px] hidden md:table-cell">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleSort('type')}
+                      className="h-auto p-0 font-semibold"
+                    >
+                      Type
+                      <ArrowUpDown className="h-3 w-3 ml-2" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[150px] hidden lg:table-cell">Countries</TableHead>
+                  <TableHead className="w-[140px] hidden md:table-cell">Match Confidence</TableHead>
                   <TableHead className="w-[120px]">
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      onClick={() => handleSort('trade_count')}
+                      onClick={() => handleSort('risk_score')}
                       className="h-auto p-0 font-semibold"
                     >
-                      Trade Activity
+                      Risk Level
                       <ArrowUpDown className="h-3 w-3 ml-2" />
                     </Button>
                   </TableHead>
-                  <TableHead className="w-[100px]">Risk Level</TableHead>
-                  <TableHead className="w-[120px]">
+                  <TableHead className="w-[100px] hidden lg:table-cell">
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -313,18 +488,19 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
                 {loading && entities.length === 0 ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-16" /></TableCell>
+                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-6 w-24" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-8" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredEntities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
+                    <TableCell colSpan={8} className="text-center py-8">
                       <div className="text-muted-foreground">
                         {searchQuery ? 'No entities match your search' : 'No entities found'}
                       </div>
@@ -332,40 +508,48 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
                   </TableRow>
                 ) : (
                   filteredEntities.map((entity) => {
+                    const matchConfidence = getMatchConfidence(entity);
                     const riskLevel = getRiskLevel(entity);
+                    const entityId = getEntityId(entity);
+                    const entityLabel = getEntityLabel(entity);
+                    const entityType = getEntityType(entity);
+                    const entityCountries = getEntityCountries(entity);
+                    const entityUpdated = getEntityUpdated(entity);
+                    const isSelected = selectedEntities.has(entityId);
                     
                     return (
-                      <TableRow key={entity.id} className="hover:bg-muted/50">
+                      <TableRow key={entityId} className="hover:bg-muted/50">
+                        {/* Checkbox */}
                         <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              {getEntityTypeIcon(entity.summary?.type || 'company')}
-                              <span className="font-medium">{entity.label}</span>
-                            </div>
-                            {entity.summary?.addresses?.length > 0 && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3" />
-                                <span className="truncate max-w-[250px]">
-                                  {entity.summary.addresses[0]}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleEntitySelection(entityId)}
+                            aria-label={`Select ${entityLabel}`}
+                          />
                         </TableCell>
                         
+                        {/* Name - Hyperlink to profile */}
                         <TableCell>
-                          <Badge variant="outline">
-                            <div className="flex items-center">
-                              {getEntityTypeIcon(entity.summary?.type || 'company')}
-                              <span className="ml-1">{(entity.summary?.type || 'unknown').toLowerCase()}</span>
-                            </div>
-                          </Badge>
+                          <Link 
+                            href={`/projects/${projectId}/entities/${entityId}?from=projects/${projectId}`}
+                            className="hover:underline"
+                          >
+                            <span className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                              {entityLabel}
+                            </span>
+                          </Link>
                         </TableCell>
                         
-                        <TableCell>
-                          {entity.summary?.countries && entity.summary.countries.length > 0 ? (
+                        {/* Type */}
+                        <TableCell className="hidden md:table-cell">
+                          <EntityTypeBadge type={entityType} />
+                        </TableCell>
+                        
+                        {/* Countries */}
+                        <TableCell className="hidden lg:table-cell">
+                          {entityCountries.length > 0 ? (
                             <CountryBadgeList 
-                              countryCodes={entity.summary.countries}
+                              countryCodes={entityCountries}
                               size="sm"
                             />
                           ) : (
@@ -373,61 +557,73 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
                           )}
                         </TableCell>
                         
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm">
-                            {entity.summary?.trade_count?.received > 0 && (
-                              <div className="flex items-center gap-1">
-                                <TrendingDown className="h-3 w-3 text-blue-500" />
-                                <span>{entity.summary.trade_count.received}</span>
-                              </div>
-                            )}
-                            {entity.summary?.trade_count?.sent > 0 && (
-                              <div className="flex items-center gap-1">
-                                <TrendingUp className="h-3 w-3 text-green-500" />
-                                <span>{entity.summary.trade_count.sent}</span>
-                              </div>
-                            )}
-                            {(!entity.summary?.trade_count?.received || entity.summary.trade_count.received === 0) && 
-                             (!entity.summary?.trade_count?.sent || entity.summary.trade_count.sent === 0) && (
-                              <span className="text-muted-foreground">No activity</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        
-                        <TableCell>
-                          <Badge className={riskLevel.color}>
-                            <Shield className="h-3 w-3 mr-1" />
-                            {riskLevel.level}
+                        {/* Match Confidence */}
+                        <TableCell className="hidden md:table-cell">
+                          <Badge variant="outline" className={matchConfidence.color}>
+                            {matchConfidence.label}
                           </Badge>
                         </TableCell>
                         
+                        {/* Risk Level */}
                         <TableCell>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(entity.updated)}
+                          <RiskScoreBadge 
+                            riskScore={{
+                              totalScore: riskLevel.count || 0,
+                              meetsThreshold: riskLevel.level === 'high',
+                              threshold: riskLevel.threshold || 0,
+                              triggeredRiskFactors: []
+                            }}
+                            size="sm"
+                            showThresholdExceeded={false}
+                          />
+                        </TableCell>
+                        
+                        {/* Updated */}
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(entityUpdated), { addSuffix: true })}
                           </div>
                         </TableCell>
                         
+                        {/* Actions */}
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                 <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/projects/${projectId}/entities/${entityId}?from=projects/${projectId}`}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Entity
+                                </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Download className="h-4 w-4 mr-2" />
+                              <DropdownMenuItem 
+                                onClick={() => copyToClipboard(`${window.location.origin}/projects/${projectId}/entities/${entityId}`, "Entity link")}
+                              >
+                                <Share2 className="h-4 w-4 mr-2" />
+                                Share Entity
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                // TODO: Implement export functionality
+                                toast.success("Entity export will begin shortly");
+                              }}>
+                                <FileDown className="h-4 w-4 mr-2" />
                                 Export Entity
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive">
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={() => {
+                                  setEntityToDelete(entityId);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Remove from Project
+                                Delete Entity
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -454,6 +650,52 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {entityToDelete?.includes(',') ? 'Delete Multiple Entities' : 'Delete Entity'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {entityToDelete?.includes(',') 
+                ? `Are you sure you want to remove ${entityToDelete.split(',').length} entities from this project? This action cannot be undone.`
+                : 'Are you sure you want to remove this entity from the project? This action cannot be undone.'
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDeleteDialogOpen(false);
+              setEntityToDelete(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (entityToDelete) {
+                  if (entityToDelete.includes(',')) {
+                    // Bulk delete
+                    const entityIds = entityToDelete.split(',');
+                    const promises = entityIds.map(id => handleDeleteEntity(id));
+                    await Promise.all(promises);
+                    setSelectedEntities(new Set());
+                  } else {
+                    // Single delete
+                    await handleDeleteEntity(entityToDelete);
+                  }
+                }
+                setDeleteDialogOpen(false);
+                setEntityToDelete(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {entityToDelete?.includes(',') ? 'Delete Entities' : 'Delete Entity'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

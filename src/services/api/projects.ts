@@ -4,6 +4,7 @@ import type {
   CreateProjectRequest,
   SayariResponse,
   SayariProjectEntity,
+  ProjectEntity,
 } from '@/types/api.types';
 
 export class ProjectService {
@@ -113,10 +114,10 @@ export class ProjectService {
       sort?: string;
       filters?: string[];
     }
-  ): Promise<SayariResponse<SayariProjectEntity[]>> {
+  ): Promise<SayariResponse<ProjectEntity[]>> {
     return withRateLimit(async () => {
       console.log('📡 Calling Sayari API for project entities:', projectId, params);
-      const response = await sayariClient.get(`/v1/projects/${projectId}/contents/entity`, {
+      const response = await sayariClient.get(`/v1/projects/${projectId}/entities`, {
         params,
       });
       console.log('✅ Sayari API Project Entities Response:', { 

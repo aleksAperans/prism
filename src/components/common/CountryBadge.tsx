@@ -64,7 +64,7 @@ export function CountryBadgeList({
   size = 'default',
   className,
   showName = true,
-  maxVisible = 5
+  maxVisible = 3
 }: CountryBadgeListProps) {
   if (!countryCodes || countryCodes.length === 0) {
     return null;

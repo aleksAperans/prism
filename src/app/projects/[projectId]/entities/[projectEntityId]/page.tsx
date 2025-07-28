@@ -17,7 +17,7 @@ import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import { RiskFactorsDisplay } from '@/components/screening/RiskFactorsDisplay';
 import { MatchedAttributesDisplay } from '@/components/screening/MatchedAttributesDisplay';
 import { MatchRiskDisplay } from '@/components/screening/MatchRiskDisplay';
-import { RiskScoreBadge } from '@/components/screening/RiskScoreBadge';
+import { RiskScoreBadge } from '@/components/common/RiskScoreBadge';
 import riskFactorsData from '@/lib/risk-factors-data.json';
 import { calculateEntityRiskScore, loadDefaultRiskProfile, filterRiskFactorsByProfile } from '@/lib/risk-scoring';
 import { ProjectEntityMatches } from '@/components/projects/ProjectEntityMatches';
@@ -181,7 +181,6 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
                   <CountryBadgeList 
                     countryCodes={entity.countries}
                     size="sm"
-                    maxVisible={5}
                   />
                 )}
               </CardContent>
@@ -316,7 +315,6 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
                       <CountryBadgeList 
                         countryCodes={entity.upstream.countries}
                         size="sm"
-                        maxVisible={10}
                       />
                     </div>
                   )}

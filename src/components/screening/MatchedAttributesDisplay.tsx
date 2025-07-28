@@ -52,11 +52,9 @@ export function MatchedAttributesDisplay({ matchedAttributes }: MatchedAttribute
       {/* Names */}
       {hasNames && (
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Names</span>
-            </div>
+          <div className="flex items-center gap-2 mb-3">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Names</span>
             <Badge variant="outline" className="text-xs">{matchedAttributes.name!.length}</Badge>
           </div>
           <div className="space-y-2 pl-6">
@@ -72,11 +70,9 @@ export function MatchedAttributesDisplay({ matchedAttributes }: MatchedAttribute
       {/* Addresses */}
       {hasAddresses && (
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Home className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Addresses</span>
-            </div>
+          <div className="flex items-center gap-2 mb-3">
+            <Home className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Addresses</span>
             <Badge variant="outline" className="text-xs">{matchedAttributes.address!.length}</Badge>
           </div>
           <div className="space-y-2 pl-6">
@@ -92,11 +88,9 @@ export function MatchedAttributesDisplay({ matchedAttributes }: MatchedAttribute
       {/* Countries */}
       {hasCountries && (
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Countries</span>
-            </div>
+          <div className="flex items-center gap-2 mb-3">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Countries</span>
             <Badge variant="outline" className="text-xs">{matchedAttributes.country!.length}</Badge>
           </div>
           <div className="space-y-2 pl-6">
@@ -112,11 +106,9 @@ export function MatchedAttributesDisplay({ matchedAttributes }: MatchedAttribute
       {/* Identifiers */}
       {hasIdentifiers && (
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Hash className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Identifiers</span>
-            </div>
+          <div className="flex items-center gap-2 mb-3">
+            <Hash className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Identifiers</span>
             <Badge variant="outline" className="text-xs">{matchedAttributes.identifier!.length}</Badge>
           </div>
           <div className="space-y-2 pl-6">

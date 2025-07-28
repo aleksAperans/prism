@@ -14,7 +14,7 @@ import { MatchedAttributesDisplay } from './MatchedAttributesDisplay';
 import { MatchRiskDisplay } from './MatchRiskDisplay';
 import { RiskLevelBadges } from '@/components/common/RiskLevelBadge';
 import { CountryBadgeList } from '@/components/common/CountryBadge';
-import { RiskScoreBadge } from '@/components/screening/RiskScoreBadge';
+import { RiskScoreBadge } from '@/components/common/RiskScoreBadge';
 import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import riskFactorsData from '@/lib/risk-factors-data.json';
 // Import only client-safe functions and types
@@ -426,14 +426,16 @@ export function ScreeningResults({
         <Alert>
           <CheckCircle className="h-4 w-4 flex-shrink-0" />
           <AlertDescription>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 flex-wrap">
-              <span>This entity already exists in the project</span>
-              {localResults[0]?.full_result?.project_entity_id && (
-                <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono break-all">
+            <div className="flex items-center gap-1">
+              <span>This entity already exists in the project:</span>
+              {localResults[0]?.full_result?.project_entity_id && localResults[0]?.full_result?.project_id && (
+                <Link 
+                  href={`/projects/${localResults[0].full_result.project_id}/entities/${localResults[0].full_result.project_entity_id}`}
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                >
                   {localResults[0].full_result.project_entity_id}
-                </code>
+                </Link>
               )}
-              <span>-- showing existing result.</span>
             </div>
           </AlertDescription>
         </Alert>
@@ -504,7 +506,6 @@ export function ScreeningResults({
                       <CountryBadgeList 
                         countryCodes={result.full_result.countries}
                         size="sm"
-                        maxVisible={5}
                       />
                     </div>
                   )}
@@ -748,7 +749,6 @@ export function ScreeningResults({
                                         <CountryBadgeList 
                                           countryCodes={match.countries}
                                           size="sm"
-                                          maxVisible={4}
                                           className="opacity-75"
                                         />
                                       </div>

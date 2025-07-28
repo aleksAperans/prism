@@ -239,25 +239,52 @@ function generateBreadcrumbSegmentsWithData(
     icon: Home,
   });
 
-  // If we're on an entity profile page and have a referrer, use that instead of the default project path
+  // If we're on an entity profile page, build appropriate breadcrumb chain
   const isEntityProfilePage = pathname.match(/^\/projects\/[^\/]+\/entities\/[^\/]+$/);
-  if (isEntityProfilePage && data.referrer && data.referrerLabel) {
-    // Add the referrer as the intermediate breadcrumb
-    segments.push({
-      label: data.referrerLabel,
-      href: data.referrer,
-      icon: data.referrer === '/screening' ? Search : Folder,
-    });
+  if (isEntityProfilePage) {
+    const pathParts = pathname.split('/').filter(Boolean);
+    const projectId = pathParts[1];
+    const entityId = pathParts[3];
     
-    // Add the current page with project entity ID
-    const projectEntityId = pathname.split('/').pop();
-    segments.push({
-      label: `Project Entity [${projectEntityId}]`,
-      icon: Book,
-      isCurrentPage: true,
-    });
-    
-    return segments;
+    // Check if we came from projects (not screening)
+    if (data.referrer && data.referrer.startsWith('/projects/')) {
+      // Show: Home > Projects > [Project Name] > [Entity Name]
+      segments.push({
+        label: 'Projects',
+        href: '/projects',
+        icon: Folder,
+      });
+      
+      const projectLabel = data.projectName || `Project ${projectId}`;
+      segments.push({
+        label: projectLabel,
+        href: `/projects/${projectId}/entities`,
+        icon: Folder,
+      });
+      
+      segments.push({
+        label: `Entity [${entityId}]`,
+        icon: Book,
+        isCurrentPage: true,
+      });
+      
+      return segments;
+    } else if (data.referrer === '/screening') {
+      // Show: Home > Screen Entities > Project Entity [ID] (original behavior)
+      segments.push({
+        label: 'Screen Entities',
+        href: '/screening',
+        icon: Search,
+      });
+      
+      segments.push({
+        label: `Project Entity [${entityId}]`,
+        icon: Book,
+        isCurrentPage: true,
+      });
+      
+      return segments;
+    }
   }
 
   // Parse the pathname
