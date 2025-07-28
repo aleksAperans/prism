@@ -45,6 +45,7 @@ model Project {
   creator         User              @relation("ProjectCreator", fields: [created_by], references: [id])
   members         ProjectMember[]
   screening_results ScreeningResult[]
+  entities        ProjectEntity[]
 
   @@map("projects")
 }
