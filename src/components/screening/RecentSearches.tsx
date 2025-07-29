@@ -198,7 +198,12 @@ export function RecentSearches({ onSelectSearch, className = '' }: RecentSearche
                       </span>
                     </Badge>
                   )}
-                  {search.riskScore && search.riskScore.threshold !== undefined && search.riskScore.threshold > 0 && (
+                  {search.riskScore && 
+                   search.riskScore.threshold !== undefined && 
+                   search.riskScore.threshold > 0 && 
+                   search.matchStrength !== 'no_match' && 
+                   search.matchStrength !== 'No_match' &&
+                   (search.matchStrength === 'strong' || search.matchStrength === 'partial') && (
                     <RiskScoreBadge 
                       riskScore={{
                         totalScore: search.riskScore.totalScore,

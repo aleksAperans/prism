@@ -1,5 +1,6 @@
 name: Core Risk Profile
 description: Comprehensive risk profile with risk scoring enabled
+version: '1.0'
 created_at: '2025-07-25T20:15:00.000Z'
 created_by: system
 is_default: true

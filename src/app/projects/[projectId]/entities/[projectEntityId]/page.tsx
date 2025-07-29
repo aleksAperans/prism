@@ -34,8 +34,21 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
     notFound();
   }
 
-  // Load the default risk profile for filtering and scoring
-  const riskProfile = await loadDefaultRiskProfile();
+  // Load the active global risk profile for filtering and scoring
+  let riskProfile = null;
+  try {
+    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/settings/active-risk-profile`, {
+      cache: 'no-store' // Always get fresh data
+    });
+    if (response.ok) {
+      const data = await response.json();
+      riskProfile = data.profile;
+    }
+  } catch (error) {
+    console.error('Failed to load active risk profile, falling back to default:', error);
+    // Fallback to default profile
+    riskProfile = await loadDefaultRiskProfile();
+  }
 
   // Helper function to calculate level counts for risk factors
   const calculateLevelCounts = (riskFactors: unknown) => {
@@ -216,8 +229,11 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
                     <Badge variant="outline" className="ml-2">
                       {filteredRiskFactors.length}
                     </Badge>
-                    {/* Risk Score Badge */}
-                    {riskScore && riskScore.threshold > 0 && (
+                    {/* Risk Score Badge - Only show for actual matches */}
+                    {riskScore && 
+                     riskScore.threshold > 0 && 
+                     entity.strength !== 'no_match' &&
+                     (entity.strength === 'strong' || entity.strength === 'partial') && (
                       <RiskScoreBadge 
                         riskScore={riskScore}
                         size="sm"
@@ -272,7 +288,6 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
             projectId={projectId}
             projectEntityId={projectEntityId}
             riskScores={riskProfile?.riskScores}
-            riskProfile={riskProfile}
             screeningAttributes={entity.attributes}
           />
         </TabsContent>

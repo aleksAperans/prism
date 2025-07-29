@@ -14,11 +14,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Save, Eye, Shield, CheckSquare, Download, Trash2, ShieldHalf, FileCode, Star, ArrowBigDownDash } from 'lucide-react';
+import { Search, Save, Shield, CheckSquare, ShieldHalf, Eye } from 'lucide-react';
 import riskFactorsData from '@/lib/risk-factors-data.json';
 import { RiskLevelBadge } from '@/components/common/RiskLevelBadge';
 import { TypeBadge } from '@/components/common/TypeBadge';
 import { clientLoadYamlProfiles, clientSaveYamlProfile, type RiskProfile } from '@/lib/risk-profiles/yaml-loader';
+import { useGlobalRiskProfile } from '@/contexts/RiskProfileContext';
 
 interface RiskFactor {
   id: string;
@@ -31,6 +32,8 @@ interface RiskFactor {
 }
 
 export function RiskConfiguration() {
+  const { activeProfile } = useGlobalRiskProfile();
+  
   // Transform the JSON data into our format
   const initialRiskFactors: RiskFactor[] = useMemo(() => {
     return Object.entries(riskFactorsData).map(([id, data]) => ({
@@ -154,19 +157,25 @@ export function RiskConfiguration() {
     setRiskScores(profile.riskScores || {});
   };
 
-  // Load YAML profiles on component mount
+  // Load YAML profiles on component mount and sync with active profile
   useEffect(() => {
     const loadProfiles = async () => {
       try {
         const yamlProfiles = await clientLoadYamlProfiles();
         setProfiles(yamlProfiles);
         
-        // Auto-load the default profile on initial load
-        const defaultProfile = yamlProfiles.find(profile => profile.isDefault);
-        if (defaultProfile) {
-          handleLoadProfile(defaultProfile);
+        // Auto-load the active global profile if available
+        if (activeProfile) {
+          handleLoadProfile(activeProfile);
           // Set enabled filter to show only enabled factors
           setEnabledFilter('enabled');
+        } else {
+          // Fallback to default profile if no active profile set
+          const defaultProfile = yamlProfiles.find(profile => profile.isDefault);
+          if (defaultProfile) {
+            handleLoadProfile(defaultProfile);
+            setEnabledFilter('enabled');
+          }
         }
       } catch (error) {
         console.error('Failed to load YAML profiles:', error);
@@ -175,75 +184,8 @@ export function RiskConfiguration() {
       }
     };
     loadProfiles();
-  }, []);
+  }, [activeProfile]);
 
-  const handleDeleteProfile = async (profileId: string) => {
-    try {
-      const response = await fetch(`/api/risk-profiles?id=${profileId}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete profile');
-      }
-      
-      // Reload profiles
-      const updatedProfiles = await clientLoadYamlProfiles();
-      setProfiles(updatedProfiles);
-    } catch (error) {
-      console.error('Failed to delete profile:', error);
-    }
-  };
-
-  const handleDownloadProfile = async (profileId: string) => {
-    try {
-      const response = await fetch(`/api/risk-profiles/download?id=${profileId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to download profile');
-      }
-      
-      const yamlContent = await response.text();
-      const blob = new Blob([yamlContent], { type: 'text/yaml' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${profileId}.yaml`;
-      document.body.appendChild(link);
-      link.click();
-      
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download profile:', error);
-    }
-  };
-
-  const handleSetDefaultProfile = async (profileId: string) => {
-    try {
-      const response = await fetch(`/api/risk-profiles/set-default`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ profileId }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to set default profile');
-      }
-      
-      // Reload profiles to reflect the change
-      const updatedProfiles = await clientLoadYamlProfiles();
-      setProfiles(updatedProfiles);
-      
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (error) {
-      console.error('Failed to set default profile:', error);
-    }
-  };
 
   const handleSelectFactor = (factorId: string, selected: boolean) => {
     const newSelection = new Set(selectedFactors);
@@ -425,84 +367,6 @@ export function RiskConfiguration() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Profiles Section */}
-          <div className="border rounded-lg p-4 bg-muted/20">
-            <h4 className="font-medium mb-3 flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              Available Profiles ({profiles.length})
-            </h4>
-            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-              {profiles.map(profile => (
-                <div key={profile.id} className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="flex items-center gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          {profile.createdBy}
-                        </Badge>
-                        {profile.isDefault && <Badge variant="secondary" className="text-xs">default</Badge>}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleLoadProfile(profile)}
-                        className="flex items-center gap-1 h-auto p-1 justify-start hover:bg-transparent"
-                      >
-                        <span className="font-medium truncate">{profile.name}</span>
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate mb-1">
-                      {profile.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {profile.enabledFactors.length} factors enabled
-                      {profile.riskScoringEnabled && ` • Risk scoring (threshold: ${profile.riskThreshold || 5})`}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 ml-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleLoadProfile(profile)}
-                      className="h-8 w-8 p-0"
-                      title="Load profile"
-                    >
-                      <ArrowBigDownDash className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDownloadProfile(profile.id)}
-                      className="h-8 w-8 p-0"
-                      title="Download YAML"
-                    >
-                      <FileCode className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSetDefaultProfile(profile.id)}
-                      className={`h-8 w-8 p-0 ${profile.isDefault ? 'text-yellow-500' : 'hover:text-yellow-500'}`}
-                      title="Set as default profile"
-                    >
-                      <Star className={`h-3 w-3 ${profile.isDefault ? 'fill-current' : ''}`} />
-                    </Button>
-                    {profile.createdBy !== 'system' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteProfile(profile.id)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        title="Delete profile"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Risk Scoring Toggle */}
           <div className="p-4 border rounded-lg bg-muted/20 space-y-4">

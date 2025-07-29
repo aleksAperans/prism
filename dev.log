@@ -1,0 +1,1940 @@
+
+> prism@0.1.0 dev
+> next dev --turbopack
+
+ ⚠ Warning: Found multiple lockfiles. Selecting /Users/aleksaperans/package-lock.json.
+   Consider removing the lockfiles at:
+   * /Users/aleksaperans/Developer/prism/package-lock.json
+
+   ▲ Next.js 15.4.2 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.170:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Compiled middleware in 81ms
+ ✓ Ready in 891ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1595ms
+ GET / 200 in 1909ms
+ ✓ Compiled /api/settings/active-risk-profile in 294ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/settings/active-risk-profile 200 in 374ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ GET /api/auth/session 200 in 678ms
+ GET /api/auth/session 200 in 28ms
+ GET /api/auth/session 200 in 26ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ ○ Compiling /screening ...
+ ✓ Compiled /screening in 657ms
+ GET /screening 200 in 689ms
+ GET /screening 200 in 40ms
+ ✓ Compiled /api/projects in 260ms
+ GET /api/projects?limit=50&archived=false 200 in 824ms
+ GET /api/projects?limit=50&archived=false 200 in 118ms
+ ✓ Compiled /projects in 255ms
+ GET /projects 200 in 289ms
+ GET /api/projects?limit=50&archived=false 200 in 142ms
+ GET /api/projects?limit=20&archived=false 200 in 306ms
+ GET /api/projects?limit=20&archived=false 200 in 106ms
+ GET /api/projects?limit=50&archived=false 200 in 549ms
+ GET /api/projects?limit=50&archived=true 200 in 1650ms
+ ✓ Compiled /projects/[projectId]/entities in 443ms
+ GET /api/projects?limit=50&archived=true 200 in 260ms
+ GET /projects/0Q5k70/entities 200 in 708ms
+ GET /api/projects?limit=50&archived=false 200 in 119ms
+ ✓ Compiled /api/projects/[projectId]/entities in 145ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+🔍 Starting entities API call
+🔍 Session status: authenticated
+🔍 Query parameters: { limit: '100' }
+🔍 Project ID: 0Q5k70
+🔍 Validated params: { limit: 100 }
+🔍 About to call Sayari API...
+🔍 Making direct API call to: /v1/projects/0Q5k70/entities
+🔍 With params: { limit: 100 }
+🔍 Using basic params only: { limit: 100 }
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+✅ Real API call successful!
+🔍 API Response Structure: {
+  status: 200,
+  hasData: true,
+  dataKeys: [ 'limit', 'data', 'size' ],
+  dataType: 'array',
+  dataLength: 30,
+  firstEntity: {
+    keys: [
+      'project_entity_id',
+      'project_id',
+      'label',
+      'upload_ids',
+      'strength',
+      'created_at',
+      'attributes',
+      'countries',
+      'risk_factors',
+      'upstream',
+      'tags',
+      'case',
+      'matches'
+    ],
+    hasProjectEntityId: true,
+    hasStrength: true,
+    strengthValue: 'partial',
+    hasRiskFactors: true,
+    riskFactorsValue: [
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object]
+    ],
+    hasCreatedAt: true,
+    createdAtValue: '2025-07-29 18:05:22.251402+00',
+    sample: {
+      project_entity_id: '8nojZw',
+      project_id: '0Q5k70',
+      label: 'CAMEL GROUP',
+      upload_ids: [],
+      strength: 'partial',
+      created_at: '2025-07-29 18:05:22.251402+00',
+      attributes: [Object],
+      countries: [Array],
+      risk_factors: [Array],
+      upstream: [Object],
+      tags: [],
+      case: [Object],
+      matches: [Array]
+    }
+  }
+}
+ GET /api/projects/0Q5k70/entities?limit=100 200 in 751ms
+🔍 Starting entities API call
+🔍 Session status: authenticated
+🔍 Query parameters: { limit: '100' }
+🔍 Project ID: 0Q5k70
+🔍 Validated params: { limit: 100 }
+🔍 About to call Sayari API...
+🔍 Making direct API call to: /v1/projects/0Q5k70/entities
+🔍 With params: { limit: 100 }
+🔍 Using basic params only: { limit: 100 }
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+✅ Real API call successful!
+🔍 API Response Structure: {
+  status: 200,
+  hasData: true,
+  dataKeys: [ 'limit', 'data', 'size' ],
+  dataType: 'array',
+  dataLength: 30,
+  firstEntity: {
+    keys: [
+      'project_entity_id',
+      'project_id',
+      'label',
+      'upload_ids',
+      'strength',
+      'created_at',
+      'attributes',
+      'countries',
+      'risk_factors',
+      'upstream',
+      'tags',
+      'case',
+      'matches'
+    ],
+    hasProjectEntityId: true,
+    hasStrength: true,
+    strengthValue: 'partial',
+    hasRiskFactors: true,
+    riskFactorsValue: [
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object]
+    ],
+    hasCreatedAt: true,
+    createdAtValue: '2025-07-29 18:05:22.251402+00',
+    sample: {
+      project_entity_id: '8nojZw',
+      project_id: '0Q5k70',
+      label: 'CAMEL GROUP',
+      upload_ids: [],
+      strength: 'partial',
+      created_at: '2025-07-29 18:05:22.251402+00',
+      attributes: [Object],
+      countries: [Array],
+      risk_factors: [Array],
+      upstream: [Object],
+      tags: [],
+      case: [Object],
+      matches: [Array]
+    }
+  }
+}
+ GET /api/projects/0Q5k70/entities?limit=100 200 in 339ms
+ GET /api/projects?limit=50&archived=false 200 in 1736ms
+ GET /screening 200 in 57ms
+ GET /api/projects?limit=50&archived=false 200 in 166ms
+ GET /api/projects?limit=50&archived=false 200 in 102ms
+ GET /projects 200 in 49ms
+ GET /api/projects?limit=20&archived=false 200 in 116ms
+ GET /api/projects?limit=50&archived=true 200 in 155ms
+ GET /api/projects?limit=50&archived=false 200 in 177ms
+ GET /api/projects?limit=20&archived=false 200 in 85ms
+ GET /api/projects?limit=50&archived=true 200 in 85ms
+ GET /api/projects?limit=50&archived=false 200 in 103ms
+ GET /projects/0Q5k70/entities 200 in 52ms
+🔍 Starting entities API call
+🔍 Session status: authenticated
+🔍 Query parameters: { limit: '100' }
+🔍 Project ID: 0Q5k70
+🔍 Validated params: { limit: 100 }
+🔍 About to call Sayari API...
+🔍 Making direct API call to: /v1/projects/0Q5k70/entities
+🔍 With params: { limit: 100 }
+🔍 Using basic params only: { limit: 100 }
+ GET /api/projects?limit=50&archived=false 200 in 99ms
+ GET /api/projects?limit=50&archived=false 200 in 96ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+✅ Real API call successful!
+🔍 API Response Structure: {
+  status: 200,
+  hasData: true,
+  dataKeys: [ 'limit', 'data', 'size' ],
+  dataType: 'array',
+  dataLength: 30,
+  firstEntity: {
+    keys: [
+      'project_entity_id',
+      'project_id',
+      'label',
+      'upload_ids',
+      'strength',
+      'created_at',
+      'attributes',
+      'countries',
+      'risk_factors',
+      'upstream',
+      'tags',
+      'case',
+      'matches'
+    ],
+    hasProjectEntityId: true,
+    hasStrength: true,
+    strengthValue: 'partial',
+    hasRiskFactors: true,
+    riskFactorsValue: [
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object]
+    ],
+    hasCreatedAt: true,
+    createdAtValue: '2025-07-29 18:05:22.251402+00',
+    sample: {
+      project_entity_id: '8nojZw',
+      project_id: '0Q5k70',
+      label: 'CAMEL GROUP',
+      upload_ids: [],
+      strength: 'partial',
+      created_at: '2025-07-29 18:05:22.251402+00',
+      attributes: [Object],
+      countries: [Array],
+      risk_factors: [Array],
+      upstream: [Object],
+      tags: [],
+      case: [Object],
+      matches: [Array]
+    }
+  }
+}
+ GET /api/projects/0Q5k70/entities?limit=100 200 in 371ms
+🔍 Starting entities API call
+🔍 Session status: authenticated
+🔍 Query parameters: { limit: '100' }
+🔍 Project ID: 0Q5k70
+🔍 Validated params: { limit: 100 }
+🔍 About to call Sayari API...
+🔍 Making direct API call to: /v1/projects/0Q5k70/entities
+🔍 With params: { limit: 100 }
+🔍 Using basic params only: { limit: 100 }
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+✅ Real API call successful!
+🔍 API Response Structure: {
+  status: 200,
+  hasData: true,
+  dataKeys: [ 'limit', 'data', 'size' ],
+  dataType: 'array',
+  dataLength: 30,
+  firstEntity: {
+    keys: [
+      'project_entity_id',
+      'project_id',
+      'label',
+      'upload_ids',
+      'strength',
+      'created_at',
+      'attributes',
+      'countries',
+      'risk_factors',
+      'upstream',
+      'tags',
+      'case',
+      'matches'
+    ],
+    hasProjectEntityId: true,
+    hasStrength: true,
+    strengthValue: 'partial',
+    hasRiskFactors: true,
+    riskFactorsValue: [
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object]
+    ],
+    hasCreatedAt: true,
+    createdAtValue: '2025-07-29 18:05:22.251402+00',
+    sample: {
+      project_entity_id: '8nojZw',
+      project_id: '0Q5k70',
+      label: 'CAMEL GROUP',
+      upload_ids: [],
+      strength: 'partial',
+      created_at: '2025-07-29 18:05:22.251402+00',
+      attributes: [Object],
+      countries: [Array],
+      risk_factors: [Array],
+      upstream: [Object],
+      tags: [],
+      case: [Object],
+      matches: [Array]
+    }
+  }
+}
+ GET /api/projects/0Q5k70/entities?limit=100 200 in 1353ms
+ GET /api/projects?limit=50&archived=false 200 in 207ms
+ GET /api/projects?limit=50&archived=false 200 in 102ms
+ ✓ Compiled /api/projects/[projectId]/entities/batch in 112ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to save batch job to database: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.create()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1151:157
+
+  1148 this.results.set(jobId, []);
+  1149 // Save initial job record to database
+  1150 try {
+→ 1151     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.create(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:51:28)
+    at async BatchProcessor.processBatch (src/services/batch/batchProcessor.ts:51:6)
+    at async POST (src/app/api/projects/[projectId]/entities/batch/route.ts:72:19)
+  49 |     // Save initial job record to database
+  50 |     try {
+> 51 |       await prisma.batchJob.create({
+     |                            ^
+  52 |         data: {
+  53 |           id: jobId,
+  54 |           user_id: userId || 'unknown', {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+ POST /api/projects/0Q5k70/entities/batch 200 in 680ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 1/20 (5%)
+ ✓ Compiled /api/risk-profiles/[id] in 106ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 379ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 19ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 2/20 (10%)
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 64ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 3/20 (15%)
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 53ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 4/20 (20%)
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 5/20 (25%)
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 30ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 6/20 (30%)
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 50ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 7/20 (35%)
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 8/20 (40%)
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 49ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 9/20 (45%)
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 29ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 10/20 (50%)
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 53ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 11/20 (55%)
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 54ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 12/20 (60%)
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 13/20 (65%)
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 49ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 49ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 14/20 (70%)
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 55ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 15/20 (75%)
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 16/20 (80%)
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 40ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 17/20 (85%)
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 47ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 18/20 (90%)
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 54ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 53ms
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 19/20 (95%)
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update batch job progress: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1210:169
+
+  1207 // Update database progress
+  1208 const progressPercent = Math.round(jobStatus.processedEntities / jobStatus.totalEntities * 100);
+  1209 try {
+→ 1210     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:128:34)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:128:12)
+  126 |           const progressPercent = Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100);
+  127 |           try {
+> 128 |             await prisma.batchJob.update({
+      |                                  ^
+  129 |               where: { id: jobId },
+  130 |               data: {
+  131 |                 progress: progressPercent, {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+✅ Processed entity 20/20 (100%)
+ GET /api/projects/1753814724389/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 79ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+⚠️ Failed to update completed batch job: Error [PrismaClientInitializationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update()` invocation in
+/Users/aleksaperans/Developer/prism/.next/server/chunks/[root-of-the-server]__65650d70._.js:1234:161
+
+  1231 // Update database with completion
+  1232 try {
+  1233     const currentResults = this.results.get(jobId) || [];
+→ 1234     await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].batchJob.update(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/services/batch/batchProcessor.ts:154:30)
+    at async BatchProcessor.processEntitiesAsync (src/services/batch/batchProcessor.ts:154:8)
+  152 |       try {
+  153 |         const currentResults = this.results.get(jobId) || [];
+> 154 |         await prisma.batchJob.update({
+      |                              ^
+  155 |           where: { id: jobId },
+  156 |           data: {
+  157 |             status: 'completed', {
+  clientVersion: '6.12.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 59ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 22ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 21ms
+🔍 Starting entities API call
+🔍 Session status: authenticated
+🔍 Query parameters: { limit: '100' }
+🔍 Project ID: 0Q5k70
+🔍 Validated params: { limit: 100 }
+🔍 About to call Sayari API...
+🔍 Making direct API call to: /v1/projects/0Q5k70/entities
+🔍 With params: { limit: 100 }
+🔍 Using basic params only: { limit: 100 }
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+✅ Real API call successful!
+🔍 API Response Structure: {
+  status: 200,
+  hasData: true,
+  dataKeys: [ 'limit', 'data', 'size' ],
+  dataType: 'array',
+  dataLength: 30,
+  firstEntity: {
+    keys: [
+      'project_entity_id',
+      'project_id',
+      'label',
+      'upload_ids',
+      'strength',
+      'created_at',
+      'attributes',
+      'countries',
+      'risk_factors',
+      'upstream',
+      'tags',
+      'case',
+      'matches'
+    ],
+    hasProjectEntityId: true,
+    hasStrength: true,
+    strengthValue: 'partial',
+    hasRiskFactors: true,
+    riskFactorsValue: [
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object], [Object],
+      [Object]
+    ],
+    hasCreatedAt: true,
+    createdAtValue: '2025-07-29 18:05:22.251402+00',
+    sample: {
+      project_entity_id: '8nojZw',
+      project_id: '0Q5k70',
+      label: 'CAMEL GROUP',
+      upload_ids: [],
+      strength: 'partial',
+      created_at: '2025-07-29 18:05:22.251402+00',
+      attributes: [Object],
+      countries: [Array],
+      risk_factors: [Array],
+      upstream: [Object],
+      tags: [],
+      case: [Object],
+      matches: [Array]
+    }
+  }
+}
+ GET /api/projects/0Q5k70/entities?limit=100 200 in 332ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 27ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 18ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 24ms
+ GET /api/projects?limit=50&archived=false 200 in 101ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/risk-profiles/core 200 in 41ms
+ GET /api/projects?limit=50&archived=false 200 in 90ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ GET /api/projects/0Q5k70/entities/batch?jobId=batch_1753814724389_d9qs5k022 200 in 43ms
+🔍 Auth Debug: {
+  hasNextAuthSecret: true,
+  nextAuthUrl: 'http://localhost:3000',
+  hasNextAuthUrl: true,
+  nodeEnv: 'development',
+  vercelUrl: undefined
+}
+ ✓ Compiled /projects/[projectId]/entities/[projectEntityId] in 408ms
+✅ Loaded risk profile: Core Risk Profile
+ GET /api/settings/active-risk-profile 200 in 37ms
+ GET /projects/0Q5k70/entities/8nojZw?from=projects%2F0Q5k70 200 in 1731ms
+ GET /projects 200 in 60ms
+ GET /api/projects?limit=50&archived=true 200 in 145ms
+ GET /api/projects?limit=20&archived=false 200 in 156ms
+ GET /api/projects?limit=50&archived=false 200 in 182ms
+ GET /api/projects?limit=20&archived=false 200 in 90ms
+ GET /api/projects?limit=50&archived=true 200 in 101ms
+ GET /api/projects?limit=50&archived=false 200 in 94ms
+ ✓ Compiled in 143ms
+ ✓ Compiled in 99ms
+ GET /projects 200 in 50ms
+ ✓ Compiled in 65ms
+ ✓ Compiled in 108ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 622ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.bfoaq39vdan'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.bfoaq39vdan'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.7e9nlud5uda'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.7e9nlud5uda'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.8rwug96br6e'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.8rwug96br6e'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.rzhg525e7rl'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.rzhg525e7rl'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.1sr4ei2sw2q'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.1sr4ei2sw2q'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.seoxpje9k18'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.seoxpje9k18'
+}
+ ✓ Compiled /favicon.ico in 92ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.cm4sqk1pci'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/static/development/_buildManifest.js.tmp.cm4sqk1pci'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 151ms
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /favicon.ico 500 in 252ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 97ms
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /favicon.ico 500 in 249ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 80ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 57ms
+ GET /favicon.ico 200 in 133ms
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 57ms
+ GET /favicon.ico 200 in 105ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /screening 500 in 72ms
+ GET /favicon.ico 200 in 115ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /screening 500 in 89ms
+ GET /favicon.ico 200 in 71ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 60ms
+ GET /favicon.ico 200 in 90ms
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /screening 500 in 75ms
+ GET /favicon.ico 200 in 119ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /screening 500 in 84ms
+ GET /favicon.ico 200 in 106ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /screening 500 in 88ms
+ GET /favicon.ico 200 in 69ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 69ms
+ GET /favicon.ico 200 in 74ms
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ Error: Cannot find module '../chunks/ssr/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/pages/_document.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/pages/_document.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /screening 500 in 58ms
+ GET /favicon.ico 200 in 79ms
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ ⨯ Error: Cannot find module '../../chunks/[turbopack]_runtime.js'
+Require stack:
+- /Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/route.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/require.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/load-components.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/utils.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/options.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/swc/index.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/config.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/next.js
+- /Users/aleksaperans/Developer/prism/node_modules/next/dist/server/lib/start-server.js
+    at Object.<anonymous> (.next/server/app/favicon.ico/route.js:2:17) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /favicon.ico 500 in 239ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/screening/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/aleksaperans/Developer/prism/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'
+}

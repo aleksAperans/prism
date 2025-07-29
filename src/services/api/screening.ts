@@ -23,31 +23,22 @@ export class ScreeningService {
         profile,
       };
 
-      console.log('🚀 Sending screening request:', JSON.stringify(request, null, 2));
-      console.log('📝 Request includes identifier:', !!request.identifier);
+      // Send screening request
 
       const response = await sayariClient.post<{ data: ProjectEntity }>(
         `/v1/projects/${projectId}/entities/create`,
         request
       );
 
-      console.log('✅ Screening API Response received successfully');
-      console.log('📊 Response matches count:', response.data?.data?.matches?.length || 0);
+      // Response received successfully
 
       // The response data contains a nested data property with the project entity
       const entity = response.data.data;
       
-      console.log('📋 Project Entity ID:', entity?.project_entity_id);
-      console.log('📋 Matches found:', entity?.matches?.length || 0);
+      // Entity created successfully
       
       if (!entity || !entity.project_entity_id) {
-        console.error('❌ Invalid entity response structure:', {
-          hasResponseData: !!response.data,
-          hasNestedData: !!response.data.data,
-          hasProjectEntityId: !!entity?.project_entity_id,
-          responseKeys: Object.keys(response.data || {}),
-          entityKeys: entity ? Object.keys(entity) : 'no entity',
-        });
+        console.error('Invalid entity response structure');
         throw new Error('No valid entity returned from screening request');
       }
 
@@ -116,13 +107,7 @@ export class ScreeningService {
       const entity = 'data' in response.data ? response.data.data : response.data;
       
       if (!entity || !entity.project_entity_id) {
-        console.error('❌ Invalid entity response structure from GET:', {
-          hasResponseData: !!response.data,
-          hasNestedData: 'data' in response.data,
-          hasProjectEntityId: !!entity?.project_entity_id,
-          responseKeys: Object.keys(response.data || {}),
-          entityKeys: entity ? Object.keys(entity) : 'no entity',
-        });
+        console.error('Invalid entity response structure from GET');
         throw new Error('No valid entity returned from get project entity request');
       }
 

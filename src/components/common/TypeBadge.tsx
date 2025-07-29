@@ -32,8 +32,8 @@ export function TypeBadge({
 
   const getTypeColor = (type: RiskType) => {
     switch (type) {
-      case 'psa': return 'bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20';
-      case 'seed': return 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20';
+      case 'psa': return 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20';
+      case 'seed': return 'bg-green-500/10 text-green-600 border-green-500/20 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20';
       case 'network': return 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20';
       default: return 'bg-muted text-muted-foreground border-muted';
     }

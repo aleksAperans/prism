@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import type { SayariProject } from '@/types/api.types';
 
@@ -32,7 +32,7 @@ export function CreateProjectModal({
 }: CreateProjectModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [label, setLabel] = useState('');
-  const [shareLevel, setShareLevel] = useState<ShareLevel>('none');
+  const [shareLevel, setShareLevel] = useState<ShareLevel>('admin');
   const [error, setError] = useState<string | null>(null);
   const [createdProject, setCreatedProject] = useState<SayariProject | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -85,7 +85,7 @@ export function CreateProjectModal({
   const handleClose = () => {
     if (!isLoading && !isRefreshing) {
       setLabel('');
-      setShareLevel('none');
+      setShareLevel('admin');
       setError(null);
       setCreatedProject(null);
       setIsRefreshing(false);
@@ -217,72 +217,19 @@ export function CreateProjectModal({
               )}
             </div>
 
-            <div className="space-y-3">
-              <Label>Organization Sharing</Label>
-              <p className="text-sm text-muted-foreground">
-                Choose how members of your organization can access this project.
-              </p>
-              <RadioGroup 
-                value={shareLevel} 
-                onValueChange={(value) => setShareLevel(value as ShareLevel)}
-                disabled={isLoading}
-              >
-                <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="none" id="share-none" />
-                      <Label htmlFor="share-none" className="cursor-pointer">
-                        <CardTitle className="text-sm">Private</CardTitle>
-                      </Label>
-                    </div>
-                    <CardDescription className="text-xs ml-6">
-                      Only you can access this project
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-
-                <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="viewer" id="share-viewer" />
-                      <Label htmlFor="share-viewer" className="cursor-pointer">
-                        <CardTitle className="text-sm">Organization Viewer</CardTitle>
-                      </Label>
-                    </div>
-                    <CardDescription className="text-xs ml-6">
-                      Organization members can view the project
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-
-                <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="editor" id="share-editor" />
-                      <Label htmlFor="share-editor" className="cursor-pointer">
-                        <CardTitle className="text-sm">Organization Editor</CardTitle>
-                      </Label>
-                    </div>
-                    <CardDescription className="text-xs ml-6">
-                      Organization members can view and edit the project
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-
-                <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="admin" id="share-admin" />
-                      <Label htmlFor="share-admin" className="cursor-pointer">
-                        <CardTitle className="text-sm">Organization Admin</CardTitle>
-                      </Label>
-                    </div>
-                    <CardDescription className="text-xs ml-6">
-                      Organization members have full access to the project
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </RadioGroup>
+            <div className="space-y-2">
+              <Label htmlFor="share-level">Organization Access</Label>
+              <Select value={shareLevel} onValueChange={(value) => setShareLevel(value as ShareLevel)} disabled={isLoading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select access level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Private - Only you can access</SelectItem>
+                  <SelectItem value="viewer">Organization Viewer - Members can view</SelectItem>
+                  <SelectItem value="editor">Organization Editor - Members can view and edit</SelectItem>
+                  <SelectItem value="admin">Organization Admin - Members have full access</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {error && label.trim() && (

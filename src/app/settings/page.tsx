@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Shield, User, Bell } from 'lucide-react';
 import { RiskConfiguration } from '@/components/settings/RiskConfiguration';
+import { ActiveRiskProfileSettings } from '@/components/settings/ActiveRiskProfileSettings';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('risk-config');
@@ -43,6 +44,7 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="risk-config" className="space-y-6">
+          <ActiveRiskProfileSettings />
           <RiskConfiguration />
         </TabsContent>
 

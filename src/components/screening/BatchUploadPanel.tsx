@@ -6,23 +6,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { 
   Upload, 
-  FileText, 
   AlertCircle, 
   CheckCircle, 
   Download, 
   Play,
-  Pause,
   X,
   FolderOpen,
-  Shield,
-  Plus
+  Plus,
+  Minimize2
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -36,8 +33,8 @@ import {
 } from '@/components/ui/table';
 
 import { useProjects } from '@/hooks/useProjects';
-import { clientLoadYamlProfiles, type RiskProfile } from '@/lib/risk-profiles/yaml-loader';
-import { CSVParser, type CSVParseResult, type CSVParseError } from '@/services/batch/csvParser';
+import { useGlobalRiskProfile } from '@/contexts/RiskProfileContext';
+import { CSVParser, type CSVParseError } from '@/services/batch/csvParser';
 import type { BatchEntityInput, BatchJobStatus, BatchEntityResult } from '@/services/batch/types';
 import { BatchUploadProgress } from './BatchUploadProgress';
 import { BatchResultsExport } from './BatchResultsExport';
@@ -48,64 +45,88 @@ import React from 'react';
 
 const batchUploadSchema = z.object({
   projectId: z.string().min(1, 'Please select a project'),
-  riskProfile: z.string().min(1, 'Please select a risk profile'),
 });
 
 interface BatchUploadFormData {
   projectId: string;
-  riskProfile: string;
 }
 
-export function BatchUploadPanel() {
+interface BatchUploadPanelProps {
+  onProcessingChange?: (isProcessing: boolean) => void;
+  projectIdOverride?: string;
+  onJobStatusChange?: (jobData: { 
+    jobId: string; 
+    status: BatchJobStatus; 
+    results: BatchEntityResult[] 
+  } | null) => void;
+  onMinimize?: () => void;
+  onNavigateToProject?: () => void;
+  existingJobId?: string;
+  existingJobStatus?: BatchJobStatus;
+  existingResults?: BatchEntityResult[];
+}
+
+export function BatchUploadPanel({ 
+  onProcessingChange, 
+  projectIdOverride,
+  onJobStatusChange,
+  onMinimize,
+  onNavigateToProject,
+  existingJobId,
+  existingJobStatus,
+  existingResults
+}: BatchUploadPanelProps = {}) {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<BatchEntityInput[]>([]);
   const [parseErrors, setParseErrors] = useState<CSVParseError[]>([]);
-  const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [jobStatus, setJobStatus] = useState<BatchJobStatus | null>(null);
-  const [jobResults, setJobResults] = useState<BatchEntityResult[]>([]);
-  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(!!existingJobId);
+  const [jobStatus, setJobStatus] = useState<BatchJobStatus | null>(existingJobStatus || null);
+  const [jobResults, setJobResults] = useState<BatchEntityResult[]>(existingResults || []);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(existingJobId || null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [previousProjectCount, setPreviousProjectCount] = useState(0);
 
   const { projects, loading: projectsLoading, error: projectsError, refetch: refetchProjects } = useProjects();
+  const { activeProfile } = useGlobalRiskProfile();
 
   const form = useForm<BatchUploadFormData>({
     resolver: zodResolver(batchUploadSchema),
     defaultValues: {
       projectId: '',
-      riskProfile: 'default',
     },
   });
 
-  // Load risk profiles on mount
-  React.useEffect(() => {
-    const loadRiskProfiles = async () => {
-      try {
-        const profiles = await clientLoadYamlProfiles();
-        setRiskProfiles(profiles);
-        
-        const defaultProfile = profiles.find(p => p.isDefault);
-        if (defaultProfile) {
-          form.setValue('riskProfile', defaultProfile.id);
-        }
-      } catch (error) {
-        console.error('Failed to load risk profiles:', error);
-        toast.error('Failed to load risk profiles. Please refresh the page.');
-      }
-    };
-    
-    loadRiskProfiles();
-  }, [form]);
 
-  // Set default project when projects load
+  // Set default project when projects load or when override is provided
   React.useEffect(() => {
-    if (projects.length > 0 && !form.getValues('projectId')) {
+    if (projectIdOverride) {
+      form.setValue('projectId', projectIdOverride);
+    } else if (projects.length > 0 && !form.getValues('projectId')) {
       form.setValue('projectId', projects[0].id);
     }
-  }, [projects, form]);
+  }, [projects, form, projectIdOverride]);
+
+  // Notify parent of processing state changes
+  React.useEffect(() => {
+    if (onProcessingChange) {
+      onProcessingChange(isProcessing);
+    }
+  }, [isProcessing]);
+
+  // Notify parent of job status changes
+  React.useEffect(() => {
+    if (onJobStatusChange && currentJobId && jobStatus) {
+      onJobStatusChange({
+        jobId: currentJobId,
+        status: jobStatus,
+        results: jobResults
+      });
+    } else if (onJobStatusChange && !currentJobId) {
+      onJobStatusChange(null);
+    }
+  }, [currentJobId, jobStatus, jobResults]);
 
   // Handle project selection change
   const handleProjectChange = (value: string) => {
@@ -139,11 +160,15 @@ export function BatchUploadPanel() {
       return;
     }
 
+    // If we have an existing job that's still processing, ensure we're polling
+    if (existingJobId && existingJobStatus?.status === 'processing') {
+      console.log('🔄 Resuming polling for existing job:', existingJobId);
+    }
 
     const pollInterval = setInterval(async () => {
       try {
-        const formData = form.getValues();
-        const pollUrl = `/api/projects/${formData.projectId}/entities/batch?jobId=${currentJobId}`;
+        const projectId = projectIdOverride || form.getValues().projectId;
+        const pollUrl = `/api/projects/${projectId}/entities/batch?jobId=${currentJobId}`;
         console.log('🔄 Polling:', pollUrl);
         
         const response = await fetch(pollUrl);
@@ -177,7 +202,7 @@ export function BatchUploadPanel() {
     return () => {
       clearInterval(pollInterval);
     };
-  }, [isProcessing, currentJobId, form]);
+  }, [isProcessing, currentJobId, projectIdOverride, existingJobId, existingJobStatus]);
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -284,7 +309,7 @@ export function BatchUploadPanel() {
             },
             body: JSON.stringify({
               csvContent,
-              riskProfile: data.riskProfile,
+              riskProfile: activeProfile?.id || 'default',
               profile: 'corporate',
               chunkSize: 10,
             }),
@@ -336,6 +361,11 @@ export function BatchUploadPanel() {
   };
 
   const resetUpload = () => {
+    // Don't reset if we're just minimizing
+    if (onMinimize && isProcessing) {
+      return;
+    }
+    
     setCsvFile(null);
     setParsedData([]);
     setParseErrors([]);
@@ -361,16 +391,18 @@ export function BatchUploadPanel() {
             jobId={currentJobId}
             jobStatus={jobStatus}
             results={jobResults}
-            riskProfileId={form.getValues('riskProfile')}
+            riskProfileId={activeProfile?.id || 'default'}
             onStatusUpdate={setJobStatus}
             onResultsUpdate={setJobResults}
             onReset={resetUpload}
+            onMinimize={onMinimize}
           />
           
           {jobStatus.status === 'completed' && jobResults.length > 0 && (
             <BatchResultsExport 
               results={jobResults}
-              riskProfileId={form.getValues('riskProfile')}
+              riskProfileId={activeProfile?.id || 'default'}
+              onNavigateToProject={onNavigateToProject}
             />
           )}
         </div>
@@ -397,79 +429,47 @@ export function BatchUploadPanel() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Project Selection */}
-                <FormField
-                  control={form.control}
-                  name="projectId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Project</FormLabel>
-                      <FormControl>
-                        <Select 
-                          onValueChange={handleProjectChange} 
-                          value={field.value}
-                          disabled={projectsLoading}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a project" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {projects.map((project) => (
-                              <SelectItem key={project.id} value={project.id}>
-                                <div className="flex items-center">
-                                  <FolderOpen className="mr-2 h-4 w-4 text-muted-foreground" />
-                                  <span>{project.label}</span>
+                {/* Project Selection - hide if projectIdOverride is provided */}
+                {!projectIdOverride && (
+                  <FormField
+                    control={form.control}
+                    name="projectId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Project</FormLabel>
+                        <FormControl>
+                          <Select 
+                            onValueChange={handleProjectChange} 
+                            value={field.value}
+                            disabled={projectsLoading}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a project" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {projects.map((project) => (
+                                <SelectItem key={project.id} value={project.id}>
+                                  <div className="flex items-center">
+                                    <FolderOpen className="mr-2 h-4 w-4 text-muted-foreground" />
+                                    <span>{project.label}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="create-new" className="border-t">
+                                <div className="flex items-center text-primary">
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  <span className="font-medium">Create New Project</span>
                                 </div>
                               </SelectItem>
-                            ))}
-                            <SelectItem value="create-new" className="border-t">
-                              <div className="flex items-center text-primary">
-                                <Plus className="mr-2 h-4 w-4" />
-                                <span className="font-medium">Create New Project</span>
-                              </div>
-                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
+                    )}
+                  />
+                )}
 
-                {/* Risk Profile Selection */}
-                <FormField
-                  control={form.control}
-                  name="riskProfile"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Risk Profile</FormLabel>
-                      <FormControl>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          value={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a risk profile" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {riskProfiles.map((profile) => (
-                              <SelectItem key={profile.id} value={profile.id}>
-                                <div className="flex items-center">
-                                  <Shield className="mr-2 h-4 w-4 text-muted-foreground" />
-                                  <span>{profile.name}</span>
-                                  {profile.isDefault && (
-                                    <Badge variant="secondary" className="ml-2 text-xs">default</Badge>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </form>
           </Form>
@@ -541,16 +541,16 @@ export function BatchUploadPanel() {
                   <h4 className="font-medium">Preview (First 10 rows)</h4>
                   <Badge variant="secondary">{parsedData.length} total entities</Badge>
                 </div>
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
+                <div className="border rounded-lg overflow-x-auto">
+                  <Table className="min-w-full">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Identifier</TableHead>
+                        <TableHead className="min-w-[200px]">Name</TableHead>
+                        <TableHead className="w-[100px]">Type</TableHead>
+                        <TableHead className="w-[80px]">Country</TableHead>
+                        <TableHead className="min-w-[250px]">Address</TableHead>
+                        <TableHead className="min-w-[150px]">Identifier</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -564,7 +564,7 @@ export function BatchUploadPanel() {
                             </Badge>
                           </TableCell>
                           <TableCell>{entity.country || '-'}</TableCell>
-                          <TableCell className="max-w-xs truncate">{entity.address || '-'}</TableCell>
+                          <TableCell className="break-words">{entity.address || '-'}</TableCell>
                           <TableCell className="font-mono text-sm">{entity.identifier || '-'}</TableCell>
                         </TableRow>
                       ))}
@@ -581,83 +581,6 @@ export function BatchUploadPanel() {
           )}
 
 
-          {/* Live Progress Component */}
-          {isProcessing && (
-            <>
-              <Separator />
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Processing Entities</h4>
-                  <Badge variant="secondary">{parsedData.length} total entities</Badge>
-                </div>
-                <Card>
-                  <CardContent className="pt-6">
-                    {jobStatus ? (
-                      <div className="space-y-4">
-                        {/* Progress Stats */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            {jobStatus.processedEntities} of {jobStatus.totalEntities} entities
-                          </span>
-                          <span className="text-2xl font-bold">
-                            {Math.round((jobStatus.processedEntities / jobStatus.totalEntities) * 100)}%
-                          </span>
-                        </div>
-                        
-                        {/* Progress Bar */}
-                        <Progress 
-                          value={(jobStatus.processedEntities / jobStatus.totalEntities) * 100} 
-                          className="h-3"
-                        />
-                        
-                        {/* Processing Details */}
-                        <div className="grid grid-cols-3 gap-4 text-center text-sm">
-                          <div>
-                            <div className="font-medium text-green-600">{jobStatus.successfulEntities}</div>
-                            <div className="text-muted-foreground">Successful</div>
-                          </div>
-                          <div>
-                            <div className="font-medium text-yellow-600">{jobStatus.duplicateEntities}</div>
-                            <div className="text-muted-foreground">Duplicates</div>
-                          </div>
-                          <div>
-                            <div className="font-medium text-red-600">{jobStatus.failedEntities}</div>
-                            <div className="text-muted-foreground">Failed</div>
-                          </div>
-                        </div>
-                        
-                        {/* Status Message */}
-                        <div className="text-center text-sm text-muted-foreground">
-                          {jobStatus.status === 'processing' 
-                            ? 'Processing entities with automatic rate limiting (3 requests/second)...'
-                            : `Processing ${jobStatus.status}`
-                          }
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {/* Initial Loading State */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            Initializing batch processing...
-                          </span>
-                          <span className="text-2xl font-bold">0%</span>
-                        </div>
-                        
-                        {/* Initial Progress Bar */}
-                        <Progress value={5} className="h-3" />
-                        
-                        {/* Loading Message */}
-                        <div className="text-center text-sm text-muted-foreground">
-                          Setting up batch job with rate limiting...
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </>
-          )}
 
           {/* Submit Button */}
           {parsedData.length > 0 && parseErrors.length === 0 && !isProcessing && (

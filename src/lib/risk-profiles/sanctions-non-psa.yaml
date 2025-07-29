@@ -1,6 +1,6 @@
 name: Sanctions (Non-PSA)
 description: Sanctions risk factors excluding PSA (Possible Same As) entries
-version: "1.0"
+version: '1.0'
 created_at: "2025-07-25T04:14:40.191Z"
 created_by: system
 is_default: false

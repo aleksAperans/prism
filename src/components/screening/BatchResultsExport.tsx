@@ -19,6 +19,7 @@ import { calculateEntityRiskScore, clientLoadDefaultRiskProfile } from '@/lib/ri
 interface BatchResultsExportProps {
   results: BatchEntityResult[];
   riskProfileId?: string;
+  onNavigateToProject?: () => void;
 }
 
 interface FlattenedResult {
@@ -59,7 +60,7 @@ interface FlattenedResult {
   risk_factor_count: number;
 }
 
-export function BatchResultsExport({ results, riskProfileId }: BatchResultsExportProps) {
+export function BatchResultsExport({ results, riskProfileId, onNavigateToProject }: BatchResultsExportProps) {
   const router = useRouter();
   const [isExporting, setIsExporting] = useState(false);
   const [riskProfile, setRiskProfile] = useState<RiskProfile | null>(null);
@@ -318,7 +319,11 @@ export function BatchResultsExport({ results, riskProfileId }: BatchResultsExpor
   const projectId = successfulResults[0]?.projectEntity?.project_id;
 
   const navigateToProject = () => {
-    if (projectId) {
+    if (onNavigateToProject) {
+      // Use the callback if provided (for modal scenarios)
+      onNavigateToProject();
+    } else if (projectId) {
+      // Fallback to direct navigation
       const url = riskProfileId 
         ? `/projects/${projectId}/entities?riskProfile=${riskProfileId}`
         : `/projects/${projectId}/entities`;
@@ -327,52 +332,42 @@ export function BatchResultsExport({ results, riskProfileId }: BatchResultsExpor
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Export Controls */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5" />
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Download className="h-4 w-4" />
             Export Results
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs">
             Download batch processing results in various formats
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Button
               onClick={() => handleExport('summary')}
               disabled={isExporting}
               variant="outline"
-              className="h-auto p-6 flex flex-col items-center gap-3"
+              className="flex items-center justify-center gap-2 h-10"
             >
-              <FileText className="h-8 w-8" />
-              <div className="text-center">
-                <div className="font-medium text-lg">Summary Results</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Basic entity results with processing status and match counts
-                </div>
-              </div>
+              <FileText className="h-4 w-4" />
+              <span className="text-sm font-medium">Summary Results</span>
             </Button>
 
             <Button
               onClick={() => handleExport('with-matches')}
               disabled={isExporting}
               variant="outline"
-              className="h-auto p-6 flex flex-col items-center gap-3"
+              className="flex items-center justify-center gap-2 h-10"
             >
-              <Table className="h-8 w-8" />
-              <div className="text-center">
-                <div className="font-medium text-lg">With Matches</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Complete data with one row per match (flattened format)
-                </div>
-              </div>
+              <Table className="h-4 w-4" />
+              <span className="text-sm font-medium">With Matches</span>
             </Button>
           </div>
 
-          <Separator className="my-4" />
+          <Separator className="my-3" />
 
           {/* Navigation to Project */}
           {projectId && (
@@ -380,23 +375,22 @@ export function BatchResultsExport({ results, riskProfileId }: BatchResultsExpor
               <Button
                 onClick={navigateToProject}
                 variant="default"
+                size="sm"
                 className="flex items-center gap-2"
               >
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-3 w-3" />
                 View All Project Entities
               </Button>
             </div>
           )}
 
-          <Separator className="my-4" />
+          <Separator className="my-3" />
 
-          <div className="text-sm text-muted-foreground text-center">
+          <div className="text-xs text-muted-foreground text-center">
             {results.length} total results • {successfulResults.length} successful • {duplicateResults.length} duplicates • {failedResults.length} failed
           </div>
         </CardContent>
       </Card>
-
-
     </div>
   );
 }
