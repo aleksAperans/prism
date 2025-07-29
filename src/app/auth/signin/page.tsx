@@ -55,14 +55,14 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-md space-y-4">
         {/* Logo */}
         <div className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
+          <div className="flex items-center justify-center space-x-2 mb-2">
             <PrismIcon className="h-8 w-8 text-primary" size={32} />
             <h1 className="text-2xl font-bold">Prism</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Sign in to access the analysis platform
           </p>
         </div>
@@ -122,13 +122,13 @@ export default function SignInPage() {
 
         {/* Demo Credentials */}
         <Card className="border-dashed">
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="text-sm">Demo Credentials</CardTitle>
             <CardDescription className="text-xs">
               Click to auto-fill demo credentials
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 pt-0">
             <Button 
               variant="outline" 
               size="sm" 

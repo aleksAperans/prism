@@ -61,6 +61,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { useSearchParams } from 'next/navigation';
 
 interface ProjectEntitiesTableProps {
   projectId: string;
@@ -77,6 +78,7 @@ type ProjectEntityData = ProjectEntity;
 
 export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
   const { setData } = useBreadcrumb();
+  const searchParams = useSearchParams();
   const [entities, setEntities] = useState<ProjectEntity[]>([]);
   const [project, setProject] = useState<SayariProject | null>(null);
   const [loading, setLoading] = useState(true);
@@ -171,14 +173,32 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
     fetchProject();
     fetchEntities();
     
-    // Load risk profile using client-safe function
+    // Load risk profile - use URL param if provided, otherwise default
     const loadRiskProfile = async () => {
+      const riskProfileParam = searchParams.get('riskProfile');
+      
+      if (riskProfileParam) {
+        try {
+          const response = await fetch(`/api/risk-profiles/${riskProfileParam}`);
+          if (response.ok) {
+            const data = await response.json();
+            setRiskProfile(data.profile);
+            console.log('✅ Loaded risk profile from URL:', data.profile.name);
+            return;
+          }
+        } catch (error) {
+          console.warn('Failed to load risk profile from URL param:', error);
+        }
+      }
+      
+      // Fallback to default profile
       const profile = await clientLoadDefaultRiskProfile();
       setRiskProfile(profile);
+      console.log('✅ Loaded default risk profile:', profile?.name);
     };
     
     loadRiskProfile();
-  }, [projectId, sort, selectedEntityType, fetchEntities, fetchProject]);
+  }, [projectId, sort, selectedEntityType, fetchEntities, fetchProject, searchParams]);
 
   const filteredEntities = useMemo(() => {
     if (!searchQuery) return entities;
@@ -341,7 +361,7 @@ export function ProjectEntitiesTable({ projectId }: ProjectEntitiesTableProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">
-            {project?.label ? `${project.label} Entities` : 'Project Entities'}
+            {project?.label || 'Project'}
           </h1>
           <p className="text-muted-foreground">
             {filteredEntities.length} entities found
