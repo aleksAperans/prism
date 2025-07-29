@@ -5,8 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ExternalLink, Building, Trash2, ChevronRight, FileText, ShieldAlert, User, Database, Network } from 'lucide-react';
+import { ExternalLink, Building, Trash2, ChevronRight, FileText, ShieldAlert, User, Database, Network, Search } from 'lucide-react';
 import { CountryBadgeList, CountryBadge } from '@/components/common/CountryBadge';
+import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import { MatchedAttributesDisplay } from '@/components/screening/MatchedAttributesDisplay';
 import { MatchRiskDisplay } from '@/components/screening/MatchRiskDisplay';
 import { RiskLevelBadges } from '@/components/common/RiskLevelBadge';
@@ -45,6 +46,12 @@ interface ProjectEntityMatchesProps {
   onMatchesUpdate?: (matches: Match[]) => void;
   riskScores?: Record<string, number>;
   riskProfile?: RiskProfile | null;
+  screeningAttributes?: {
+    name?: { resolve: boolean; values: string[] };
+    country?: { resolve: boolean; values: string[] };
+    type?: { resolve: boolean; values: string[] };
+    [key: string]: { resolve: boolean; values: string[] } | undefined;
+  };
 }
 
 export function ProjectEntityMatches({ 
@@ -53,7 +60,8 @@ export function ProjectEntityMatches({
   projectEntityId,
   onMatchesUpdate,
   riskScores,
-  riskProfile
+  riskProfile,
+  screeningAttributes
 }: ProjectEntityMatchesProps) {
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [removingMatches, setRemovingMatches] = useState<Record<string, boolean>>({});
@@ -62,6 +70,7 @@ export function ProjectEntityMatches({
   const [expandedRiskSections, setExpandedRiskSections] = useState<Record<string, boolean>>({});
   const [expandedSourcesSections, setExpandedSourcesSections] = useState<Record<string, boolean>>({});
   const [expandedRelationshipsSections, setExpandedRelationshipsSections] = useState<Record<string, boolean>>({});
+  const [expandedScreeningAttributes, setExpandedScreeningAttributes] = useState(false);
 
   const toggleMatch = useCallback((matchId: string) => {
     setExpandedMatches(prev => ({
@@ -182,22 +191,170 @@ export function ProjectEntityMatches({
 
   if (!matches || matches.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <Building className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Matches Found</h3>
-            <p className="text-sm text-muted-foreground">
-              This entity has no matches in the knowledge graph.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        {/* Screening Attributes Card */}
+        {screeningAttributes && Object.keys(screeningAttributes).length > 0 && (
+          <Card>
+            <Collapsible open={expandedScreeningAttributes}>
+              <div className="px-4 py-3">
+                <CollapsibleTrigger asChild>
+                  <button 
+                    className="w-full flex items-center justify-between hover:bg-accent/50 -mx-4 -my-3 px-4 py-3 rounded-lg transition-colors"
+                    onClick={() => setExpandedScreeningAttributes(!expandedScreeningAttributes)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <h3 className="text-sm font-medium">Screening Attributes</h3>
+                        <p className="text-xs text-muted-foreground">
+                          The criteria used to search for and identify this entity
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight 
+                      className={cn(
+                        "h-4 w-4 transition-transform text-muted-foreground flex-shrink-0",
+                        expandedScreeningAttributes && "rotate-90"
+                      )} 
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 mt-3">
+                    {Object.entries(screeningAttributes).map(([key, attribute]) => {
+                      if (!attribute) return null;
+                      const formattedKey = key.charAt(0).toUpperCase() + key.slice(1);
+                      
+                      return (
+                        <div key={key} className="space-y-1">
+                          <div className="text-xs font-medium text-muted-foreground">
+                            {formattedKey}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {key === 'country' ? (
+                              <CountryBadgeList 
+                                countryCodes={attribute.values}
+                                size="sm"
+                              />
+                            ) : key === 'type' ? (
+                              attribute.values.map((value, index) => (
+                                <EntityTypeBadge 
+                                  key={index}
+                                  type={value}
+                                />
+                              ))
+                            ) : (
+                              attribute.values.map((value, index) => (
+                                <Badge 
+                                  key={index} 
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {value}
+                                </Badge>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          </Card>
+        )}
+        
+        {/* No Matches Card */}
+        <Card>
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <Building className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No Matches Found</h3>
+              <p className="text-sm text-muted-foreground">
+                This entity has no matches in the knowledge graph.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      {/* Screening Attributes Card */}
+      {screeningAttributes && Object.keys(screeningAttributes).length > 0 && (
+        <Card>
+          <Collapsible open={expandedScreeningAttributes}>
+            <div className="p-4">
+              <CollapsibleTrigger asChild>
+                <button 
+                  className="w-full flex items-center justify-between hover:bg-accent/50 -m-4 p-4 rounded-lg transition-colors"
+                  onClick={() => setExpandedScreeningAttributes(!expandedScreeningAttributes)}
+                >
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="text-sm font-medium">Screening Attributes</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-left">
+                      The criteria used to search for and identify this entity
+                    </p>
+                  </div>
+                  <ChevronRight 
+                    className={cn(
+                      "h-4 w-4 transition-transform text-muted-foreground flex-shrink-0",
+                      expandedScreeningAttributes && "rotate-90"
+                    )} 
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="space-y-3 mt-4">
+                  {Object.entries(screeningAttributes).map(([key, attribute]) => {
+                    if (!attribute) return null;
+                    const formattedKey = key.charAt(0).toUpperCase() + key.slice(1);
+                    
+                    return (
+                      <div key={key} className="space-y-1">
+                        <div className="text-xs font-medium text-muted-foreground">
+                          {formattedKey}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {key === 'country' ? (
+                            <CountryBadgeList 
+                              countryCodes={attribute.values}
+                              size="sm"
+                            />
+                          ) : key === 'type' ? (
+                            attribute.values.map((value, index) => (
+                              <EntityTypeBadge 
+                                key={index}
+                                type={value}
+                              />
+                            ))
+                          ) : (
+                            attribute.values.map((value, index) => (
+                              <Badge 
+                                key={index} 
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {value}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+        </Card>
+      )}
       {matches.map((match, index) => {
         const isExpanded = expandedMatches[match.match_id] ?? false;
         const isRemoving = removingMatches[match.match_id] ?? false;

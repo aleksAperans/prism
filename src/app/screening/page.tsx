@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Upload } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EntityForm } from '@/components/screening/EntityForm';
 import { ScreeningResults } from '@/components/screening/ScreeningResults';
 import { RecentSearches, saveRecentSearch } from '@/components/screening/RecentSearches';
+import { BatchUploadPanel } from '@/components/screening/BatchUploadPanel';
 import { EmptyState } from '@/components/common/EmptyStates';
 import { LoadingCard } from '@/components/common/LoadingStates';
 import { ExportButton } from '@/components/common/ExportButton';
@@ -60,6 +62,7 @@ export default function ScreeningPage() {
   const [alreadyExists, setAlreadyExists] = useState<boolean>(false);
   const [selectedRiskProfile, setSelectedRiskProfile] = useState<string | undefined>(undefined);
   const formSetValueRef = useRef<((field: string, value: unknown) => void) | null>(null);
+  const [activeTab, setActiveTab] = useState('single');
 
   const handleScreening = async (data: EntityFormData) => {
     setIsLoading(true);
@@ -177,52 +180,74 @@ export default function ScreeningPage() {
           </p>
         </div>
         
-        {result && (
+        {result && activeTab === 'single' && (
           <ExportButton data={[result]} filename="entity-analysis" size="sm" />
         )}
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-5 items-start">
-        {/* Input Form and Recent Searches - Left Side */}
-        <div className="lg:col-span-2 space-y-4">
-          <EntityForm 
-            onSubmit={handleScreening} 
-            isLoading={isLoading}
-            onFormReady={(setValue) => { formSetValueRef.current = setValue; }}
-          />
-          
-          {/* Recent Searches */}
-          <RecentSearches 
-            onSelectSearch={handleSelectRecentSearch}
-          />
-        </div>
-        
-        {/* Results - Right Side */}
-        <div className="lg:col-span-3">
-          {isLoading ? (
-            <LoadingCard 
-              title="Analyzing Entity..."
-              description="Processing entity data through Prism's intelligence engine"
-            />
-          ) : result ? (
-            <ScreeningResults 
-              results={[result]}
-              error={error || undefined}
-              onRetry={handleRetry}
-              onMatchRemoved={handleMatchRemoved}
-              alreadyExists={alreadyExists}
-              selectedRiskProfile={selectedRiskProfile}
-            />
-          ) : (
-            <EmptyState 
-              icon={Search}
-              title="No analysis performed"
-              description="Enter entity details in the form and click 'Screen Entity' to see results"
-            />
-          )}
-        </div>
-      </div>
+      {/* Tabbed Interface */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="single" className="flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            <span>Single Entity</span>
+          </TabsTrigger>
+          <TabsTrigger value="batch" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            <span>Batch Upload</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Single Entity Tab */}
+        <TabsContent value="single" className="space-y-6">
+          {/* Two Column Layout */}
+          <div className="grid gap-6 lg:grid-cols-5 items-start">
+            {/* Input Form and Recent Searches - Left Side */}
+            <div className="lg:col-span-2 space-y-4">
+              <EntityForm 
+                onSubmit={handleScreening} 
+                isLoading={isLoading}
+                onFormReady={(setValue) => { formSetValueRef.current = setValue; }}
+              />
+              
+              {/* Recent Searches */}
+              <RecentSearches 
+                onSelectSearch={handleSelectRecentSearch}
+              />
+            </div>
+            
+            {/* Results - Right Side */}
+            <div className="lg:col-span-3">
+              {isLoading ? (
+                <LoadingCard 
+                  title="Analyzing Entity..."
+                  description="Processing entity data through Prism's intelligence engine"
+                />
+              ) : result ? (
+                <ScreeningResults 
+                  results={[result]}
+                  error={error || undefined}
+                  onRetry={handleRetry}
+                  onMatchRemoved={handleMatchRemoved}
+                  alreadyExists={alreadyExists}
+                  selectedRiskProfile={selectedRiskProfile}
+                />
+              ) : (
+                <EmptyState 
+                  icon={Search}
+                  title="No analysis performed"
+                  description="Enter entity details in the form and click 'Screen Entity' to see results"
+                />
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Batch Upload Tab */}
+        <TabsContent value="batch" className="space-y-6">
+          <BatchUploadPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

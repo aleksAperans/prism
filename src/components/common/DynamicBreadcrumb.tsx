@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Home, Search, Folder, Settings, MoreHorizontal, Book } from 'lucide-react';
 import { useBreadcrumb } from '@/components/providers/BreadcrumbProvider';
 import {
@@ -50,35 +51,38 @@ export function DynamicBreadcrumb() {
   }
 
   return (
-    <div className="mb-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          {segments.map((segment, index) => {
-            const isLast = index === segments.length - 1;
-            const Icon = segment.icon;
+    <Breadcrumb>
+      <BreadcrumbList>
+        {segments.map((segment, index) => {
+          const isLast = index === segments.length - 1;
+          const Icon = segment.icon;
 
-            return (
-              <div key={segment.href || segment.label} className="flex items-center">
-                <BreadcrumbItem>
-                  {isLast ? (
-                    <BreadcrumbPage className="flex items-center">
-                      {Icon && <Icon className="h-4 w-4 mr-1" />}
+          return (
+            <div key={segment.href || segment.label} className="flex items-center">
+              <BreadcrumbItem>
+                {isLast ? (
+                  <BreadcrumbPage className="flex items-center text-sm font-medium">
+                    {Icon && <Icon className="h-3.5 w-3.5 mr-1.5" />}
+                    {segment.label}
+                  </BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link 
+                      href={segment.href || '#'} 
+                      className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {Icon && <Icon className="h-3.5 w-3.5 mr-1.5" />}
                       {segment.label}
-                    </BreadcrumbPage>
-                  ) : (
-                    <BreadcrumbLink href={segment.href} className="flex items-center">
-                      {Icon && <Icon className="h-4 w-4 mr-1" />}
-                      {segment.label}
-                    </BreadcrumbLink>
-                  )}
-                </BreadcrumbItem>
-                {!isLast && <BreadcrumbSeparator />}
-              </div>
-            );
-          })}
-        </BreadcrumbList>
-      </Breadcrumb>
-    </div>
+                    </Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+              {!isLast && <BreadcrumbSeparator className="text-muted-foreground/50" />}
+            </div>
+          );
+        })}
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 }
 
@@ -210,9 +214,11 @@ export function DynamicBreadcrumbWithData({
                       {segment.label}
                     </BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink href={segment.href} className="flex items-center">
-                      {Icon && <Icon className="h-4 w-4 mr-1" />}
-                      {segment.label}
+                    <BreadcrumbLink asChild>
+                      <Link href={segment.href || '#'} className="flex items-center">
+                        {Icon && <Icon className="h-4 w-4 mr-1" />}
+                        {segment.label}
+                      </Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>

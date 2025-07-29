@@ -34,19 +34,18 @@ export default function RootLayout({
               <SidebarProvider>
               <AppSidebar />
               <SidebarInset>
-                <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                  <div className="flex items-center gap-2 px-4">
+                <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
+                  <div className="flex items-center gap-3 px-4">
                     <SidebarTrigger className="-ml-1" />
+                    <div className="h-6 w-px bg-border" />
+                    <DynamicBreadcrumb />
                   </div>
                 </header>
-                <div className="flex flex-1 flex-col">
-                  <div className="flex-1">
-                    <div className="container mx-auto py-6 px-4 lg:px-6">
-                      <DynamicBreadcrumb />
-                      {children}
-                    </div>
+                <main className="flex-1">
+                  <div className="container mx-auto py-6 px-4 lg:px-6">
+                    {children}
                   </div>
-                </div>
+                </main>
               </SidebarInset>
               </SidebarProvider>
             </BreadcrumbProvider>

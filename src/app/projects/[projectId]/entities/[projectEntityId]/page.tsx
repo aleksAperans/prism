@@ -273,6 +273,7 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
             projectEntityId={projectEntityId}
             riskScores={riskProfile?.riskScores}
             riskProfile={riskProfile}
+            screeningAttributes={entity.attributes}
           />
         </TabsContent>
 
