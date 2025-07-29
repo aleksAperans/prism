@@ -18,8 +18,8 @@ export class BatchProcessor {
   private abortControllers: Map<string, AbortController> = new Map();
   
   constructor() {
-    // 3 requests per second as per requirement
-    this.rateLimiter = new RateLimiter(3, 1000);
+    // 5 requests per second for improved batch performance
+    this.rateLimiter = new RateLimiter(5, 1000);
   }
 
   async processBatch(
