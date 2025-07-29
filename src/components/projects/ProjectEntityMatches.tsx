@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import riskFactorsData from '@/lib/risk-factors-data.json';
 import { filterRiskFactorsByProfile } from '@/lib/risk-scoring-client';
-import type { RiskProfile } from '@/lib/risk-profiles/yaml-loader';
+import { useGlobalRiskProfile } from '@/contexts/RiskProfileContext';
 
 interface Match {
   match_id: string;
@@ -45,7 +45,6 @@ interface ProjectEntityMatchesProps {
   projectEntityId: string;
   onMatchesUpdate?: (matches: Match[]) => void;
   riskScores?: Record<string, number>;
-  riskProfile?: RiskProfile | null;
   screeningAttributes?: {
     name?: { resolve: boolean; values: string[] };
     country?: { resolve: boolean; values: string[] };
@@ -60,7 +59,6 @@ export function ProjectEntityMatches({
   projectEntityId,
   onMatchesUpdate,
   riskScores,
-  riskProfile,
   screeningAttributes
 }: ProjectEntityMatchesProps) {
   const [matches, setMatches] = useState<Match[]>(initialMatches);
@@ -68,6 +66,8 @@ export function ProjectEntityMatches({
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
   const [expandedAttributes, setExpandedAttributes] = useState<Record<string, boolean>>({});
   const [expandedRiskSections, setExpandedRiskSections] = useState<Record<string, boolean>>({});
+  
+  const { activeProfile: riskProfile } = useGlobalRiskProfile();
   const [expandedSourcesSections, setExpandedSourcesSections] = useState<Record<string, boolean>>({});
   const [expandedRelationshipsSections, setExpandedRelationshipsSections] = useState<Record<string, boolean>>({});
   const [expandedScreeningAttributes, setExpandedScreeningAttributes] = useState(false);

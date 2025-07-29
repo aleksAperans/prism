@@ -20,6 +20,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ProjectsSidePanel } from '@/components/projects/ProjectsSidePanel';
 import { useProjects } from '@/hooks/useProjects';
 import { Skeleton } from '@/components/common/LoadingStates';
@@ -31,6 +43,10 @@ export default function ProjectsPage() {
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [defaultProjectId, setDefaultProjectId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const { projects: activeProjects, loading, error, refetch: refetchActive } = useProjects({ archived: false });
   const { projects: archivedProjects, refetch: refetchArchived } = useProjects({ archived: true });
 
@@ -81,13 +97,18 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleDeleteProject = async (projectId: string, projectName: string) => {
-    if (!confirm(`Are you sure you want to delete "${projectName}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteProject = (projectId: string, projectName: string) => {
+    setProjectToDelete({ id: projectId, name: projectName });
+    setDeleteConfirmText('');
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!projectToDelete) return;
 
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
+      setIsDeleting(true);
+      const response = await fetch(`/api/projects/${projectToDelete.id}`, {
         method: 'DELETE',
       });
 
@@ -97,16 +118,27 @@ export default function ProjectsPage() {
       }
 
       // Clear from default if it was the default project
-      if (defaultProjectId === projectId) {
+      if (defaultProjectId === projectToDelete.id) {
         localStorage.removeItem('defaultProjectId');
         setDefaultProjectId(null);
       }
 
       await handleProjectsChanged();
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
+      setDeleteConfirmText('');
     } catch (error) {
       console.error('Failed to delete project:', error);
       // TODO: Show error toast
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setProjectToDelete(null);
+    setDeleteConfirmText('');
   };
 
   const renderProjectCards = (projects: typeof activeProjects, isArchived = false) => (
@@ -460,6 +492,76 @@ export default function ProjectsPage() {
         onOpenChange={setSidePanelOpen}
         onProjectsChanged={handleProjectsChanged}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Delete Project
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  You are about to permanently delete the project <strong>&quot;{projectToDelete?.name}&quot;</strong>. 
+                  This action cannot be undone and will remove:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm ml-4">
+                  <li>All project data and settings</li>
+                  <li>All entities and screening results</li>
+                  <li>All matches and risk assessments</li>
+                  <li>Project history and metadata</li>
+                </ul>
+                <div className="p-3 bg-destructive/10 border-l-4 border-destructive rounded">
+                  <p className="text-sm font-medium text-destructive">
+                    ⚠️ This action is permanent and cannot be reversed
+                  </p>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="confirm-text" className="text-sm font-medium">
+                To confirm deletion, type the project name: <strong>{projectToDelete?.name}</strong>
+              </Label>
+              <Input
+                id="confirm-text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={`Type "${projectToDelete?.name}" to confirm`}
+                className="mt-2"
+                disabled={isDeleting}
+              />
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDelete} disabled={isDeleting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteConfirmText !== projectToDelete?.name || isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Project
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

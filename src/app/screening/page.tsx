@@ -60,7 +60,6 @@ export default function ScreeningPage() {
   const [result, setResult] = useState<ScreeningResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [alreadyExists, setAlreadyExists] = useState<boolean>(false);
-  const [selectedRiskProfile, setSelectedRiskProfile] = useState<string | undefined>(undefined);
   const formSetValueRef = useRef<((field: string, value: unknown) => void) | null>(null);
   const [activeTab, setActiveTab] = useState('single');
 
@@ -70,8 +69,6 @@ export default function ScreeningPage() {
     // Hard reset - clear previous result
     setResult(null);
     setAlreadyExists(false);
-    // Capture the selected risk profile for match filtering
-    setSelectedRiskProfile(data.risk_profile);
     
     try {
       const response = await fetch('/api/screening', {
@@ -230,7 +227,6 @@ export default function ScreeningPage() {
                   onRetry={handleRetry}
                   onMatchRemoved={handleMatchRemoved}
                   alreadyExists={alreadyExists}
-                  selectedRiskProfile={selectedRiskProfile}
                 />
               ) : (
                 <EmptyState 

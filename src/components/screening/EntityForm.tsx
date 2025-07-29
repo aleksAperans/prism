@@ -13,16 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { CountrySelect } from '@/components/common/CountrySelect';
+import { CreateProjectModal } from '@/components/projects/CreateProjectModal';
 import type { EntityFormData } from '@/types/app.types';
 import { useProjects } from '@/hooks/useProjects';
-import { clientLoadYamlProfiles, type RiskProfile } from '@/lib/risk-profiles/yaml-loader';
-
-// Internal form data type with required type field
-interface InternalFormData extends Omit<EntityFormData, 'type'> {
-  type: 'company' | 'person';
-  profile: 'corporate' | 'suppliers' | 'search' | 'screen';
-  risk_profile: string;
-}
+import { useGlobalRiskProfile } from '@/contexts/RiskProfileContext';
+import { toast } from 'sonner';
 
 const entityFormSchema = z.object({
   project_id: z.string().min(1, 'Please select a project'),
@@ -31,7 +26,7 @@ const entityFormSchema = z.object({
   profile: z.enum(['corporate', 'suppliers', 'search', 'screen'], {
     message: 'Please select an analysis profile',
   }),
-  risk_profile: z.string().min(1, 'Please select a risk profile'),
+  risk_profile: z.string(),
   identifier: z.string().optional(),
   address: z.string().optional(),
   country: z.string().optional(),
@@ -46,60 +41,30 @@ interface EntityFormProps {
 }
 
 export function EntityForm({ onSubmit, onFormReady, className, isLoading = false }: EntityFormProps) {
-  const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([]);
-  const [riskProfilesLoading, setRiskProfilesLoading] = useState(false);
-  const [selectedRiskProfile, setSelectedRiskProfile] = useState<string>('default');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [projectSectionOpen, setProjectSectionOpen] = useState(true);
   const [additionalFieldsOpen, setAdditionalFieldsOpen] = useState(false);
-  const [riskProfileSectionOpen, setRiskProfileSectionOpen] = useState(true);
+  const [showCreateProject, setShowCreateProject] = useState(false);
+  const [previousProjectCount, setPreviousProjectCount] = useState(0);
   
   const { projects, loading: projectsLoading, error: projectsError, refetch } = useProjects();
+  const { activeProfile } = useGlobalRiskProfile();
   
-  const form = useForm<InternalFormData>({
+  const form = useForm<EntityFormData>({
     resolver: zodResolver(entityFormSchema),
     defaultValues: {
       name: '',
       type: 'company',
       profile: 'corporate', // Hidden field with corporate as default
+      risk_profile: activeProfile?.id || 'default',
       identifier: '',
       address: '',
       country: '',
       date_of_birth: '',
       project_id: '',
-      risk_profile: 'default',
     },
   });
 
-  React.useEffect(() => {
-    const loadRiskProfiles = async () => {
-      try {
-        setRiskProfilesLoading(true);
-        const profiles = await clientLoadYamlProfiles();
-        setRiskProfiles(profiles);
-        
-        // Set default risk profile
-        const defaultProfile = profiles.find(p => p.isDefault);
-        if (defaultProfile) {
-          setSelectedRiskProfile(defaultProfile.id);
-          // We'll set the form value in a separate effect once form is ready
-        }
-      } catch (error) {
-        console.error('Failed to load risk profiles:', error);
-      } finally {
-        setRiskProfilesLoading(false);
-      }
-    };
-    
-    loadRiskProfiles();
-  }, []);
-
-  // Sync selected risk profile with form
-  React.useEffect(() => {
-    if (selectedRiskProfile && form) {
-      form.setValue('risk_profile', selectedRiskProfile);
-    }
-  }, [selectedRiskProfile, form]);
 
   // Set default project when projects load
   React.useEffect(() => {
@@ -121,7 +86,40 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
     }
   }, [onFormReady]);
 
-  const handleSubmit = (data: InternalFormData) => {
+  // Update risk profile when active profile changes
+  React.useEffect(() => {
+    if (activeProfile?.id) {
+      form.setValue('risk_profile', activeProfile.id);
+    }
+  }, [activeProfile?.id, form]);
+
+  // Handle project selection change
+  const handleProjectChange = (value: string) => {
+    if (value === 'create-new') {
+      setShowCreateProject(true);
+    } else {
+      form.setValue('project_id', value);
+    }
+  };
+
+  // Handle project creation success
+  const handleProjectCreated = async () => {
+    await refetch();
+  };
+
+  // Auto-select newly created project
+  React.useEffect(() => {
+    if (showCreateProject && projects.length > previousProjectCount && projects.length > 0) {
+      // A new project was created, select the most recently created project (first in sorted list)
+      const newestProject = projects[0];
+      form.setValue('project_id', newestProject.id);
+      setShowCreateProject(false);
+      toast.success(`Selected new project: ${newestProject.label}`);
+    }
+    setPreviousProjectCount(projects.length);
+  }, [projects, showCreateProject, form, previousProjectCount]);
+
+  const handleSubmit = (data: EntityFormData) => {
     console.log('🔍 Form submitted with data:', data);
     console.log('🔍 Form validation state:', form.formState);
     console.log('🔍 Form errors:', form.formState.errors);
@@ -129,9 +127,6 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
     // Clean up optional fields - remove empty strings
     const cleanedData: EntityFormData = {
       ...data,
-      type: data.type,
-      profile: data.profile,
-      risk_profile: data.risk_profile,
       identifier: data.identifier || undefined,
       address: data.address || undefined,
       country: data.country || undefined,
@@ -357,7 +352,7 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
                     <CollapsibleContent>
                       <FormControl>
                         <Select 
-                          onValueChange={field.onChange} 
+                          onValueChange={handleProjectChange} 
                           value={field.value}
                           disabled={isLoading || projectsLoading}
                         >
@@ -403,19 +398,27 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
                             </Button>
                           </div>
                         ) : (
-                          projects.map((project) => (
-                            <SelectItem key={project.id} value={project.id}>
-                              <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center">
-                                  <FolderOpen className="mr-2 h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium">{project.label}</span>
+                          <>
+                            {projects.map((project) => (
+                              <SelectItem key={project.id} value={project.id}>
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center">
+                                    <FolderOpen className="mr-2 h-4 w-4 text-muted-foreground" />
+                                    <span className="font-medium">{project.label}</span>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground ml-4">
+                                    {project.counts.entity} entities
+                                  </span>
                                 </div>
-                                <span className="text-xs text-muted-foreground ml-4">
-                                  {project.counts.entity} entities
-                                </span>
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="create-new" className="border-t">
+                              <div className="flex items-center text-primary">
+                                <Plus className="mr-2 h-4 w-4" />
+                                <span className="font-medium">Create New Project</span>
                               </div>
                             </SelectItem>
-                          ))
+                          </>
                         )}
                       </SelectContent>
                         </Select>
@@ -428,96 +431,6 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
               }}
             />
 
-            {/* Risk Profile Selection */}
-            <FormField
-              control={form.control}
-              name="risk_profile"
-              render={({ field }) => {
-                const selectedProfile = riskProfiles.find(p => p.id === field.value);
-                
-                return (
-                <FormItem>
-                  <Collapsible 
-                    open={riskProfileSectionOpen} 
-                    onOpenChange={setRiskProfileSectionOpen}
-                  >
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Risk Profile *</FormLabel>
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="p-0 h-auto"
-                        >
-                          {riskProfileSectionOpen ? (
-                            <ChevronDown className="h-4 w-4" />
-                          ) : (
-                            <div className="flex items-center text-sm">
-                              {selectedProfile ? (
-                                <>
-                                  <Shield className="mr-1 h-3 w-3 text-muted-foreground" />
-                                  <span className="font-medium">{selectedProfile.name}</span>
-                                  <span className="text-muted-foreground ml-1">({selectedProfile.enabledFactors.length} factors)</span>
-                                </>
-                              ) : (
-                                <span className="text-muted-foreground">Select risk profile</span>
-                              )}
-                              <ChevronRight className="ml-1 h-4 w-4" />
-                            </div>
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
-                    </div>
-                    <CollapsibleContent>
-                      <FormControl>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          value={field.value}
-                          disabled={isLoading || riskProfilesLoading}
-                        >
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select a risk profile" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {riskProfilesLoading ? (
-                              <div className="p-2 text-sm text-muted-foreground flex items-center">
-                                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-primary" />
-                                Loading risk profiles...
-                              </div>
-                            ) : riskProfiles.length === 0 ? (
-                              <div className="p-2 text-sm text-muted-foreground flex items-center">
-                                <Shield className="mr-2 h-4 w-4" />
-                                No risk profiles available
-                              </div>
-                            ) : (
-                              riskProfiles.map((profile) => (
-                                <SelectItem key={profile.id} value={profile.id}>
-                                  <div className="flex items-center justify-between w-full">
-                                    <div className="flex items-center">
-                                      <Shield className="mr-2 h-4 w-4 text-muted-foreground" />
-                                      <span className="font-medium">{profile.name}</span>
-                                      {profile.isDefault && (
-                                        <span className="ml-1 text-xs bg-muted text-muted-foreground px-1 rounded">default</span>
-                                      )}
-                                    </div>
-                                    <span className="text-xs text-muted-foreground ml-4">
-                                      {profile.enabledFactors.length} factors
-                                    </span>
-                                  </div>
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                    </CollapsibleContent>
-                  </Collapsible>
-                  <FormMessage />
-                </FormItem>
-                );
-              }}
-            />
 
             {/* Submit Button - moved inside form */}
             <Button 
@@ -545,6 +458,13 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
           </form>
         </Form>
       </CardContent>
+      
+      {/* Create Project Modal */}
+      <CreateProjectModal
+        open={showCreateProject}
+        onOpenChange={setShowCreateProject}
+        onProjectCreated={handleProjectCreated}
+      />
     </Card>
   );
 }

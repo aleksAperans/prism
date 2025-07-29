@@ -11,7 +11,8 @@ import {
   Pause,
   Play,
   Square,
-  RefreshCw
+  RefreshCw,
+  Minimize2
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ interface BatchUploadProgressProps {
   onStatusUpdate: (status: BatchJobStatus) => void;
   onResultsUpdate: (results: BatchEntityResult[]) => void;
   onReset: () => void;
+  onMinimize?: () => void;
 }
 
 export function BatchUploadProgress({
@@ -43,6 +45,7 @@ export function BatchUploadProgress({
   onStatusUpdate,
   onResultsUpdate,
   onReset,
+  onMinimize,
 }: BatchUploadProgressProps) {
   const [isPolling, setIsPolling] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -274,15 +277,15 @@ export function BatchUploadProgress({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 min-w-0">
       {/* Simple Progress Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3 min-w-0">
               {getStatusIcon()}
-              <div>
-                <CardTitle>
+              <div className="min-w-0">
+                <CardTitle className="text-base">
                   Processing {jobStatus.totalEntities} Entities
                 </CardTitle>
                 <CardDescription>
@@ -292,6 +295,43 @@ export function BatchUploadProgress({
                   }
                 </CardDescription>
               </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Simple Progress Bar */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Progress</span>
+              <span className="text-2xl font-bold">{progressPercentage}%</span>
+            </div>
+            <Progress 
+              value={progressPercentage} 
+              className="h-3"
+            />
+          </div>
+          
+          {/* Processing message for active jobs */}
+          {jobStatus.status === 'processing' && (
+            <div className="text-center text-sm text-muted-foreground">
+              Processing entities...
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex items-center justify-between pt-2">
+            <div>
+              {onMinimize && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onMinimize}
+                  className="gap-2"
+                >
+                  <Minimize2 className="h-4 w-4" />
+                  Minimize to Side
+                </Button>
+              )}
             </div>
             
             <div className="flex items-center gap-2">
@@ -317,151 +357,133 @@ export function BatchUploadProgress({
               )}
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Simple Progress Bar */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Progress</span>
-              <span className="text-2xl font-bold">{progressPercentage}%</span>
-            </div>
-            <Progress 
-              value={progressPercentage} 
-              className="h-3"
-            />
-          </div>
-          
-          {/* Processing message for active jobs */}
-          {jobStatus.status === 'processing' && (
-            <div className="text-center text-sm text-muted-foreground">
-              Processing entities with automatic rate limiting (3 requests/second)
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {/* Completion Summary - only show when completed */}
       {jobStatus.status === 'completed' && (
-        <div className="space-y-6">
+        <div className="space-y-4 min-w-0">
           {/* Processing Stats */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CheckCircle className="h-4 w-4 text-green-600" />
                 Processing Stats
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-xl font-bold text-blue-600">
                     {jobStatus.totalEntities}
                   </div>
-                  <div className="text-sm text-muted-foreground">Total</div>
+                  <div className="text-xs text-muted-foreground">Total</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-xl font-bold text-green-600">
                     {jobStatus.successfulEntities}
                   </div>
-                  <div className="text-sm text-muted-foreground">Successful</div>
+                  <div className="text-xs text-muted-foreground">Successful</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">
+                  <div className="text-xl font-bold text-red-600">
                     {jobStatus.failedEntities}
                   </div>
-                  <div className="text-sm text-muted-foreground">Failures</div>
+                  <div className="text-xs text-muted-foreground">Failures</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600">
+                  <div className="text-xl font-bold text-yellow-600">
                     {jobStatus.duplicateEntities}
                   </div>
-                  <div className="text-sm text-muted-foreground">Duplicates</div>
+                  <div className="text-xs text-muted-foreground">Duplicates</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-xl font-bold text-purple-600">
                     {formatDuration(jobStatus.startedAt, jobStatus.completedAt)}
                   </div>
-                  <div className="text-sm text-muted-foreground">Total Time</div>
+                  <div className="text-xs text-muted-foreground">Total Time</div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Match Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                Match Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {(() => {
-                const matchStats = calculateMatchStats(results);
-                return (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-500/10 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {matchStats.highConfidenceMatches} ({matchStats.highConfidencePercent}%)
+          <div className="space-y-3 min-w-0">
+            {/* Match Summary */}
+            <Card className="min-w-0">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  Match Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {(() => {
+                  const matchStats = calculateMatchStats(results);
+                  return (
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-3 bg-green-50 dark:bg-green-500/10 rounded">
+                        <div className="text-base font-bold text-green-600">
+                          {matchStats.highConfidenceMatches}
+                        </div>
+                        <div className="text-xs text-green-600/80">High ({matchStats.highConfidencePercent}%)</div>
                       </div>
-                      <div className="text-sm text-green-600/80">High Confidence Matches</div>
-                    </div>
-                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-500/10 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">
-                        {matchStats.mediumConfidenceMatches} ({matchStats.mediumConfidencePercent}%)
+                      <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-500/10 rounded">
+                        <div className="text-base font-bold text-yellow-600">
+                          {matchStats.mediumConfidenceMatches}
+                        </div>
+                        <div className="text-xs text-yellow-600/80">Medium ({matchStats.mediumConfidencePercent}%)</div>
                       </div>
-                      <div className="text-sm text-yellow-600/80">Medium Confidence Matches</div>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-500/10 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-600">
-                        {matchStats.noMatches} ({matchStats.noMatchPercent}%)
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-500/10 rounded">
+                        <div className="text-base font-bold text-gray-600">
+                          {matchStats.noMatches}
+                        </div>
+                        <div className="text-xs text-gray-600/80">None ({matchStats.noMatchPercent}%)</div>
                       </div>
-                      <div className="text-sm text-gray-600/80">No Matches</div>
                     </div>
-                  </div>
-                );
-              })()
-              }
-            </CardContent>
-          </Card>
+                  );
+                })()
+                }
+              </CardContent>
+            </Card>
 
-          {/* Risk Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-orange-600" />
-                Risk Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {(() => {
-                const riskStats = calculateRiskStats(results);
-                return (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-500/10 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {riskStats.noRiskEntities} ({riskStats.noRiskPercent}%)
+            {/* Risk Summary */}
+            <Card className="min-w-0">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  Risk Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {(() => {
+                  const riskStats = calculateRiskStats(results);
+                  return (
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-3 bg-green-50 dark:bg-green-500/10 rounded">
+                        <div className="text-base font-bold text-green-600">
+                          {riskStats.noRiskEntities}
+                        </div>
+                        <div className="text-xs text-green-600/80">No Risk ({riskStats.noRiskPercent}%)</div>
                       </div>
-                      <div className="text-sm text-green-600/80">No Risk Entities</div>
-                    </div>
-                    <div className="text-center p-4 bg-orange-50 dark:bg-orange-500/10 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">
-                        {riskStats.withRiskEntities} ({riskStats.withRiskPercent}%)
+                      <div className="text-center p-3 bg-orange-50 dark:bg-orange-500/10 rounded">
+                        <div className="text-base font-bold text-orange-600">
+                          {riskStats.withRiskEntities}
+                        </div>
+                        <div className="text-xs text-orange-600/80">With Risk ({riskStats.withRiskPercent}%)</div>
                       </div>
-                      <div className="text-sm text-orange-600/80">Entities with Risk</div>
-                    </div>
-                    <div className="text-center p-4 bg-red-50 dark:bg-red-500/10 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">
-                        {riskStats.thresholdBreachEntities} ({riskStats.thresholdBreachPercent}%)
+                      <div className="text-center p-3 bg-red-50 dark:bg-red-500/10 rounded">
+                        <div className="text-base font-bold text-red-600">
+                          {riskStats.thresholdBreachEntities}
+                        </div>
+                        <div className="text-xs text-red-600/80">Breach ({riskStats.thresholdBreachPercent}%)</div>
                       </div>
-                      <div className="text-sm text-red-600/80">Threshold Breach</div>
                     </div>
-                  </div>
-                );
-              })()
-              }
-            </CardContent>
-          </Card>
+                  );
+                })()
+                }
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 

@@ -8,17 +8,12 @@ import { sayariAuthService } from './auth';
 import { config } from '@/lib/config';
 
 // Create axios instance for Sayari API
-console.log('🌍 Sayari API Configuration:', {
-  baseUrl: config.sayari.baseUrl,
-  env: process.env.SAYARI_ENV,
-  clientId: config.sayari.clientId?.substring(0, 10) + '...'
-});
-
 const sayariClient = axios.create({
   baseURL: config.sayari.baseUrl,
   timeout: config.api.timeout,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
@@ -29,10 +24,8 @@ sayariClient.interceptors.request.use(
       const token = await sayariAuthService.getAccessToken();
       config.headers.Authorization = `Bearer ${token}`;
       
-      // Log request for debugging (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🚀 Sayari API Request: ${config.method?.toUpperCase()} ${config.url}`);
-      }
+      // Add additional headers that Sayari API might expect
+      config.headers['User-Agent'] = 'Prism-Screening-App/1.0';
       
       return config;
     } catch (error) {
@@ -48,11 +41,7 @@ sayariClient.interceptors.request.use(
 // Response interceptor for error handling and retries
 sayariClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Log successful response (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ Sayari API Response: ${response.status} ${response.config.url}`);
-    }
-    return response;
+return response;
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableAxiosRequestConfig;
@@ -73,16 +62,7 @@ sayariClient.interceptors.response.use(
       }
     }
 
-    // Log error for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`❌ Sayari API Error: ${error.response?.status} ${error.config?.url}`, {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-    }
-
-    return Promise.reject(transformError(error));
+return Promise.reject(transformError(error));
   }
 );
 
@@ -183,8 +163,6 @@ export async function withRateLimit<T>(
       const jitter = Math.random() * 1000; // Add up to 1 second of jitter
       const delay = retryAfter + jitter;
 
-      console.log(`Rate limited. Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
-      
       await new Promise(resolve => setTimeout(resolve, delay));
       attempt++;
     }

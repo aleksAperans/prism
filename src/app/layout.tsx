@@ -7,6 +7,9 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar";
 import { DynamicBreadcrumb } from "@/components/common/DynamicBreadcrumb";
 import { BreadcrumbProvider } from "@/components/providers/BreadcrumbProvider";
+import { RiskProfileProvider } from "@/contexts/RiskProfileContext";
+import { BatchUploadProvider } from "@/contexts/BatchUploadContext";
+import { GlobalBatchUploadPanel } from "@/components/common/GlobalBatchUploadPanel";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -30,8 +33,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <NextAuthSessionProvider>
-            <BreadcrumbProvider>
-              <SidebarProvider>
+            <RiskProfileProvider>
+              <BatchUploadProvider>
+                <BreadcrumbProvider>
+                  <SidebarProvider>
               <AppSidebar />
               <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
@@ -47,8 +52,12 @@ export default function RootLayout({
                   </div>
                 </main>
               </SidebarInset>
-              </SidebarProvider>
-            </BreadcrumbProvider>
+              {/* Global Batch Upload Panel */}
+              <GlobalBatchUploadPanel />
+                  </SidebarProvider>
+                </BreadcrumbProvider>
+              </BatchUploadProvider>
+            </RiskProfileProvider>
           </NextAuthSessionProvider>
         </ThemeProvider>
       </body>

@@ -234,7 +234,7 @@ export function DynamicBreadcrumbWithData({
 
 function generateBreadcrumbSegmentsWithData(
   pathname: string,
-  data: { projectName?: string; projectId?: string; referrer?: string; referrerLabel?: string }
+  data: { projectName?: string; projectId?: string; referrer?: string; referrerLabel?: string; screeningContext?: string }
 ): BreadcrumbSegment[] {
   const segments: BreadcrumbSegment[] = [];
   
@@ -293,6 +293,41 @@ function generateBreadcrumbSegmentsWithData(
     }
   }
 
+  // Handle screening context on project entities page
+  if (pathname.match(/^\/projects\/[^\/]+\/entities$/) && data.screeningContext) {
+    const pathParts = pathname.split('/').filter(Boolean);
+    const projectId = pathParts[1];
+    
+    segments.push({
+      label: 'Projects',
+      href: '/projects',
+      icon: Folder,
+    });
+    
+    const projectLabel = data.projectName || `Project ${projectId}`;
+    segments.push({
+      label: projectLabel,
+      href: `/projects/${projectId}/entities`,
+      icon: Folder,
+    });
+    
+    if (data.screeningContext === 'screening-entity') {
+      segments.push({
+        label: 'Screen Entity',
+        icon: Search,
+        isCurrentPage: true,
+      });
+    } else if (data.screeningContext === 'batch-upload') {
+      segments.push({
+        label: 'Batch Upload',
+        icon: Search,
+        isCurrentPage: true,
+      });
+    }
+    
+    return segments;
+  }
+
   // Parse the pathname
   const pathParts = pathname.split('/').filter(Boolean);
   let currentPath = '';
@@ -330,7 +365,7 @@ function generateDynamicSegmentWithData(
   pathParts: string[],
   index: number,
   isLast: boolean,
-  data: { projectName?: string; projectId?: string; referrer?: string; referrerLabel?: string }
+  data: { projectName?: string; projectId?: string; referrer?: string; referrerLabel?: string; screeningContext?: string }
 ): BreadcrumbSegment | null {
   // Handle project ID routes with actual project name
   if (pathParts[index - 1] === 'projects' && index === 1) {

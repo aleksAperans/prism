@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { projectService } from '@/services/api/projects';
 import { auth } from '@/lib/auth';
+import sayariClient, { withRateLimit } from '@/services/api/client';
 import { z } from 'zod';
 
 const querySchema = z.object({
-  limit: z.coerce.number().max(10000).optional(),
+  limit: z.coerce.number().max(100).optional(),
   next: z.string().optional(),
   prev: z.string().optional(),
   entity_types: z.array(z.string()).optional(),
@@ -23,8 +23,10 @@ export async function GET(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    
     // Check authentication
     const session = await auth();
+    
     if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -34,43 +36,32 @@ export async function GET(
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
-    const queryParams = {
-      limit: searchParams.get('limit'),
-      next: searchParams.get('next'),
-      prev: searchParams.get('prev'),
-      entity_types: searchParams.getAll('entity_types'),
-      geo_facets: searchParams.get('geo_facets'),
-      hs_codes: searchParams.getAll('hs_codes'),
-      received_hs_codes: searchParams.getAll('received_hs_codes'),
-      shipped_hs_codes: searchParams.getAll('shipped_hs_codes'),
-      combined_hs_codes: searchParams.getAll('combined_hs_codes'),
-      translation: searchParams.get('translation'),
-      sort: searchParams.get('sort'),
-      filters: searchParams.getAll('filters'),
-    };
-
-    // Filter out null values and empty arrays
-    const cleanedParams = Object.fromEntries(
-      Object.entries(queryParams).filter(([, value]) => {
-        if (value === null) return false;
-        if (Array.isArray(value) && value.length === 0) return false;
-        return true;
-      })
-    );
-
-    // Validate parameters
-    const validatedParams = querySchema.parse(cleanedParams);
+    
+    // Simplified parameter parsing
+    const limitParam = searchParams.get('limit');
+    const validatedParams = limitParam ? { limit: parseInt(limitParam) } : undefined;
 
     // Await params and fetch project entities from Sayari API
     const { projectId } = await params;
-    const response = await projectService.getProjectEntities(projectId, validatedParams);
+    
+    try {
+      const response = await withRateLimit(async () => {
+        const basicParams = validatedParams?.limit ? { limit: validatedParams.limit } : {};
+        
+        return await sayariClient.get(`/v1/projects/${projectId}/entities`, {
+          params: basicParams
+        });
+      });
+      
 
-    return NextResponse.json({
-      success: true,
-      data: response,
-    });
+      return NextResponse.json({
+        success: true,
+        data: response.data,
+      });
+    } catch (apiError) {
+      throw apiError;
+    }
   } catch (error) {
-    console.error('Failed to fetch project entities:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -88,6 +79,7 @@ export async function GET(
         success: false,
         error: 'Failed to fetch project entities',
         details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
       },
       { status: 500 }
     );

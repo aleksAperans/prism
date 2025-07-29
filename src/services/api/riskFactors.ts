@@ -57,7 +57,7 @@ class RiskFactorService {
                 }
               });
               
-              console.log(`Loaded ${this.riskFactorMap.size} risk factors`);
+              // Risk factors loaded successfully
               resolve();
             } catch (error) {
               reject(error);

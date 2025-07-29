@@ -8,6 +8,7 @@ interface BreadcrumbData {
   projectId?: string;
   referrer?: string;
   referrerLabel?: string;
+  screeningContext?: string;
 }
 
 interface BreadcrumbContextType {

@@ -17,38 +17,9 @@ import { CountryBadgeList } from '@/components/common/CountryBadge';
 import { RiskScoreBadge } from '@/components/common/RiskScoreBadge';
 import { EntityTypeBadge } from '@/components/common/EntityTypeBadge';
 import riskFactorsData from '@/lib/risk-factors-data.json';
-// Import only client-safe functions and types
-export interface RiskProfile {
-  id: string;
-  name: string;
-  description: string;
-  enabledFactors: string[];
-  isDefault: boolean;
-  createdAt: string;
-  createdBy: string;
-  riskScoringEnabled: boolean;
-  riskThreshold: number;
-  riskScores: Record<string, number>;
-  categories: Record<string, { name: string; description: string; enabled: boolean }>;
-}
+import { useGlobalRiskProfile } from '@/contexts/RiskProfileContext';
+import type { RiskProfile } from '@/lib/risk-profiles/yaml-loader';
 
-// Client-safe risk profile loading function
-async function clientLoadDefaultRiskProfile(): Promise<RiskProfile | null> {
-  try {
-    const response = await fetch('/api/risk-profiles/default');
-    
-    if (!response.ok) {
-      console.warn('Failed to load default risk profile from API');
-      return null;
-    }
-    
-    const data = await response.json();
-    return data.profile || null;
-  } catch (error) {
-    console.error('Failed to load default risk profile:', error);
-    return null;
-  }
-}
 
 // Client-safe risk factor filtering function
 function filterRiskFactorsByProfile(
@@ -120,7 +91,6 @@ interface ScreeningResultsProps {
   onRetry?: () => void;
   onMatchRemoved?: (refreshedData?: { matches: unknown[]; risk_factors: unknown[]; match_count: number }) => void;
   alreadyExists?: boolean;
-  selectedRiskProfile?: string; // Add the selected risk profile ID
 }
 
 export function ScreeningResults({ 
@@ -129,15 +99,15 @@ export function ScreeningResults({
   error, 
   onRetry,
   onMatchRemoved,
-  alreadyExists = false,
-  selectedRiskProfile
+  alreadyExists = false
 }: ScreeningResultsProps) {
   const [localResults, setLocalResults] = useState<ScreeningResult[]>(results);
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
   const [expandedRiskFactors, setExpandedRiskFactors] = useState<Record<string, boolean>>({});
   const [expandedIndividualMatches, setExpandedIndividualMatches] = useState<Record<string, boolean>>({});
   const [removingMatches, setRemovingMatches] = useState<Record<string, boolean>>({});
-  const [riskProfile, setRiskProfile] = useState<RiskProfile | null>(null);
+  
+  const { activeProfile: riskProfile } = useGlobalRiskProfile();
 
   // Sync with parent results when they change
   useEffect(() => {
@@ -148,47 +118,6 @@ export function ScreeningResults({
     }
   }, [results]);
 
-  // Load risk profile for filtering
-  useEffect(() => {
-    const loadRiskProfile = async () => {
-      try {
-        let profile = null;
-        
-        // Load the selected risk profile if provided
-        if (selectedRiskProfile) {
-          console.log('🎯 Loading selected risk profile for match filtering:', selectedRiskProfile);
-          
-          // Handle special case for "default" profile
-          if (selectedRiskProfile === 'default') {
-            console.log('📋 Selected profile is "default", loading default profile');
-            profile = await clientLoadDefaultRiskProfile();
-          } else {
-            // Load specific profile by ID
-            const response = await fetch(`/api/risk-profiles/${selectedRiskProfile}`);
-            if (response.ok) {
-              const data = await response.json();
-              profile = data.profile;
-            }
-          }
-        }
-        
-        // Fall back to default if no profile was selected or loading failed
-        if (!profile) {
-          console.log('📋 Loading default risk profile as final fallback');
-          profile = await clientLoadDefaultRiskProfile();
-        }
-        
-        setRiskProfile(profile);
-        if (profile) {
-          console.log('✅ Risk profile loaded for match filtering:', profile.name);
-          console.log('📋 Enabled factors:', profile.enabledFactors.length, profile.enabledFactors);
-        }
-      } catch (error) {
-        console.warn('Failed to load risk profile for match filtering:', error);
-      }
-    };
-    loadRiskProfile();
-  }, [selectedRiskProfile, results]);
 
   // Helper function to get filtered risk factor count for a match
   const getFilteredRiskFactorCount = useCallback((matchRiskFactors: Array<{ id: string }>) => {
@@ -549,8 +478,11 @@ export function ScreeningResults({
                                 <Badge variant="outline" className="text-xs whitespace-nowrap flex-shrink-0">
                                   {Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length}
                                 </Badge>
-                                {/* Risk Score Display */}
-                                {result.risk_score && (
+                                {/* Risk Score Display - Only show for actual matches */}
+                                {result.risk_score && 
+                                 result.match_strength !== 'no_match' && 
+                                 result.match_strength !== 'No_match' &&
+                                 (result.match_strength === 'strong' || result.match_strength === 'partial') && (
                                   <RiskScoreBadge 
                                     riskScore={result.risk_score}
                                     size="sm"

@@ -28,14 +28,8 @@ export class ProjectService {
     prev?: string;
   }): Promise<SayariResponse<SayariProject[]>> {
     return withRateLimit(async () => {
-      console.log('📡 Calling Sayari API:', '/v1/projects', params);
       const response = await sayariClient.get<SayariResponse<SayariProject[]>>('/v1/projects', {
         params,
-      });
-      console.log('✅ Sayari API Response:', { 
-        status: response.status,
-        dataCount: response.data?.data?.length || 0,
-        firstProject: response.data?.data?.[0]?.label || 'No projects'
       });
       return response.data;
     });
@@ -115,15 +109,51 @@ export class ProjectService {
     }
   ): Promise<SayariResponse<ProjectEntity[]>> {
     return withRateLimit(async () => {
-      console.log('📡 Calling Sayari API for project entities:', projectId, params);
-      const response = await sayariClient.get(`/v1/projects/${projectId}/entities`, {
-        params,
-      });
-      console.log('✅ Sayari API Project Entities Response:', { 
-        status: response.status,
-        dataCount: response.data?.data?.length || 0,
-        firstEntity: response.data?.data?.[0]?.label || 'No entities'
-      });
+      try {
+        // Use the correct entities endpoint
+        const endpoint = `/v1/projects/${projectId}/entities`;
+        
+        const response = await sayariClient.get(endpoint, {
+          params,
+        });
+        
+        console.log('🔍 API Endpoint Full Response:', {
+          endpoint,
+          status: response.status,
+          responseStructure: {
+            dataKeys: Object.keys(response.data || {}),
+            hasData: 'data' in response.data,
+            dataType: Array.isArray(response.data?.data) ? 'array' : typeof response.data?.data,
+            dataLength: response.data?.data?.length || 0
+          },
+          firstEntity: response.data?.data?.[0] ? {
+            allKeys: Object.keys(response.data.data[0]),
+            hasProjectEntityId: 'project_entity_id' in response.data.data[0],
+            hasId: 'id' in response.data.data[0],
+            hasStrength: 'strength' in response.data.data[0],
+            strengthValue: response.data.data[0].strength,
+            hasMatchStrength: 'match_strength' in response.data.data[0],
+            matchStrengthValue: response.data.data[0].match_strength,
+            hasRiskFactors: 'risk_factors' in response.data.data[0],
+            riskFactorsValue: response.data.data[0].risk_factors,
+            hasCreatedAt: 'created_at' in response.data.data[0],
+            createdAtValue: response.data.data[0].created_at,
+            sampleEntity: response.data.data[0]
+          } : 'No entities'
+        });
+        
+        return response.data;
+      } catch (error) {
+        console.error('Error in getProjectEntities:', error);
+        throw error;
+      }
+    });
+  }
+
+  // Delete project entity
+  async deleteProjectEntity(projectId: string, projectEntityId: string): Promise<void> {
+    return withRateLimit(async () => {
+      const response = await sayariClient.delete(`/v1/projects/${projectId}/entities/${projectEntityId}`);
       return response.data;
     });
   }

@@ -24,10 +24,25 @@ export function RiskScoreBadge({
     return null;
   }
 
-  const getRiskVariant = () => {
-    if (!meetsThreshold) return 'secondary';
-    // If threshold is exceeded, use outline variant to match critical risk badge styling
+  const getRiskVariant = (): "outline" => {
+    // Always use outline variant for consistent styling with other badges
     return 'outline';
+  };
+
+  const getRiskStyles = () => {
+    if (totalScore === 0) {
+      // No risk - green outline styling to match other badges
+      return "bg-green-500/10 text-green-600 border-green-500/20 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20";
+    } else if (!meetsThreshold) {
+      // Has risk but below threshold - light red
+      return "bg-red-400/10 text-red-500 border-red-400/20 dark:bg-red-400/10 dark:text-red-300 dark:border-red-400/20";
+    } else if (totalScore === threshold) {
+      // Meets threshold exactly - current red
+      return "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
+    } else {
+      // Exceeds threshold - darker red
+      return "bg-red-600/15 text-red-700 border-red-600/30 dark:bg-red-600/15 dark:text-red-300 dark:border-red-600/30";
+    }
   };
 
   const getRiskIcon = () => {
@@ -47,8 +62,7 @@ export function RiskScoreBadge({
             "font-mono",
             size === 'sm' && "text-xs",
             size === 'lg' && "text-base px-3 py-1",
-            // Apply critical risk badge styling when threshold is exceeded
-            meetsThreshold && "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+            getRiskStyles()
           )}
         >
           <Icon className={cn(
@@ -63,7 +77,12 @@ export function RiskScoreBadge({
         {showThresholdExceeded && meetsThreshold && (
           <Badge 
             variant="outline" 
-            className="text-xs animate-pulse bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+            className={cn(
+              "text-xs animate-pulse",
+              totalScore === threshold 
+                ? "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+                : "bg-red-600/15 text-red-700 border-red-600/30 dark:bg-red-600/15 dark:text-red-300 dark:border-red-600/30"
+            )}
           >
             threshold exceeded
           </Badge>
