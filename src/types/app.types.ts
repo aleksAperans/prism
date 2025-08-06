@@ -65,7 +65,6 @@ export interface EntityFormData {
   project_id: string;
   name: string;
   type: 'company' | 'person';
-  profile: 'corporate' | 'suppliers' | 'search' | 'screen';
   risk_profile: string;
   identifier?: string;
   address?: string;

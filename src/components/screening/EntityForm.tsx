@@ -23,9 +23,6 @@ const entityFormSchema = z.object({
   project_id: z.string().min(1, 'Please select a project'),
   name: z.string().min(1, 'Entity name is required'),
   type: z.enum(['company', 'person']),
-  profile: z.enum(['corporate', 'suppliers', 'search', 'screen'], {
-    message: 'Please select an analysis profile',
-  }),
   risk_profile: z.string(),
   identifier: z.string().optional(),
   address: z.string().optional(),
@@ -50,12 +47,12 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
   const { projects, loading: projectsLoading, error: projectsError, refetch } = useProjects();
   const { activeProfile } = useGlobalRiskProfile();
   
+  
   const form = useForm<EntityFormData>({
     resolver: zodResolver(entityFormSchema),
     defaultValues: {
       name: '',
       type: 'company',
-      profile: 'corporate', // Hidden field with corporate as default
       risk_profile: activeProfile?.id || 'default',
       identifier: '',
       address: '',
@@ -66,8 +63,24 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
   });
 
 
-  // Set default project when projects load
+  // Clear any old cached form data and set default project when projects load
   React.useEffect(() => {
+    // Clear any old profile field that might be cached
+    const currentValues = form.getValues();
+    if ('profile' in currentValues) {
+      // Force reset the form to remove any old fields
+      form.reset({
+        name: '',
+        type: 'company',
+        risk_profile: activeProfile?.id || 'default',
+        identifier: '',
+        address: '',
+        country: '',
+        date_of_birth: '',
+        project_id: '',
+      });
+    }
+    
     if (projects.length > 0 && !form.getValues('project_id')) {
       // Try to get the user's preferred default project
       const savedDefaultId = typeof window !== 'undefined' ? localStorage.getItem('defaultProjectId') : null;
@@ -77,7 +90,7 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
       
       form.setValue('project_id', defaultProject.id);
     }
-  }, [projects]);
+  }, [projects, activeProfile?.id]);
 
   // Expose form setValue method when component mounts
   React.useEffect(() => {
@@ -92,6 +105,7 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
       form.setValue('risk_profile', activeProfile.id);
     }
   }, [activeProfile?.id, form]);
+
 
   // Handle project selection change
   const handleProjectChange = (value: string) => {
@@ -120,20 +134,21 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
   }, [projects, showCreateProject, form, previousProjectCount]);
 
   const handleSubmit = (data: EntityFormData) => {
-    console.log('🔍 Form submitted with data:', data);
-    console.log('🔍 Form validation state:', form.formState);
-    console.log('🔍 Form errors:', form.formState.errors);
+    console.log('🔍 Form submission - raw data:', data);
     
-    // Clean up optional fields - remove empty strings
+    // Clean up optional fields - remove empty strings and ensure no old profile field exists
     const cleanedData: EntityFormData = {
-      ...data,
+      project_id: data.project_id,
+      name: data.name,
+      type: data.type,
+      risk_profile: data.risk_profile,
       identifier: data.identifier || undefined,
       address: data.address || undefined,
       country: data.country || undefined,
       date_of_birth: data.date_of_birth || undefined,
     };
     
-    console.log('🔍 Cleaned data being passed to onSubmit:', cleanedData);
+    console.log('🔍 Form submission - cleaned data:', cleanedData);
     onSubmit(cleanedData);
   };
 
@@ -169,7 +184,7 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
         <CardTitle>Screen Entity</CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
+        <Form {...form} key="form-v2">
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             {/* Entity Name */}
             <FormField

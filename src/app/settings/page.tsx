@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Shield, User, Bell } from 'lucide-react';
 import { RiskConfiguration } from '@/components/settings/RiskConfiguration';
 import { ActiveRiskProfileSettings } from '@/components/settings/ActiveRiskProfileSettings';
+import { MatchSettings } from '@/components/settings/MatchSettings';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('risk-config');
@@ -81,19 +82,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                General application preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                General settings coming soon...
-              </p>
-            </CardContent>
-          </Card>
+          <MatchSettings />
         </TabsContent>
       </Tabs>
     </div>

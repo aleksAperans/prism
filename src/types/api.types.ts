@@ -36,7 +36,7 @@ export interface ProjectMember {
 export interface EntityAttributes {
   name: string[];
   type: 'company' | 'person';
-  addresses?: string[];
+  address?: string[];
   country?: string[];
   identifier?: string[];
   date_of_birth?: string; // YYYY-MM-DD format

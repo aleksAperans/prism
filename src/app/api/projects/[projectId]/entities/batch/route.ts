@@ -3,6 +3,7 @@ import { BatchProcessor } from '@/services/batch/batchProcessor';
 import { CSVParser } from '@/services/batch/csvParser';
 import type { BatchEntityInput, BatchProcessingOptions } from '@/services/batch/types';
 import { auth } from '@/lib/auth';
+import { readGlobalSettings } from '@/lib/global-settings';
 
 // Global batch processor instance
 const batchProcessor = new BatchProcessor();
@@ -24,7 +25,7 @@ export async function POST(
     const { projectId } = await params;
     const body = await request.json();
     
-    const { csvContent, riskProfile, profile = 'corporate', chunkSize = 10 } = body;
+    const { csvContent, riskProfile, chunkSize = 10 } = body;
     
     if (!csvContent || !riskProfile) {
       return NextResponse.json(
@@ -32,6 +33,11 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // Read global settings to get the default match profile
+    const globalSettings = await readGlobalSettings();
+    const profile = globalSettings.default_match_profile;
+    console.log('📋 Batch upload using match profile from global settings:', profile);
 
     // Parse CSV
     const parseResult = CSVParser.parse(csvContent);
@@ -45,6 +51,18 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // Debug: Log parsed entities to check address handling
+    console.log('🔍 CSV parsed entities (first 3):');
+    parseResult.data.slice(0, 3).forEach((entity, index) => {
+      console.log(`  Entity ${index + 1}:`, {
+        name: entity.name,
+        address: entity.address,
+        country: entity.country,
+        type: entity.type,
+        identifier: entity.identifier
+      });
+    });
 
     // Validate entity count
     if (parseResult.data.length === 0) {

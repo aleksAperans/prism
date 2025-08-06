@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import type { BatchEntityResult } from '@/services/batch/types';
 import type { RiskProfile } from '@/lib/risk-profiles/yaml-loader';
-import { calculateEntityRiskScore, clientLoadDefaultRiskProfile } from '@/lib/risk-scoring-client';
+import { calculateEntityRiskScore, clientLoadDefaultRiskProfile, filterRiskFactorsByProfile } from '@/lib/risk-scoring-client';
 
 interface BatchResultsExportProps {
   results: BatchEntityResult[];
@@ -44,15 +44,25 @@ interface FlattenedResult {
   entity_countries?: string;
   entity_created_at?: string;
   
+  // New: Project entity risk info
+  project_entity_all_risk_factors?: string;
+  project_entity_filtered_risk_factors?: string;
+  project_entity_has_upstream?: boolean;
+  project_entity_upstream_products?: string;
+  
   // Match info (one row per match)
+  match_index: number; // New: 0 for no-match, 1-10 for matches
   match_id?: string;
   match_entity_id?: string;
   match_label?: string;
   match_type?: string;
+  match_addresses?: string; // New: addresses from match
   match_countries?: string;
   match_risk_factors?: string;
   match_risk_score?: number;
   match_risk_threshold_exceeded?: boolean;
+  match_has_upstream?: boolean; // New: has_upstream from match
+  match_upstream_products?: string; // New: upstream products from match
   
   // Summary stats
   total_matches: number;
@@ -107,6 +117,12 @@ export function BatchResultsExport({ results, riskProfileId, onNavigateToProject
       if (result.status === 'success' && result.projectEntity) {
         const entity = result.projectEntity;
         
+        // Prepare project entity risk data
+        const allEntityRiskFactors = entity.risk_factors?.map(rf => rf.id) || [];
+        const filteredEntityRiskFactors = riskProfile 
+          ? filterRiskFactorsByProfile(entity.risk_factors || [], riskProfile).map(rf => rf.id)
+          : allEntityRiskFactors;
+        
         // Add project entity info
         Object.assign(baseRow, {
           project_entity_id: entity.project_entity_id,
@@ -118,15 +134,25 @@ export function BatchResultsExport({ results, riskProfileId, onNavigateToProject
           total_matches: entity.matches?.length || 0,
           has_risk_factors: (entity.risk_factors?.length || 0) > 0,
           risk_factor_count: entity.risk_factors?.length || 0,
+          // New project entity risk columns
+          project_entity_all_risk_factors: allEntityRiskFactors.join(', '),
+          project_entity_filtered_risk_factors: filteredEntityRiskFactors.join(', '),
+          project_entity_has_upstream: entity.upstream?.has_upstream || false,
+          project_entity_upstream_products: entity.upstream?.products?.join(', ') || '',
         });
 
         // Create one row per match (or one row if no matches)
         const matches = entity.matches || [];
         
         if (matches.length === 0) {
-          flattenedResults.push(baseRow as FlattenedResult);
+          // No matches - set match_index to 0
+          const noMatchRow: FlattenedResult = {
+            ...baseRow,
+            match_index: 0,
+          } as FlattenedResult;
+          flattenedResults.push(noMatchRow);
         } else {
-          matches.forEach((match) => {
+          matches.forEach((match, index) => {
             // Calculate proper risk score for this match
             let matchRiskScore = 0;
             let matchThresholdExceeded = false;
@@ -138,24 +164,33 @@ export function BatchResultsExport({ results, riskProfileId, onNavigateToProject
               matchThresholdExceeded = riskScoreResult.meetsThreshold;
             }
             
+            // Extract addresses from match
+            const matchAddresses = match.addresses?.map(addr => addr.value).join('; ') || '';
+            
             const matchRow: FlattenedResult = {
               ...baseRow,
+              match_index: index + 1, // 1-based index for matches
               match_id: match.match_id,
               match_entity_id: match.sayari_entity_id,
               match_label: match.label,
               match_type: match.type,
+              match_addresses: matchAddresses,
               match_countries: match.countries?.join(', ') || '',
               match_risk_factors: match.risk_factors?.map(rf => rf.id).join(', ') || '',
               match_risk_score: matchRiskScore,
               match_risk_threshold_exceeded: matchThresholdExceeded,
+              // New match upstream columns
+              match_has_upstream: match.upstream?.has_upstream || false,
+              match_upstream_products: match.upstream?.products?.join(', ') || '',
             } as FlattenedResult;
 
             flattenedResults.push(matchRow);
           });
         }
       } else {
-        // Failed or duplicate - single row
+        // Failed or duplicate - single row with match_index 0
         Object.assign(baseRow, {
+          match_index: 0,
           total_matches: 0,
           has_risk_factors: false,
           risk_factor_count: 0,
@@ -190,18 +225,27 @@ export function BatchResultsExport({ results, riskProfileId, onNavigateToProject
       'Total Matches',
       'Has Risk Factors',
       'Risk Factor Count',
+      // New project entity risk columns
+      'Project Entity All Risk Factors',
+      'Project Entity Filtered Risk Factors',
+      'Project Entity Has Upstream',
+      'Project Entity Upstream Products',
     ];
 
     if (includeMatches) {
       headers.push(
+        'Match Index',
         'Match ID',
         'Match Entity ID',
         'Match Label',
         'Match Type',
+        'Match Addresses',
         'Match Countries',
         'Match Risk Factors',
         'Match Risk Score',
-        'Match Risk Threshold Exceeded'
+        'Match Risk Threshold Exceeded',
+        'Match Has Upstream',
+        'Match Upstream Products'
       );
     }
 
@@ -227,18 +271,27 @@ export function BatchResultsExport({ results, riskProfileId, onNavigateToProject
           row.total_matches || 0,
           row.has_risk_factors ? 'Yes' : 'No',
           row.risk_factor_count || 0,
+          // New project entity risk columns
+          `"${(row.project_entity_all_risk_factors || '').replace(/"/g, '""')}"`,
+          `"${(row.project_entity_filtered_risk_factors || '').replace(/"/g, '""')}"`,
+          row.project_entity_has_upstream ? 'Yes' : 'No',
+          `"${(row.project_entity_upstream_products || '').replace(/"/g, '""')}"`,
         ];
 
         if (includeMatches) {
           values.push(
+            row.match_index?.toString() || '0',
             row.match_id || '',
             row.match_entity_id || '',
             `"${(row.match_label || '').replace(/"/g, '""')}"`,
             row.match_type || '',
+            `"${(row.match_addresses || '').replace(/"/g, '""')}"`,
             `"${(row.match_countries || '').replace(/"/g, '""')}"`,
             `"${(row.match_risk_factors || '').replace(/"/g, '""')}"`,
             (row.match_risk_score || 0).toString(),
-            row.match_risk_threshold_exceeded ? 'Yes' : 'No'
+            row.match_risk_threshold_exceeded ? 'Yes' : 'No',
+            row.match_has_upstream ? 'Yes' : 'No',
+            `"${(row.match_upstream_products || '').replace(/"/g, '""')}"`
           );
         }
 

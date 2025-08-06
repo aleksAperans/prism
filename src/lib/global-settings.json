@@ -1,5 +1,6 @@
 {
-  "active_risk_profile_id": "core",
-  "updated_at": "2025-07-29T02:27:18.452Z",
+  "active_risk_profile_id": "forced-labor",
+  "default_match_profile": "corporate",
+  "updated_at": "2025-07-31T00:29:19.293Z",
   "updated_by": "2"
 }

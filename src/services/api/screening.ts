@@ -23,8 +23,19 @@ export class ScreeningService {
         profile,
       };
 
-      // Send screening request
+      // Debug: Log request to Sayari API
+      console.log('🎯 Sending request to Sayari API:', {
+        endpoint: `/v1/projects/${projectId}/entities/create`,
+        request: {
+          ...request,
+          // Show if address field is present
+          hasAddress: !!request.address,
+          addressCount: request.address?.length || 0,
+          address: request.address
+        }
+      });
 
+      // Send screening request
       const response = await sayariClient.post<{ data: ProjectEntity }>(
         `/v1/projects/${projectId}/entities/create`,
         request

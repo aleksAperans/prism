@@ -218,10 +218,18 @@ export class BatchProcessor {
       const attributes: EntityAttributes = {
         name: [entity.name],
         type: entity.type || 'company',
-        ...(entity.address && { addresses: [entity.address] }),
+        ...(entity.address && { address: [entity.address] }),
         ...(entity.country && { country: [entity.country] }),
         ...(entity.identifier && { identifier: [entity.identifier] }),
       };
+
+      // Debug: Log entity conversion
+      console.log(`🔍 Processing entity ${index + 1}:`, {
+        input: entity,
+        attributes: attributes,
+        hasAddress: !!entity.address,
+        addressConverted: !!attributes.address
+      });
       
       // Check for duplicates first
       const duplicateCheck = await this.rateLimiter.execute(async () =>

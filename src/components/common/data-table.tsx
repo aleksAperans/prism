@@ -561,13 +561,16 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
               className="text-destructive"
               onClick={async () => {
                 const entityId = row.original.project_entity_id;
+                const entityLabel = row.original.label;
                 try {
                   const response = await fetch(`/api/projects/${projectId}/entities/${entityId}`, {
                     method: 'DELETE',
                   });
                   
                   if (!response.ok) {
-                    throw new Error('Failed to delete entity');
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    console.error(`Failed to delete entity ${entityId}:`, errorData);
+                    throw new Error(errorData.error || 'Failed to delete entity');
                   }
                   
                   // Update local data
@@ -580,9 +583,10 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
                     onEntityDelete(entityId);
                   }
                   
-                  toast.success('Entity deleted successfully');
+                  toast.success(`Entity "${entityLabel}" deleted successfully`);
                 } catch (error) {
-                  toast.error('Failed to delete entity');
+                  console.error('Delete entity error:', error);
+                  toast.error(error instanceof Error ? error.message : 'Failed to delete entity');
                 }
               }}
             >
@@ -734,37 +738,56 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
                 
                 if (selectedIds.length > 0) {
                   // Delete each entity individually using the API endpoint
-                  try {
-                    const deletePromises = selectedIds.map(async (entityId) => {
+                  const successfulDeletes: string[] = [];
+                  const failedDeletes: string[] = [];
+                  
+                  // Process deletions with rate limiting
+                  for (const entityId of selectedIds) {
+                    try {
                       const response = await fetch(`/api/projects/${projectId}/entities/${entityId}`, {
                         method: 'DELETE',
                       });
                       
-                      if (!response.ok) {
-                        throw new Error(`Failed to delete entity ${entityId}`);
+                      if (response.ok) {
+                        successfulDeletes.push(entityId);
+                      } else {
+                        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                        console.error(`Failed to delete entity ${entityId}:`, errorData);
+                        failedDeletes.push(entityId);
                       }
-                      
-                      return entityId;
-                    });
+                    } catch (error) {
+                      console.error(`Network error deleting entity ${entityId}:`, error);
+                      failedDeletes.push(entityId);
+                    }
                     
-                    await Promise.all(deletePromises);
-                    
-                    // Update the local data to remove deleted entities
+                    // Add a small delay between requests to avoid overwhelming the API
+                    if (selectedIds.indexOf(entityId) < selectedIds.length - 1) {
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                  }
+                  
+                  // Update the local data to remove successfully deleted entities
+                  if (successfulDeletes.length > 0) {
                     setEntityData(prev => prev.filter(entity => 
-                      !selectedIds.includes(entity.project_entity_id)
+                      !successfulDeletes.includes(entity.project_entity_id)
                     ));
-                    
-                    // Clear selection
-                    setRowSelection({});
                     
                     // Notify parent component if callback exists
                     if (onEntityDelete) {
-                      selectedIds.forEach(id => onEntityDelete(id));
+                      successfulDeletes.forEach(id => onEntityDelete(id));
                     }
-                    
-                    toast.success(`Successfully deleted ${selectedIds.length} entities`);
-                  } catch (error) {
-                    toast.error('Failed to delete some entities');
+                  }
+                  
+                  // Clear selection
+                  setRowSelection({});
+                  
+                  // Show appropriate toast messages
+                  if (successfulDeletes.length > 0 && failedDeletes.length === 0) {
+                    toast.success(`Successfully deleted ${successfulDeletes.length} entities`);
+                  } else if (successfulDeletes.length > 0 && failedDeletes.length > 0) {
+                    toast.warning(`Deleted ${successfulDeletes.length} entities, but ${failedDeletes.length} failed`);
+                  } else if (failedDeletes.length > 0) {
+                    toast.error(`Failed to delete ${failedDeletes.length} entities`);
                   }
                 }
               }}

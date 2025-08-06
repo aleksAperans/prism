@@ -4,6 +4,7 @@ import { screeningService } from '@/services/api/screening';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { loadDefaultRiskProfile, loadRiskProfileById, filterRiskFactorsByProfile, calculateEntityRiskScore } from '@/lib/risk-scoring';
+import { readGlobalSettings } from '@/lib/global-settings';
 import type { EntityFormData } from '@/types/app.types';
 
 export async function POST(request: NextRequest) {
@@ -35,10 +36,7 @@ export async function POST(request: NextRequest) {
       validationErrors.push('Entity type is required and must be either "company" or "person"');
     }
     
-    // Profile validation - this is crucial for Sayari API
-    if (!body.profile || !['corporate', 'suppliers', 'search', 'screen'].includes(body.profile)) {
-      validationErrors.push('Profile is required and must be one of: corporate, suppliers, search, screen');
-    }
+    // Note: Profile is now read from global settings, not from request body
     
     // Optional field validation
     if (body.address && (typeof body.address !== 'string' || body.address.trim() === '')) {
@@ -73,6 +71,11 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('✅ Request validation passed for entity:', body.name);
+
+    // Read global settings to get the default match profile
+    const globalSettings = await readGlobalSettings();
+    const matchProfile = globalSettings.default_match_profile;
+    console.log('📋 Using match profile from global settings:', matchProfile);
 
     // Use the selected project from the form
     const projectId = body.project_id;
@@ -127,7 +130,7 @@ export async function POST(request: NextRequest) {
       const entityAttributes = {
         name: [body.name], // Convert to array as Sayari expects
         type: body.type as 'person' | 'company',
-        ...(body.address && { addresses: [body.address] }), // Use 'addresses' as per EntityAttributes interface
+        ...(body.address && { address: [body.address] }), // Use 'address' as per EntityAttributes interface
         ...(body.country && { country: [body.country] }), // Convert to array as Sayari expects
         ...(body.identifier && { identifier: [body.identifier] }), // Add identifier support
         ...(body.date_of_birth && { date_of_birth: body.date_of_birth }),
@@ -135,13 +138,13 @@ export async function POST(request: NextRequest) {
       };
       
       console.log('🎯 Analyzing entity with attributes:', entityAttributes);
-      console.log('📋 Using Sayari profile:', body.profile);
+      console.log('📋 Using Sayari profile:', matchProfile);
       console.log('🔍 Using risk profile:', body.risk_profile || 'default');
       console.log('🏗️ Project ID:', projectId);
       console.log('📝 Exact Sayari request format:', {
         projectId,
         entityAttributes,
-        profile: body.profile
+        profile: matchProfile
       });
       
       // Check if entity already exists
@@ -162,7 +165,7 @@ export async function POST(request: NextRequest) {
         screeningResult = await screeningService.screenEntity(
           projectId,
           entityAttributes,
-          body.profile as 'corporate' | 'suppliers' | 'search' | 'screen' // Now guaranteed to be valid due to validation
+          matchProfile // Use the profile from global settings
         );
       }
 

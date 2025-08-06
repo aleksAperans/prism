@@ -29,13 +29,30 @@ export async function DELETE(
   } catch (error) {
     console.error('Failed to delete project entity:', error);
     
+    // Check if it's a Sayari API error
+    let statusCode = 500;
+    let errorMessage = 'Failed to remove entity from project';
+    
+    if (error && typeof error === 'object' && 'response' in error) {
+      const apiError = error as any;
+      if (apiError.response?.status === 429) {
+        statusCode = 429;
+        errorMessage = 'Rate limit exceeded. Please try again in a moment.';
+      } else if (apiError.response?.status === 404) {
+        statusCode = 404;
+        errorMessage = 'Entity not found in project';
+      } else if (apiError.response?.data?.message) {
+        errorMessage = apiError.response.data.message;
+      }
+    }
+    
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to remove entity from project',
+        error: errorMessage,
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: statusCode }
     );
   }
 }

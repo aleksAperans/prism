@@ -310,7 +310,6 @@ export function BatchUploadPanel({
             body: JSON.stringify({
               csvContent,
               riskProfile: activeProfile?.id || 'default',
-              profile: 'corporate',
               chunkSize: 10,
             }),
           });

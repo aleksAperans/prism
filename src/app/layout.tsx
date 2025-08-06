@@ -36,7 +36,7 @@ export default function RootLayout({
             <RiskProfileProvider>
               <BatchUploadProvider>
                 <BreadcrumbProvider>
-                  <SidebarProvider>
+                    <SidebarProvider>
               <AppSidebar />
               <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
@@ -54,9 +54,9 @@ export default function RootLayout({
               </SidebarInset>
               {/* Global Batch Upload Panel */}
               <GlobalBatchUploadPanel />
-                  </SidebarProvider>
-                </BreadcrumbProvider>
-              </BatchUploadProvider>
+                    </SidebarProvider>
+                  </BreadcrumbProvider>
+                </BatchUploadProvider>
             </RiskProfileProvider>
           </NextAuthSessionProvider>
         </ThemeProvider>

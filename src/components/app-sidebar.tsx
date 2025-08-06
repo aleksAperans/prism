@@ -66,12 +66,6 @@ const navItems: NavItem[] = [
     disabled: true,
   },
   {
-    title: 'User Management',
-    href: '/users',
-    icon: Users,
-    disabled: true,
-  },
-  {
     title: 'Settings',
     href: '/settings',
     icon: Settings,
