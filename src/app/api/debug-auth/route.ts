@@ -22,7 +22,7 @@ export async function GET() {
     // Test NextAuth import
     let nextAuthStatus = 'not tested';
     try {
-      const { auth } = await import('@/lib/auth');
+      await import('@/lib/auth');
       nextAuthStatus = 'imported successfully';
     } catch (authError) {
       nextAuthStatus = `error: ${authError instanceof Error ? authError.message : 'unknown'}`;

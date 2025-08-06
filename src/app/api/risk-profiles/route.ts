@@ -179,7 +179,7 @@ export async function DELETE(request: NextRequest) {
           { status: 403 }
         );
       }
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Profile not found' },
         { status: 404 }

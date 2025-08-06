@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
           'Content-Disposition': `attachment; filename="${safeId}.yaml"`
         }
       });
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Profile not found' },
         { status: 404 }

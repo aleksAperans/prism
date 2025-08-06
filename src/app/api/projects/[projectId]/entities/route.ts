@@ -3,20 +3,20 @@ import { auth } from '@/lib/auth';
 import sayariClient, { withRateLimit } from '@/services/api/client';
 import { z } from 'zod';
 
-const querySchema = z.object({
-  limit: z.coerce.number().max(100).optional(),
-  next: z.string().optional(),
-  prev: z.string().optional(),
-  entity_types: z.array(z.string()).optional(),
-  geo_facets: z.coerce.boolean().optional(),
-  hs_codes: z.array(z.string()).optional(),
-  received_hs_codes: z.array(z.string()).optional(),
-  shipped_hs_codes: z.array(z.string()).optional(),
-  combined_hs_codes: z.array(z.string()).optional(),
-  translation: z.string().optional(),
-  sort: z.string().optional(),
-  filters: z.array(z.string()).optional(),
-}).optional();
+// const querySchema = z.object({
+//   limit: z.coerce.number().max(100).optional(),
+//   next: z.string().optional(),
+//   prev: z.string().optional(),
+//   entity_types: z.array(z.string()).optional(),
+//   geo_facets: z.coerce.boolean().optional(),
+//   hs_codes: z.array(z.string()).optional(),
+//   received_hs_codes: z.array(z.string()).optional(),
+//   shipped_hs_codes: z.array(z.string()).optional(),
+//   combined_hs_codes: z.array(z.string()).optional(),
+//   translation: z.string().optional(),
+//   sort: z.string().optional(),
+//   filters: z.array(z.string()).optional(),
+// }).optional();
 
 export async function GET(
   request: NextRequest,

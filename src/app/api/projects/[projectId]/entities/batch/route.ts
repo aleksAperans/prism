@@ -107,8 +107,7 @@ export async function POST(
 }
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  request: NextRequest
 ) {
   try {
     // Check authentication
@@ -161,8 +160,7 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  request: NextRequest
 ) {
   try {
     // Check authentication

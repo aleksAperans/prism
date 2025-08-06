@@ -105,7 +105,7 @@ export const entitySchema = z.object({
   }),
 });
 
-type EntityData = z.infer<typeof entitySchema>;
+// type EntityData = z.infer<typeof entitySchema>;
 
 interface DataTableProps {
   data: ProjectEntity[];
@@ -115,7 +115,7 @@ interface DataTableProps {
 }
 
 // Create a separate component for the drag handle
-function DragHandle({ id, disabled }: { id: string; disabled?: boolean }) {
+function DragHandle({ disabled }: { disabled?: boolean }) {
   if (disabled) {
     return (
       <div className="p-1 opacity-30" title="Clear sorting to enable drag and drop">
@@ -133,7 +133,7 @@ function DragHandle({ id, disabled }: { id: string; disabled?: boolean }) {
   );
 }
 
-function DraggableRow({ row, projectId, isSorted }: { row: Row<ProjectEntity>; projectId: string; isSorted: boolean }) {
+function DraggableRow({ row, isSorted }: { row: Row<ProjectEntity>; isSorted: boolean }) {
   const sortableId = row.original.project_entity_id;
   
   const {
@@ -304,7 +304,7 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
     try {
       await navigator.clipboard.writeText(text);
       toast.success(`${label} copied successfully`);
-    } catch (err) {
+    } catch {
       toast.error("Unable to copy to clipboard");
     }
   };
@@ -315,9 +315,8 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
     {
       id: "drag",
       header: () => null,
-      cell: ({ row }) => (
+      cell: () => (
         <DragHandle 
-          id={row.original.project_entity_id} 
           disabled={sorting.length > 0}
         />
       ),
@@ -871,7 +870,6 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
                     <DraggableRow 
                       key={row.id} 
                       row={row} 
-                      projectId={projectId}
                       isSorted={sorting.length > 0}
                     />
                   ))}

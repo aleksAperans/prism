@@ -12,8 +12,7 @@ import {
   Play,
   X,
   FolderOpen,
-  Plus,
-  Minimize2
+  Plus
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';

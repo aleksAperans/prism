@@ -3,25 +3,25 @@ import { loadDefaultRiskProfile, loadRiskProfileById } from '@/lib/risk-scoring'
 import { auth } from '@/lib/auth';
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+// import yaml from 'js-yaml';
 
-interface YamlRiskProfile {
-  name: string;
-  description: string;
-  version: string;
-  created_at: string;
-  created_by: string;
-  is_default: boolean;
-  risk_scoring_enabled: boolean;
-  risk_threshold: number;
-  enabled_factors: string[];
-  risk_scores: Record<string, number>;
-  categories: Record<string, {
-    name: string;
-    description: string;
-    enabled: boolean;
-  }>;
-}
+// interface YamlRiskProfile {
+//   name: string;
+//   description: string;
+//   version: string;
+//   created_at: string;
+//   created_by: string;
+//   is_default: boolean;
+//   risk_scoring_enabled: boolean;
+//   risk_threshold: number;
+//   enabled_factors: string[];
+//   risk_scores: Record<string, number>;
+//   categories: Record<string, {
+//     name: string;
+//     description: string;
+//     enabled: boolean;
+//   }>;
+// }
 
 // Global settings storage (in production, this would be in a database)
 const GLOBAL_SETTINGS_FILE = path.join(process.cwd(), 'src', 'lib', 'global-settings.json');

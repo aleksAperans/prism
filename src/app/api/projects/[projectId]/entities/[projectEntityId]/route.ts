@@ -34,7 +34,7 @@ export async function DELETE(
     let errorMessage = 'Failed to remove entity from project';
     
     if (error && typeof error === 'object' && 'response' in error) {
-      const apiError = error as any;
+      const apiError = error as { response?: { status?: number; data?: { message?: string } } };
       if (apiError.response?.status === 429) {
         statusCode = 429;
         errorMessage = 'Rate limit exceeded. Please try again in a moment.';

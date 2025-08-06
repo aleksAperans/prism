@@ -258,8 +258,7 @@ export function saveRecentSearch(
     const filtered = searches.filter(s => 
       !(s.name === searchData.name && 
         s.type === searchData.type && 
-        s.country === searchData.country &&
-        s.profile === searchData.profile)
+        s.country === searchData.country)
     );
     
     // Add new search at the beginning

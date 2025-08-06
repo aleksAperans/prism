@@ -6,9 +6,9 @@ import path from 'path';
 const SETTINGS_FILE_PATH = path.join(process.cwd(), 'src/lib/global-settings.json');
 
 const VALID_PROFILES = ['corporate', 'suppliers', 'search', 'screen'] as const;
-type MatchProfile = typeof VALID_PROFILES[number];
+// type MatchProfile = typeof VALID_PROFILES[number];
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const session = await auth();
@@ -67,7 +67,7 @@ export async function PUT(request: NextRequest) {
     try {
       const settingsContent = await fs.readFile(SETTINGS_FILE_PATH, 'utf-8');
       settings = JSON.parse(settingsContent);
-    } catch (error) {
+    } catch {
       // If file doesn't exist, create default settings
       settings = {
         active_risk_profile_id: 'core',
