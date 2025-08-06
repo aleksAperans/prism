@@ -1,62 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadDefaultRiskProfile, loadRiskProfileById } from '@/lib/risk-scoring';
 import { auth } from '@/lib/auth';
-import fs from 'fs';
-import path from 'path';
-// import yaml from 'js-yaml';
-
-// interface YamlRiskProfile {
-//   name: string;
-//   description: string;
-//   version: string;
-//   created_at: string;
-//   created_by: string;
-//   is_default: boolean;
-//   risk_scoring_enabled: boolean;
-//   risk_threshold: number;
-//   enabled_factors: string[];
-//   risk_scores: Record<string, number>;
-//   categories: Record<string, {
-//     name: string;
-//     description: string;
-//     enabled: boolean;
-//   }>;
-// }
-
-// Global settings storage (in production, this would be in a database)
-const GLOBAL_SETTINGS_FILE = path.join(process.cwd(), 'src', 'lib', 'global-settings.json');
-
-interface GlobalSettings {
-  active_risk_profile_id: string;
-  updated_at: string;
-  updated_by: string;
-}
-
-function loadGlobalSettings(): GlobalSettings | null {
-  try {
-    if (fs.existsSync(GLOBAL_SETTINGS_FILE)) {
-      const content = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
-      return JSON.parse(content);
-    }
-  } catch (error) {
-    console.error('Error loading global settings:', error);
-  }
-  return null;
-}
-
-function saveGlobalSettings(settings: GlobalSettings): void {
-  try {
-    fs.writeFileSync(GLOBAL_SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
-  } catch (error) {
-    console.error('Error saving global settings:', error);
-    throw error;
-  }
-}
+import { readGlobalSettings, writeGlobalSettings } from '@/lib/global-settings';
 
 export async function GET() {
   try {
     // Load global settings
-    const globalSettings = loadGlobalSettings();
+    const globalSettings = await readGlobalSettings();
     
     let profile;
     if (globalSettings?.active_risk_profile_id) {
@@ -120,13 +70,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Save global settings
-    const globalSettings: GlobalSettings = {
+    const globalSettings = {
       active_risk_profile_id: profileId,
+      default_match_profile: 'corporate' as const,
       updated_at: new Date().toISOString(),
       updated_by: session.user.id || session.user.email || 'unknown'
     };
 
-    saveGlobalSettings(globalSettings);
+    await writeGlobalSettings(globalSettings);
 
     console.log(`✅ Global active risk profile set to: ${profile.name} (${profileId})`);
 

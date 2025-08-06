@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { getInMemorySettings, setInMemorySettings } from './global-settings-store';
 
 const SETTINGS_FILE_PATH = path.join(process.cwd(), 'src/lib/global-settings.json');
 
@@ -10,7 +11,16 @@ interface GlobalSettings {
   updated_by: string;
 }
 
+// Check if we're in a serverless/production environment
+const isServerless = process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
 export async function readGlobalSettings(): Promise<GlobalSettings> {
+  // In serverless environments, use in-memory store
+  if (isServerless) {
+    return getInMemorySettings();
+  }
+
+  // In development, try to read from file
   try {
     const settingsContent = await fs.readFile(SETTINGS_FILE_PATH, 'utf-8');
     const settings = JSON.parse(settingsContent);
@@ -34,6 +44,13 @@ export async function readGlobalSettings(): Promise<GlobalSettings> {
 }
 
 export async function writeGlobalSettings(settings: GlobalSettings): Promise<void> {
+  // In serverless environments, use in-memory store
+  if (isServerless) {
+    setInMemorySettings(settings);
+    return;
+  }
+
+  // In development, write to file
   try {
     await fs.writeFile(
       SETTINGS_FILE_PATH,
