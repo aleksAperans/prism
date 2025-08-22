@@ -1,5 +1,6 @@
 {
-  "active_risk_profile_id": "core",
-  "updated_at": "2025-08-06T16:55:15.382Z",
+  "active_risk_profile_id": "sanctions-non-psa",
+  "default_match_profile": "corporate",
+  "updated_at": "2025-08-22T23:01:19.823Z",
   "updated_by": "1"
 }
