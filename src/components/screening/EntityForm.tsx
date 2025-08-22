@@ -107,14 +107,6 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
   }, [activeProfile?.id, form]);
 
 
-  // Handle project selection change
-  const handleProjectChange = (value: string) => {
-    if (value === 'create-new') {
-      setShowCreateProject(true);
-    } else {
-      form.setValue('project_id', value);
-    }
-  };
 
   // Handle project creation success
   const handleProjectCreated = async () => {
@@ -330,6 +322,14 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
               render={({ field }) => {
                 const selectedProject = projects.find(p => p.id === field.value);
                 
+                const handleProjectChange = (value: string) => {
+                  if (value === 'create-new') {
+                    setShowCreateProject(true);
+                  } else {
+                    field.onChange(value);
+                  }
+                };
+                
                 return (
                 <FormItem>
                   <Collapsible 
@@ -366,27 +366,18 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
                     </div>
                     <CollapsibleContent>
                       <FormControl>
-                        <Select 
-                          onValueChange={handleProjectChange} 
-                          value={field.value}
-                          disabled={isLoading || projectsLoading}
-                        >
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select a project" />
-                          </SelectTrigger>
-                      <SelectContent>
                         {projectsError ? (
-                          <div className="p-2 text-sm text-red-600 flex items-center">
+                          <div className="mt-2 p-2 text-sm text-red-600 flex items-center border rounded-md">
                             <AlertCircle className="mr-2 h-4 w-4" />
                             Failed to load projects
                           </div>
                         ) : projectsLoading ? (
-                          <div className="p-2 text-sm text-muted-foreground flex items-center">
+                          <div className="mt-2 p-2 text-sm text-muted-foreground flex items-center border rounded-md">
                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-primary" />
                             Loading projects...
                           </div>
                         ) : projects.length === 0 ? (
-                          <div className="p-2 space-y-2">
+                          <div className="mt-2 p-2 space-y-2 border rounded-md">
                             <div className="text-sm text-muted-foreground flex items-center">
                               <FolderOpen className="mr-2 h-4 w-4" />
                               No projects available
@@ -413,30 +404,31 @@ export function EntityForm({ onSubmit, onFormReady, className, isLoading = false
                             </Button>
                           </div>
                         ) : (
-                          <>
+                        <Select 
+                          onValueChange={handleProjectChange} 
+                          value={field.value}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select a project" />
+                          </SelectTrigger>
+                          <SelectContent>
                             {projects.map((project) => (
                               <SelectItem key={project.id} value={project.id}>
-                                <div className="flex items-center justify-between w-full">
-                                  <div className="flex items-center">
-                                    <FolderOpen className="mr-2 h-4 w-4 text-muted-foreground" />
-                                    <span className="font-medium">{project.label}</span>
-                                  </div>
-                                  <span className="text-xs text-muted-foreground ml-4">
-                                    {project.counts.entity} entities
-                                  </span>
-                                </div>
+                                <FolderOpen className="mr-2 h-4 w-4 text-muted-foreground" />
+                                <span>{project.label}</span>
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ({project.counts.entity})
+                                </span>
                               </SelectItem>
                             ))}
                             <SelectItem value="create-new" className="border-t">
-                              <div className="flex items-center text-primary">
-                                <Plus className="mr-2 h-4 w-4" />
-                                <span className="font-medium">Create New Project</span>
-                              </div>
+                              <Plus className="mr-2 h-4 w-4" />
+                              <span>Create New Project</span>
                             </SelectItem>
-                          </>
-                        )}
-                      </SelectContent>
+                          </SelectContent>
                         </Select>
+                        )}
                       </FormControl>
                     </CollapsibleContent>
                   </Collapsible>

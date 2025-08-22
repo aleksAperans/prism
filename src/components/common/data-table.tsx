@@ -905,9 +905,9 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
               }}
             >
               <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue placeholder={table.getState().pagination.pageSize} />
+                <SelectValue placeholder={String(table.getState().pagination.pageSize)} />
               </SelectTrigger>
-              <SelectContent side="top">
+              <SelectContent>
                 {[10, 20, 30, 40, 50].map((pageSize) => (
                   <SelectItem key={pageSize} value={`${pageSize}`}>
                     {pageSize}

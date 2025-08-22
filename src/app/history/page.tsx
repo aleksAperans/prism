@@ -185,7 +185,7 @@ export default function HistoryPage() {
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Entity Type</label>
-                <Select value={filterType} onValueChange={(value: 'all' | 'company' | 'person') => setFilterType(value)}>
+                <Select value={filterType} onValueChange={(value) => setFilterType(value as 'all' | 'company' | 'person')}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -199,7 +199,7 @@ export default function HistoryPage() {
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Risk Status</label>
-                <Select value={filterRisk} onValueChange={(value: 'all' | 'has_risks' | 'no_risks') => setFilterRisk(value)}>
+                <Select value={filterRisk} onValueChange={(value) => setFilterRisk(value as 'all' | 'has_risks' | 'no_risks')}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
