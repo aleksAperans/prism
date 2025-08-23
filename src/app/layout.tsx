@@ -10,6 +10,7 @@ import { BreadcrumbProvider } from "@/components/providers/BreadcrumbProvider";
 import { RiskProfileProvider } from "@/contexts/RiskProfileContext";
 import { BatchUploadProvider } from "@/contexts/BatchUploadContext";
 import { GlobalBatchUploadPanel } from "@/components/common/GlobalBatchUploadPanel";
+import { PointerEventFix } from "@/components/providers/PointerEventFix";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geist.className} antialiased`}>
+        <PointerEventFix />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
