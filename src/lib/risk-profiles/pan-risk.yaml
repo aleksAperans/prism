@@ -45,3 +45,49 @@ enabled_factors:
   - regulatory_action
   - usa_bis_meu
   - cmic_entity
+risk_scores:
+  # Export Controls - Higher scores for direct violations
+  exports_to_usa_bis_meu_entity: 3
+  exports_to_usa_section_1260h_entity: 3
+  export_controls_section_1260h: 3
+  export_controls_bis_meu_50_percent_rule: 1
+  ndaa_889_covered_entities: 3
+  owned_by_usa_bis_meu_entity: 3
+  owned_by_usa_section_1260h_entity: 3
+  usa_bis_meu: 5
+  subsidiary_of_ndaa_889_covered_entities: 1
+  
+  # PSA factors - Medium scores
+  psa_owned_by_cmic_entity: 3
+  psa_owned_by_usa_section_1260h_entity: 3
+  psa_owner_of_usa_bis_denied_persons_entity: 3
+  psa_exports_conflict_minerals: 1
+  psa_owner_of_forced_labor_xinjiang_uflpa: 3
+  
+  # Forced Labor - Higher scores for direct involvement
+  forced_labor_sheffield_hallam_university_reports_origin_direct: 3
+  forced_labor_uflpa_origin_direct: 3
+  forced_labor_wro_origin_direct: 3
+  forced_labor_xinjiang_origin_direct: 3
+  sheffield_hallam_university_forced_labor_entity: 5
+  forced_labor_china_keywords: 3
+  forced_labor_xinjiang_name: 3
+  former_wro_entity: 3
+  sheffield_hallam_university_forced_labor_reports_intermediary_entity: 3
+  owned_by_sheffield_hallam_university_reports_forced_labor_entity: 3
+  owned_by_forced_labor_xinjiang_uflpa: 3
+  owned_by_wro_entity: 3
+  owned_by_xinjiang_entity: 3
+  owner_of_sheffield_hallam_university_reports_forced_labor_entity: 3
+  owner_of_forced_labor_xinjiang_uflpa: 3
+  owner_of_wro_entity: 3
+  owner_of_forced_labor_xinjiang_entity: 3
+  forced_labor_xinjiang_uflpa: 5
+  wro_entity: 5
+  forced_labor_xinjiang_contractors: 3
+  forced_labor_xinjiang_geospatial: 3
+  forced_labor_xinjiang_registration: 3
+  
+  # Regulatory
+  regulatory_action: 3
+  cmic_entity: 5
