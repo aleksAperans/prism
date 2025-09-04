@@ -1,0 +1,47 @@
+name: PAN-RISK
+description: Comprehensive risk profile covering export controls, forced labor, and regulatory compliance
+version: '1.0'
+created_at: '2025-01-04T00:00:00.000Z'
+created_by: system
+is_default: false
+risk_scoring_enabled: true
+risk_threshold: 5
+enabled_factors:
+  - exports_to_usa_bis_meu_entity
+  - exports_to_usa_section_1260h_entity
+  - export_controls_section_1260h
+  - export_controls_bis_meu_50_percent_rule
+  - ndaa_889_covered_entities
+  - owned_by_usa_bis_meu_entity
+  - psa_owned_by_cmic_entity
+  - owned_by_usa_section_1260h_entity
+  - psa_owned_by_usa_section_1260h_entity
+  - psa_owner_of_usa_bis_denied_persons_entity
+  - subsidiary_of_ndaa_889_covered_entities
+  - psa_exports_conflict_minerals
+  - forced_labor_sheffield_hallam_university_reports_origin_direct
+  - forced_labor_uflpa_origin_direct
+  - forced_labor_wro_origin_direct
+  - forced_labor_xinjiang_origin_direct
+  - sheffield_hallam_university_forced_labor_entity
+  - forced_labor_china_keywords
+  - forced_labor_xinjiang_name
+  - former_wro_entity
+  - sheffield_hallam_university_forced_labor_reports_intermediary_entity
+  - owned_by_sheffield_hallam_university_reports_forced_labor_entity
+  - owned_by_forced_labor_xinjiang_uflpa
+  - owned_by_wro_entity
+  - owned_by_xinjiang_entity
+  - owner_of_sheffield_hallam_university_reports_forced_labor_entity
+  - owner_of_forced_labor_xinjiang_uflpa
+  - psa_owner_of_forced_labor_xinjiang_uflpa
+  - owner_of_wro_entity
+  - owner_of_forced_labor_xinjiang_entity
+  - forced_labor_xinjiang_uflpa
+  - wro_entity
+  - forced_labor_xinjiang_contractors
+  - forced_labor_xinjiang_geospatial
+  - forced_labor_xinjiang_registration
+  - regulatory_action
+  - usa_bis_meu
+  - cmic_entity
