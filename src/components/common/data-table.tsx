@@ -207,7 +207,12 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
   const getEntityType = (entity: ProjectEntity): string => {
     // Check entity type from attributes
     if (entity.attributes?.type?.values?.length > 0) {
-      return entity.attributes.type.values[0];
+      const typeValue = entity.attributes.type.values[0];
+      // Handle both object and string formats
+      if (typeof typeValue === 'object' && typeValue?.value) {
+        return typeValue.value;
+      }
+      return typeValue;
     }
     return 'company';
   };
