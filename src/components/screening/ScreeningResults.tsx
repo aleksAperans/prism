@@ -371,10 +371,18 @@ export function ScreeningResults({
       )}
 
       {localResults.map((result) => {
-        // Determine if there are risks for card border styling
-        const hasRisks = Array.isArray(result.risk_factors) 
-          ? result.risk_factors.length > 0 
-          : Object.keys(result.risk_factors || {}).length > 0;
+        // Convert risk factors to standardized array format
+        const entityRiskFactors = Array.isArray(result.risk_factors)
+          ? result.risk_factors.map(rf => ({ id: typeof rf === 'string' ? rf : rf.factor || rf.id || '' }))
+          : Object.keys(result.risk_factors || {}).map(id => ({ id }));
+        
+        // Apply risk profile filtering to entity-level risk factors
+        const filteredEntityRiskFactors = riskProfile 
+          ? filterRiskFactorsByProfile(entityRiskFactors, riskProfile)
+          : entityRiskFactors;
+        
+        // Determine if there are risks for card border styling (using filtered factors)
+        const hasRisks = filteredEntityRiskFactors.length > 0;
 
         return (
           <Card key={result.id}>
@@ -476,7 +484,7 @@ export function ScreeningResults({
                                 <ShieldAlert className="h-4 w-4 text-black dark:text-white flex-shrink-0" />
                                 <span className="truncate">Risk Assessment</span>
                                 <Badge variant="outline" className="text-xs whitespace-nowrap flex-shrink-0">
-                                  {Array.isArray(result.risk_factors) ? result.risk_factors.length : Object.keys(result.risk_factors || {}).length}
+                                  {filteredEntityRiskFactors.length}
                                 </Badge>
                                 {/* Risk Score Display - Only show for actual matches */}
                                 {result.risk_score && 
@@ -500,7 +508,7 @@ export function ScreeningResults({
                             {hasRisks && (
                               <div className="hidden sm:block">
                                 <RiskLevelBadges 
-                                  counts={calculateLevelCounts(result.risk_factors)}
+                                  counts={calculateLevelCounts(filteredEntityRiskFactors)}
                                   size="sm"
                                 />
                               </div>
@@ -516,7 +524,7 @@ export function ScreeningResults({
                         {hasRisks && (
                           <div className="sm:hidden mt-2">
                             <RiskLevelBadges 
-                              counts={calculateLevelCounts(result.risk_factors)}
+                              counts={calculateLevelCounts(filteredEntityRiskFactors)}
                               size="sm"
                             />
                           </div>
@@ -528,7 +536,7 @@ export function ScreeningResults({
                   <CollapsibleContent>
                     <div className="mt-3">
                       <RiskFactorsDisplay 
-                        riskFactors={result.risk_factors}
+                        riskFactors={filteredEntityRiskFactors}
                         showTitle={false}
                         riskScores={result.risk_score?.triggeredRiskFactors?.reduce((acc, rf) => {
                           acc[rf.id] = rf.score;
