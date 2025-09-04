@@ -209,10 +209,10 @@ export function DataTable({ data, projectId, onEntitySelect, onEntityDelete }: D
     if (entity.attributes?.type?.values?.length > 0) {
       const typeValue = entity.attributes.type.values[0];
       // Handle both object and string formats
-      if (typeof typeValue === 'object' && typeValue?.value) {
-        return typeValue.value;
+      if (typeValue && typeof typeValue === 'object' && 'value' in typeValue) {
+        return (typeValue as { value: string }).value;
       }
-      return typeValue;
+      return typeValue || 'company';
     }
     return 'company';
   };

@@ -162,11 +162,13 @@ export default async function EntityProfilePage({ params }: EntityProfilePagePro
                 
                 {/* Badges */}
                 <div className="flex flex-wrap gap-2">
-                  <EntityTypeBadge type={
-                    typeof entity.attributes?.type?.values?.[0] === 'object' && entity.attributes?.type?.values?.[0]?.value
-                      ? entity.attributes.type.values[0].value
-                      : entity.attributes?.type?.values?.[0] || 'unknown'
-                  } />
+                  <EntityTypeBadge type={(() => {
+                    const typeValue = entity.attributes?.type?.values?.[0];
+                    if (typeValue && typeof typeValue === 'object' && 'value' in typeValue) {
+                      return (typeValue as { value: string }).value;
+                    }
+                    return typeValue || 'unknown';
+                  })()} />
                   
                   {entity.strength && (
                     <Badge 
