@@ -373,7 +373,16 @@ export function ScreeningResults({
       {localResults.map((result) => {
         // Convert risk factors to standardized array format
         const entityRiskFactors = Array.isArray(result.risk_factors)
-          ? result.risk_factors.map(rf => ({ id: typeof rf === 'string' ? rf : rf.factor || rf.id || '' }))
+          ? result.risk_factors.map(rf => {
+              if (typeof rf === 'string') {
+                return { id: rf };
+              } else if (typeof rf === 'object' && rf !== null) {
+                // Handle both RiskFactor type (with factor property) and other formats
+                const factorObj = rf as RiskFactor & { id?: string };
+                return { id: factorObj.factor || factorObj.id || '' };
+              }
+              return { id: '' };
+            })
           : Object.keys(result.risk_factors || {}).map(id => ({ id }));
         
         // Apply risk profile filtering to entity-level risk factors
