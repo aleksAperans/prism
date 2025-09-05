@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import NextAuthSessionProvider from "@/components/common/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -62,6 +63,7 @@ export default function RootLayout({
             </RiskProfileProvider>
           </NextAuthSessionProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
