@@ -1,0 +1,85 @@
+name: XOM-ABAC
+description: XOM ABAC Risk Profile
+version: '1.0'
+created_at: '2025-09-12T00:00:00.000Z'
+created_by: user
+is_default: false
+risk_scoring_enabled: true
+risk_threshold: 5
+enabled_factors:
+  - reputational_risk_bribery_and_corruption
+  - law_enforcement_action
+  - reputational_risk_organized_crime
+  - reputational_risk_other
+  - reputational_risk_terrorism
+  - owned_by_soe
+  - owner_of_soe
+  - pep
+  - psa_state_owned
+  - psa_pep
+  - pep_adjacent
+  - soe_adjacent
+  - state_owned
+  - owner_of_regulatory_action_entity
+  - psa_regulatory_action
+  - regulatory_action
+  - cpi_score
+  - formerly_sanctioned
+  - owner_of_sanctioned_entity
+risk_scores:
+  reputational_risk_bribery_and_corruption: 1
+  law_enforcement_action: 1
+  reputational_risk_organized_crime: 1
+  reputational_risk_other: 1
+  reputational_risk_terrorism: 1
+  owned_by_soe: 3
+  owner_of_soe: 3
+  pep: 3
+  psa_state_owned: 3
+  psa_pep: 3
+  pep_adjacent: 1
+  soe_adjacent: 1
+  state_owned: 3
+  owner_of_regulatory_action_entity: 3
+  psa_regulatory_action: 3
+  regulatory_action: 3
+  cpi_score: 1
+  formerly_sanctioned: 3
+  owner_of_sanctioned_entity: 3
+categories:
+  adverse_media:
+    name: Adverse Media
+    description: Negative news and media coverage
+    enabled: true
+  forced_labor:
+    name: Forced Labor
+    description: Forced labor and human trafficking
+    enabled: false
+  regulatory_action:
+    name: Regulatory Action
+    description: Regulatory enforcement actions
+    enabled: true
+  environmental_risk:
+    name: Environmental Risk
+    description: Environmental violations and risks
+    enabled: false
+  export_controls:
+    name: Export Controls
+    description: Export control lists and restrictions
+    enabled: false
+  political_exposure:
+    name: Political Exposure
+    description: Politically exposed persons
+    enabled: true
+  relevant:
+    name: Relevant
+    description: Other relevant risk indicators
+    enabled: true
+  sanctions:
+    name: Sanctions
+    description: International sanctions lists
+    enabled: true
+  sanctions_and_export_control_lists:
+    name: Sanctions And Export Control Lists
+    description: Risk factor category
+    enabled: false

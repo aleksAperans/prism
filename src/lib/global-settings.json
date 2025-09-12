@@ -1,6 +1,6 @@
 {
-  "active_risk_profile_id": "sanctions-non-psa",
+  "active_risk_profile_id": "XOM-ABAC",
   "default_match_profile": "corporate",
-  "updated_at": "2025-08-22T23:32:56.715Z",
-  "updated_by": "1"
+  "updated_at": "2025-09-12T13:37:52.768Z",
+  "updated_by": "2"
 }
