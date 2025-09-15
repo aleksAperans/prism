@@ -17,6 +17,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { PrismIcon } from '@/components/icons';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -85,7 +86,12 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex h-12 items-center px-4">
           <PrismIcon className="mr-2 h-6 w-6 text-sidebar-primary" size={24} />
-          <h1 className="text-xl font-semibold text-sidebar-foreground">Prism</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-sidebar-foreground">Prism</h1>
+            <Badge variant="secondary" className="text-xs font-medium px-2 py-1">
+              Demo PoC Only
+            </Badge>
+          </div>
         </div>
       </SidebarHeader>
       
