@@ -43,14 +43,9 @@ export default function SignInPage() {
     }
   };
 
-  const fillDemoCredentials = (type: 'admin' | 'user') => {
-    if (type === 'admin') {
-      setEmail('aleksaperans@protonmail.com');
-      setPassword('admin123');
-    } else {
-      setEmail('demo@prism-screening.com');
-      setPassword('prism-demo-123');
-    }
+  const fillDemoCredentials = () => {
+    setEmail('demo@prism-screening.com');
+    setPassword('prism-demo-123');
   };
 
   return (
@@ -133,16 +128,7 @@ export default function SignInPage() {
               variant="outline" 
               size="sm" 
               className="w-full text-xs" 
-              onClick={() => fillDemoCredentials('admin')}
-              type="button"
-            >
-              Admin User (aleksaperans@protonmail.com)
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full text-xs" 
-              onClick={() => fillDemoCredentials('user')}
+              onClick={() => fillDemoCredentials()}
               type="button"
             >
               Demo User (demo@prism-screening.com)

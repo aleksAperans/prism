@@ -34,13 +34,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const demoUsers = [
           {
             id: '1',
-            email: 'aleksaperans@protonmail.com',
-            password: 'admin123', // In production, this would be hashed
-            name: 'Aleks Aperans',
-            role: 'admin',
-          },
-          {
-            id: '2',
             email: 'demo@prism-screening.com',
             password: 'prism-demo-123', // In production, this would be hashed
             name: 'Prism Demo User',
