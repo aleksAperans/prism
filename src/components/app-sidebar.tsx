@@ -88,8 +88,8 @@ export function AppSidebar() {
           <PrismIcon className="mr-2 h-6 w-6 text-sidebar-primary" size={24} />
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-sidebar-foreground">Prism</h1>
-            <Badge variant="secondary" className="text-xs font-medium px-2 py-1">
-              Demo PoC Only
+            <Badge variant="outline" className="text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-700">
+              Demo PoC
             </Badge>
           </div>
         </div>
