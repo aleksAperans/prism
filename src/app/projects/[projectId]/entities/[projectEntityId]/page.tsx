@@ -379,18 +379,25 @@ export default async function EntityProfilePage({
               // Transform attributes to ensure values are arrays of strings
               if (!entity.attributes) return undefined;
 
-              const transformed: any = {};
+              const transformed: Record<
+                string,
+                { resolve: boolean; values: string[] }
+              > = {};
               for (const [key, attr] of Object.entries(entity.attributes)) {
                 if (attr && typeof attr === "object" && "values" in attr) {
                   // Transform values array to ensure strings
-                  const values = (attr as any).values.map((v: any) => {
+                  const attrObj = attr as {
+                    resolve?: boolean;
+                    values: unknown[];
+                  };
+                  const values = attrObj.values.map((v: unknown) => {
                     if (typeof v === "object" && v !== null && "value" in v) {
-                      return v.value;
+                      return (v as { value: string }).value;
                     }
-                    return v;
+                    return String(v);
                   });
                   transformed[key] = {
-                    resolve: (attr as any).resolve || false,
+                    resolve: attrObj.resolve || false,
                     values: values,
                   };
                 }
