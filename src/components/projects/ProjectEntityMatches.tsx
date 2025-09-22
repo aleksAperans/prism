@@ -14,7 +14,6 @@ import {
   Building,
   Trash2,
   ChevronRight,
-  FileText,
   ShieldAlert,
   User,
   Database,
@@ -537,11 +536,11 @@ export function ProjectEntityMatches({
                             <MatchExplanation
                               matchExplanation={match.match_explanation}
                             />
-                          ) : (
+                          ) : match.matched_attributes ? (
                             <MatchedAttributesDisplay
                               matchedAttributes={match.matched_attributes}
                             />
-                          )}
+                          ) : null}
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
