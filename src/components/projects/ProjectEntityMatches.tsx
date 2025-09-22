@@ -425,7 +425,7 @@ export function ProjectEntityMatches({
 
         const hasRisks = filteredRiskFactors && filteredRiskFactors.length > 0;
         const areAttributesExpanded =
-          expandedAttributes[match.match_id] ?? true;
+          expandedAttributes[match.match_id] ?? false;
         const isRiskSectionExpanded =
           expandedRiskSections[match.match_id] ?? true;
         const isSourcesSectionExpanded =
@@ -508,45 +508,7 @@ export function ProjectEntityMatches({
               <CollapsibleContent>
                 <Separator />
                 <div className="p-4 space-y-3">
-                  {/* Match Explanation or Matched Attributes */}
-                  {(match.match_explanation || match.matched_attributes) && (
-                    <Collapsible open={areAttributesExpanded}>
-                      <CollapsibleTrigger asChild>
-                        <button
-                          className="w-full flex items-center justify-between py-2 px-3 rounded-md hover:bg-accent transition-colors"
-                          onClick={() => toggleAttributes(match.match_id)}
-                        >
-                          <div className="flex items-center gap-2 text-sm font-medium">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            {match.match_explanation
-                              ? "Match Explanation"
-                              : "Matched Attributes"}
-                          </div>
-                          <ChevronRight
-                            className={cn(
-                              "h-4 w-4 transition-transform text-muted-foreground",
-                              areAttributesExpanded && "rotate-90",
-                            )}
-                          />
-                        </button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="pl-6 pb-2 pt-2">
-                          {match.match_explanation ? (
-                            <MatchExplanation
-                              matchExplanation={match.match_explanation}
-                            />
-                          ) : match.matched_attributes ? (
-                            <MatchedAttributesDisplay
-                              matchedAttributes={match.matched_attributes}
-                            />
-                          ) : null}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  )}
-
-                  {/* Risk Assessment */}
+                  {/* Risk Assessment - moved to appear first */}
                   {hasRisks && (
                     <Collapsible open={isRiskSectionExpanded}>
                       <CollapsibleTrigger asChild>
@@ -584,6 +546,44 @@ export function ProjectEntityMatches({
                             showTitle={false}
                             riskScores={riskScores}
                           />
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+
+                  {/* Match Explanation or Matched Attributes - now after Risk Assessment, starts collapsed */}
+                  {(match.match_explanation || match.matched_attributes) && (
+                    <Collapsible open={areAttributesExpanded}>
+                      <CollapsibleTrigger asChild>
+                        <button
+                          className="w-full flex items-center justify-between py-2 px-3 rounded-md hover:bg-accent transition-colors"
+                          onClick={() => toggleAttributes(match.match_id)}
+                        >
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            {match.match_explanation
+                              ? "Match Explanation"
+                              : "Matched Attributes"}
+                          </div>
+                          <ChevronRight
+                            className={cn(
+                              "h-4 w-4 transition-transform text-muted-foreground",
+                              areAttributesExpanded && "rotate-90",
+                            )}
+                          />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="pl-6 pb-2 pt-2">
+                          {match.match_explanation ? (
+                            <MatchExplanation
+                              matchExplanation={match.match_explanation}
+                            />
+                          ) : match.matched_attributes ? (
+                            <MatchedAttributesDisplay
+                              matchedAttributes={match.matched_attributes}
+                            />
+                          ) : null}
                         </div>
                       </CollapsibleContent>
                     </Collapsible>

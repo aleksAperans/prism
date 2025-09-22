@@ -24,6 +24,8 @@ import {
   Shield,
   Eye,
   User,
+  Database,
+  Network,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -38,7 +40,10 @@ import { MatchedAttributesDisplay } from "./MatchedAttributesDisplay";
 import { MatchRiskDisplay } from "./MatchRiskDisplay";
 import { MatchExplanation } from "./MatchExplanation";
 import { RiskLevelBadges } from "@/components/common/RiskLevelBadge";
-import { CountryBadgeList } from "@/components/common/CountryBadge";
+import {
+  CountryBadgeList,
+  CountryBadge,
+} from "@/components/common/CountryBadge";
 import { RiskScoreBadge } from "@/components/common/RiskScoreBadge";
 import { EntityTypeBadge } from "@/components/common/EntityTypeBadge";
 import riskFactorsData from "@/lib/risk-factors-data.json";
@@ -98,6 +103,13 @@ interface ScreeningResult {
       matches: string[];
       quality: "high" | "medium" | "low";
     }>;
+    sources?: Array<{
+      id: string;
+      label: string;
+      source_type: string;
+      country: string;
+    }>;
+    relationship_count?: Record<string, number>;
     countries: string[];
   }>;
   created_at: string;
@@ -144,6 +156,11 @@ export function ScreeningResults({
   const [expandedIndividualMatches, setExpandedIndividualMatches] = useState<
     Record<string, boolean>
   >({});
+  const [expandedSourcesSections, setExpandedSourcesSections] = useState<
+    Record<string, boolean>
+  >({});
+  const [expandedRelationshipsSections, setExpandedRelationshipsSections] =
+    useState<Record<string, boolean>>({});
   const [removingMatches, setRemovingMatches] = useState<
     Record<string, boolean>
   >({});
@@ -876,6 +893,18 @@ export function ScreeningResults({
 
                                 <CollapsibleContent>
                                   <div className="px-4 pb-4 space-y-3">
+                                    {/* Match-level risk display */}
+                                    <MatchRiskDisplay
+                                      matchId={match.match_id}
+                                      riskFactors={filterRiskFactorsByProfile(
+                                        match.risk_factors || [],
+                                        riskProfile,
+                                      )}
+                                      matchLabel={match.label}
+                                      className="mt-3"
+                                      riskScores={riskProfile?.riskScores}
+                                    />
+
                                     {/* Match Explanation or Matched Attributes display */}
                                     {(match.match_explanation ||
                                       match.matched_attributes) && (
@@ -883,14 +912,14 @@ export function ScreeningResults({
                                         open={
                                           expandedIndividualMatches[
                                             `${uniqueMatchKey}-attributes`
-                                          ] ?? true
+                                          ] ?? false
                                         }
                                         onOpenChange={() => {
                                           const key = `${uniqueMatchKey}-attributes`;
                                           setExpandedIndividualMatches(
                                             (prev) => ({
                                               ...prev,
-                                              [key]: !(prev[key] ?? true),
+                                              [key]: !(prev[key] ?? false),
                                             }),
                                           );
                                         }}
@@ -905,7 +934,7 @@ export function ScreeningResults({
                                             </div>
                                             {(expandedIndividualMatches[
                                               `${uniqueMatchKey}-attributes`
-                                            ] ?? true) ? (
+                                            ] ?? false) ? (
                                               <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                             ) : (
                                               <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -932,17 +961,310 @@ export function ScreeningResults({
                                       </Collapsible>
                                     )}
 
-                                    {/* Match-level risk display */}
-                                    <MatchRiskDisplay
-                                      matchId={match.match_id}
-                                      riskFactors={filterRiskFactorsByProfile(
-                                        match.risk_factors || [],
-                                        riskProfile,
+                                    {/* Sources */}
+                                    {match.sources &&
+                                      match.sources.length > 0 && (
+                                        <Collapsible
+                                          open={
+                                            expandedSourcesSections[
+                                              `${uniqueMatchKey}-sources`
+                                            ] ?? false
+                                          }
+                                          onOpenChange={() => {
+                                            const key = `${uniqueMatchKey}-sources`;
+                                            setExpandedSourcesSections(
+                                              (prev) => ({
+                                                ...prev,
+                                                [key]: !(prev[key] ?? false),
+                                              }),
+                                            );
+                                          }}
+                                        >
+                                          <CollapsibleTrigger asChild>
+                                            <button className="w-full flex items-center justify-between py-2 px-3 rounded-md hover:bg-accent transition-colors">
+                                              <div className="flex items-center justify-between w-full">
+                                                <div className="flex items-center gap-2 text-sm font-medium">
+                                                  <Database className="h-4 w-4 text-muted-foreground" />
+                                                  Sources
+                                                  <Badge
+                                                    variant="outline"
+                                                    className="text-xs"
+                                                  >
+                                                    {match.sources.length}
+                                                  </Badge>
+                                                </div>
+                                                {/* Source type badges - right aligned with overflow handling */}
+                                                <div className="flex items-center gap-2 ml-auto">
+                                                  {(() => {
+                                                    // Group sources by type and count them
+                                                    const sourceTypeCounts =
+                                                      match.sources.reduce(
+                                                        (acc, source) => {
+                                                          const formattedType =
+                                                            source.source_type
+                                                              .replace(
+                                                                /_/g,
+                                                                " ",
+                                                              )
+                                                              .replace(
+                                                                /\b\w/g,
+                                                                (l) =>
+                                                                  l.toUpperCase(),
+                                                              );
+                                                          acc[formattedType] =
+                                                            (acc[
+                                                              formattedType
+                                                            ] || 0) + 1;
+                                                          return acc;
+                                                        },
+                                                        {} as Record<
+                                                          string,
+                                                          number
+                                                        >,
+                                                      );
+
+                                                    const entries =
+                                                      Object.entries(
+                                                        sourceTypeCounts,
+                                                      ).sort(
+                                                        ([, a], [, b]) => b - a,
+                                                      ); // Sort by count descending
+                                                    const maxBadges = 3;
+                                                    const displayEntries =
+                                                      entries.slice(
+                                                        0,
+                                                        maxBadges,
+                                                      );
+                                                    const remainingCount =
+                                                      entries.length -
+                                                      maxBadges;
+
+                                                    return (
+                                                      <>
+                                                        {displayEntries.map(
+                                                          ([type, count]) => (
+                                                            <Badge
+                                                              key={type}
+                                                              variant="secondary"
+                                                              className="text-xs whitespace-nowrap"
+                                                            >
+                                                              {count} {type}
+                                                            </Badge>
+                                                          ),
+                                                        )}
+                                                        {remainingCount > 0 && (
+                                                          <Badge
+                                                            variant="outline"
+                                                            className="text-xs whitespace-nowrap"
+                                                          >
+                                                            +{remainingCount}{" "}
+                                                            more
+                                                          </Badge>
+                                                        )}
+                                                      </>
+                                                    );
+                                                  })()}
+                                                  {(expandedSourcesSections[
+                                                    `${uniqueMatchKey}-sources`
+                                                  ] ?? false) ? (
+                                                    <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                  ) : (
+                                                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </button>
+                                          </CollapsibleTrigger>
+                                          <CollapsibleContent>
+                                            <div className="pt-2 space-y-2">
+                                              {/* Sort sources by source_type for grouping */}
+                                              {match.sources
+                                                .sort((a, b) =>
+                                                  a.source_type.localeCompare(
+                                                    b.source_type,
+                                                  ),
+                                                )
+                                                .map((source, sourceIndex) => (
+                                                  <div
+                                                    key={
+                                                      source.id || sourceIndex
+                                                    }
+                                                    className="bg-card border rounded-md p-3 space-y-2"
+                                                  >
+                                                    {/* Source Label */}
+                                                    <div className="font-medium text-sm">
+                                                      {source.label}
+                                                    </div>
+
+                                                    {/* Source Type and Country */}
+                                                    <div className="flex items-center gap-2">
+                                                      <Badge
+                                                        variant="secondary"
+                                                        className="text-xs"
+                                                      >
+                                                        {source.source_type
+                                                          .replace(/_/g, " ")
+                                                          .replace(
+                                                            /\b\w/g,
+                                                            (l) =>
+                                                              l.toUpperCase(),
+                                                          )}
+                                                      </Badge>
+                                                      <CountryBadge
+                                                        countryCode={
+                                                          source.country
+                                                        }
+                                                        size="sm"
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                ))}
+                                            </div>
+                                          </CollapsibleContent>
+                                        </Collapsible>
                                       )}
-                                      matchLabel={match.label}
-                                      className="mt-3"
-                                      riskScores={riskProfile?.riskScores}
-                                    />
+
+                                    {/* Relationships */}
+                                    {match.relationship_count &&
+                                      Object.keys(match.relationship_count)
+                                        .length > 0 && (
+                                        <Collapsible
+                                          open={
+                                            expandedRelationshipsSections[
+                                              `${uniqueMatchKey}-relationships`
+                                            ] ?? false
+                                          }
+                                          onOpenChange={() => {
+                                            const key = `${uniqueMatchKey}-relationships`;
+                                            setExpandedRelationshipsSections(
+                                              (prev) => ({
+                                                ...prev,
+                                                [key]: !(prev[key] ?? false),
+                                              }),
+                                            );
+                                          }}
+                                        >
+                                          <CollapsibleTrigger asChild>
+                                            <button className="w-full flex items-center justify-between py-2 px-3 rounded-md hover:bg-accent transition-colors">
+                                              <div className="flex items-center justify-between w-full">
+                                                <div className="flex items-center gap-2 text-sm font-medium">
+                                                  <Network className="h-4 w-4 text-muted-foreground" />
+                                                  Relationships
+                                                  <Badge
+                                                    variant="outline"
+                                                    className="text-xs"
+                                                  >
+                                                    {Object.values(
+                                                      match.relationship_count,
+                                                    ).reduce(
+                                                      (sum, count) =>
+                                                        sum + count,
+                                                      0,
+                                                    )}
+                                                  </Badge>
+                                                </div>
+                                                {/* Relationship type badges - right aligned with overflow handling */}
+                                                <div className="flex items-center gap-2 ml-auto">
+                                                  {(() => {
+                                                    const entries =
+                                                      Object.entries(
+                                                        match.relationship_count,
+                                                      ).sort(
+                                                        ([, a], [, b]) => b - a,
+                                                      ); // Sort by count descending
+                                                    const maxBadges = 3;
+                                                    const displayEntries =
+                                                      entries.slice(
+                                                        0,
+                                                        maxBadges,
+                                                      );
+                                                    const remainingCount =
+                                                      entries.length -
+                                                      maxBadges;
+
+                                                    return (
+                                                      <>
+                                                        {displayEntries.map(
+                                                          ([type, count]) => (
+                                                            <Badge
+                                                              key={type}
+                                                              variant="secondary"
+                                                              className="text-xs whitespace-nowrap"
+                                                            >
+                                                              {count}{" "}
+                                                              {type.replace(
+                                                                /_/g,
+                                                                " ",
+                                                              )}
+                                                            </Badge>
+                                                          ),
+                                                        )}
+                                                        {remainingCount > 0 && (
+                                                          <Badge
+                                                            variant="outline"
+                                                            className="text-xs whitespace-nowrap"
+                                                          >
+                                                            +{remainingCount}{" "}
+                                                            more
+                                                          </Badge>
+                                                        )}
+                                                      </>
+                                                    );
+                                                  })()}
+                                                  {(expandedRelationshipsSections[
+                                                    `${uniqueMatchKey}-relationships`
+                                                  ] ?? false) ? (
+                                                    <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                  ) : (
+                                                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </button>
+                                          </CollapsibleTrigger>
+                                          <CollapsibleContent>
+                                            <div className="pt-2 space-y-2">
+                                              {/* Sort relationships by count descending (highest to lowest) */}
+                                              {Object.entries(
+                                                match.relationship_count,
+                                              )
+                                                .sort(([, a], [, b]) => b - a)
+                                                .map(([type, count]) => (
+                                                  <div
+                                                    key={type}
+                                                    className="bg-card border rounded-md p-3 space-y-2"
+                                                  >
+                                                    {/* Relationship Type */}
+                                                    <div className="flex items-center justify-between">
+                                                      <div className="font-medium text-sm">
+                                                        {type
+                                                          .replace(/_/g, " ")
+                                                          .replace(
+                                                            /\b\w/g,
+                                                            (l) =>
+                                                              l.toUpperCase(),
+                                                          )}
+                                                      </div>
+                                                      <Badge
+                                                        variant="outline"
+                                                        className="text-xs"
+                                                      >
+                                                        {count}
+                                                      </Badge>
+                                                    </div>
+
+                                                    {/* Relationship Description */}
+                                                    <div className="text-xs text-muted-foreground">
+                                                      {count} relationship
+                                                      {count !== 1 ? "s" : ""}{" "}
+                                                      of this type
+                                                    </div>
+                                                  </div>
+                                                ))}
+                                            </div>
+                                          </CollapsibleContent>
+                                        </Collapsible>
+                                      )}
                                   </div>
                                 </CollapsibleContent>
                               </Collapsible>
