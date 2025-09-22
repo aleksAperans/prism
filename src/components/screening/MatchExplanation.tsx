@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface MatchExplanationItem {
   field: string;
   matches: string[];
-  quality: 'high' | 'medium' | 'low';
+  quality: "high" | "medium" | "low";
 }
 
 interface MatchExplanationProps {
@@ -14,37 +14,29 @@ interface MatchExplanationProps {
   className?: string;
 }
 
-export function MatchExplanation({ matchExplanation, className }: MatchExplanationProps) {
+export function MatchExplanation({
+  matchExplanation,
+  className,
+}: MatchExplanationProps) {
   if (!matchExplanation || matchExplanation.length === 0) {
     return null;
   }
 
-  const getQualityColor = (quality: string) => {
+  const getQualityBadgeClasses = (quality: string) => {
     switch (quality) {
-      case 'high':
-        return 'text-green-600 dark:text-green-400';
-      case 'medium':
-        return 'text-yellow-600 dark:text-yellow-400';
-      case 'low':
-        return 'text-orange-600 dark:text-orange-400';
+      case "high":
+        return "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20";
+      case "medium":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20";
+      case "low":
+        return "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20";
       default:
-        return 'text-muted-foreground';
-    }
-  };
-
-  const getQualityBadgeVariant = (quality: string): 'default' | 'secondary' | 'outline' => {
-    switch (quality) {
-      case 'high':
-        return 'default';
-      case 'medium':
-        return 'secondary';
-      default:
-        return 'outline';
+        return "";
     }
   };
 
   const formatFieldName = (field: string) => {
-    return field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, ' ');
+    return field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, " ");
   };
 
   // Function to render text with highlighted matches
@@ -53,7 +45,7 @@ export function MatchExplanation({ matchExplanation, className }: MatchExplanati
     const parts = text.split(/(<em>.*?<\/em>)/g);
 
     return parts.map((part, index) => {
-      if (part.startsWith('<em>') && part.endsWith('</em>')) {
+      if (part.startsWith("<em>") && part.endsWith("</em>")) {
         // Extract the content between <em> tags
         const highlightedText = part.slice(4, -5);
         return (
@@ -78,10 +70,10 @@ export function MatchExplanation({ matchExplanation, className }: MatchExplanati
               {formatFieldName(item.field)}
             </span>
             <Badge
-              variant={getQualityBadgeVariant(item.quality)}
-              className={cn("text-xs", getQualityColor(item.quality))}
+              variant="outline"
+              className={cn("text-xs", getQualityBadgeClasses(item.quality))}
             >
-              {item.quality} match
+              {item.quality}
             </Badge>
           </div>
           <div className="space-y-1 pl-2">
